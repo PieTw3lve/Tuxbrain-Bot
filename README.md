@@ -1,2 +1,2 @@
-# Tux_Bot
+# Tux Bot
 A bot for the Tux servers.
