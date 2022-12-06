@@ -42,4 +42,4 @@ If you haven't already, you need to edit the `startup.py` file and enter your Bo
 - Hikari: https://github.com/hikari-py/hikari
 - Lightbulb: https://github.com/tandemdude/hikari-lightbulb
 - Miru: https://github.com/HyperGH/hikari-miru
-- Google Translate: https://pypi.org/project/googletrans-py/
+- Google Translate: https://github.com/ssut/py-googletrans
