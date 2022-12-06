@@ -34,8 +34,8 @@ python3 -m pip install -U googletrans-py
 py -3 -m pip install -U googletrans-py
 ```
 
-## Why is my Bot not working?
-If you haven't already, you need to edit the `startup.py` file and enter your Bot's token and your server's guild ID. Make sure to enable all intents through the [Discord Developer Portal](https://discord.com/developers/applications).
+## How do I run this Bot?
+If you haven't already, you need to edit the `startup.py` file and enter your Bot's token and your server's guild ID. Make sure to enable all intents through the [Discord Developer Portal](https://discord.com/developers/applications). Finally, run the bot.py file through console and you're set!
 
 ## Further reading
 
