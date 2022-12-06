@@ -6,8 +6,8 @@ import sqlite3
 
 import start
 
-TOKEN = start.TOKEN
-DEFAULT_GUILD_ID = start.DEFAULT_GUILD_ID
+TOKEN = startup.TOKEN
+DEFAULT_GUILD_ID = startup.DEFAULT_GUILD_ID
 
 bot = lightbulb.BotApp(
     token=TOKEN,
