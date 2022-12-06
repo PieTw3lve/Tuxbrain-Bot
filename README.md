@@ -3,7 +3,7 @@ Tux Bot is an open source, multi-use bot programmed by **Pie12#1069**. Tux Bot i
 
 Shoutouts to **Ryan#3388** and **BoboTheChimp#6164** for helping!
 
-## Requirements
+## Installation
 You will need to install a few dependencies for the Bot to function appropriately. Fortunately, there is a convenient way to install all the dependencies using only one command. This method requires the `requirements.txt` file included above. You can use it by running the first command below. However, if that method does not work, it is mandatory to install each dependency separately.
 
 ### Requirements.txt
