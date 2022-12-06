@@ -4,7 +4,7 @@ import lightbulb
 import miru
 import sqlite3
 
-import start
+import startup
 
 TOKEN = startup.TOKEN
 DEFAULT_GUILD_ID = startup.DEFAULT_GUILD_ID
