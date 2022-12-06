@@ -1,2 +1,53 @@
-# Tux Bot
-A bot for the Tux servers.
+## Description
+The Tux Bot is my very first Discord bot. This Discord bot is specifically for the Tux servers. However, feel free to run this bot for your personal use. Please check the license before performing any actions related to this bot. 
+
+Shoutouts to **Ryan#3388** and **BoboTheChimp#6164** for helping!
+
+## Requirements
+Before you can run this bot, you need a few dependencies:
+
+### Hikari
+Install Hikari with the following command:
+
+```
+python -m pip install -U hikari
+# Windows users may need to run this instead...
+py -3 -m pip install -U hikari
+```
+
+### Lightbulb
+Install Lightbulb with the following command:
+
+```
+python3 -m pip install -U hikari-lightbulb
+# Windows users may need to run this instead...
+py -3 -m pip install -U hikari-lightbulb
+```
+
+### Miru
+#### Note: Miru is currently not supported with Python 3.11+ 
+Install Miru with the following command:
+
+```
+python3 -m pip install -U hikari-miru
+# Windows users may need to run this instead...
+py -3 -m pip install -U hikari-miru
+```
+
+### Google Translate
+Install Google Translate with the following command:
+
+```
+python3 -m pip install -U googletrans-py
+# Windows users may need to run this instead...
+py -3 -m pip install -U googletrans-py
+```
+## Why is my Bot not working?
+If you haven't already, you need to edit the `startup.py` file and enter your Bot's token and your server's guild ID. Make sure to enable all intents through the [Discord Developer Portal](https://discord.com/developers/applications).
+
+## Further reading
+
+- Hikari: https://github.com/hikari-py/hikari
+- Lightbulb: https://github.com/tandemdude/hikari-lightbulb
+- Miru: https://github.com/HyperGH/hikari-miru
+- Google Translate: https://pypi.org/project/googletrans-py/
