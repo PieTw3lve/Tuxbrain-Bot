@@ -3,11 +3,21 @@ Tux Bot is an open source, multi-use bot programmed by **Pie12#1069**. Tux Bot i
 
 Shoutouts to **Ryan#3388** and **BoboTheChimp#6164** for helping!
 
+## Features
+
+- Customized Discord User Profiles 
+- Economy Manager and Interactable Games (Gambling!)
+- A Full Fledged out RPG System
+- Tux Rushsite Integration
+- Automatic Text Translation
+- Fun/Useless Commands
+- And Many More!
+
 ## Installation
-You will need to install a few dependencies for the Bot to function appropriately. Fortunately, there is a convenient way to install all the dependencies using only one command. This method requires the `requirements.txt` file included above. You can use it by running the first command below. However, if that method does not work, it is mandatory to install each dependency separately.
+You will need to install a few dependencies for the Bot to function appropriately. Fortunately, there is a convenient way to install these dependencies using only one command. This method requires the `requirements.txt` file included above. You can use it by running the first command below. However, if that method does not work, it is mandatory to install each dependency separately.
 
 ### Requirements.txt
-If this method does not work, you will have to install the dependency seperately below.
+You need Python version **3.11.0+** to install the pre-requisites.
 
 ```
 pip install -r requirements.txt
@@ -30,7 +40,6 @@ py -3 -m pip install -U hikari-lightbulb
 ```
 
 ### Miru
-Note: Miru is currently not supported with Python 3.11+ 
 
 ```
 python3 -m pip install -U hikari-miru
