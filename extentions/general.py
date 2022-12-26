@@ -38,7 +38,7 @@ class InfoView(miru.View):
         
         match option:
             case 'about':
-                embed = hikari.Embed(title='💬 About', description='Tux Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use bot programmed by **Pie12#1069**. Tux Bot is written in [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API for writing Discord Bot. Which means it is still in an **alpha** state, so expect some minor bugs! \n\nPlease mention or private message **Pie12#1069** if you find any bugs!', color=get_setting('embed_color'))
+                embed = hikari.Embed(title='💬 About', description='Tux Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use bot programmed by **Pie12#1069**. Tux Bot is written using [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API for writing Discord Bot. Which means it is still in an **alpha** state, so expect some minor bugs! \n\nPlease mention or private message **Pie12#1069** if you find any bugs!', color=get_setting('embed_color'))
                 embed.set_thumbnail(r'''profile\pie12.png''')
             case 'invite':
                 embed = hikari.Embed(title='🤖 Invite Bot', description='Currently, there is no way to invite Tux Bot to your own personal server. However, you can download and host Tux Bot for yourself on [github](https://github.com/PieTw3lve/Tux_Bot). Instruction on how to host Tux Bot is shown down below.', color=get_setting('embed_color'))
