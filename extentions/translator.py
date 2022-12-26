@@ -1,17 +1,17 @@
 import hikari
 import lightbulb
+import json
 
+from bot import get_setting, write_setting
 from googletrans import Translator
 
 plugin = lightbulb.Plugin('Translator')
 
 translator = Translator()
-autoTL = False
 
 @plugin.listener(hikari.MessageCreateEvent)
 async def print_translation(event: hikari.MessageCreateEvent) -> None:
-    global autoTL
-    if autoTL:
+    if get_setting('auto_translate'):
         if event.is_bot or not event.content:
             return
         text = event.content
@@ -23,16 +23,23 @@ async def print_translation(event: hikari.MessageCreateEvent) -> None:
 
 @plugin.command
 @lightbulb.add_cooldown(length=10.0, uses=1, bucket=lightbulb.UserBucket)
-@lightbulb.command('tl', 'Toggles automatic text translation.')
+@lightbulb.command('translate', 'Toggles automatic text translation.', aliases=['tl'])
 @lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
-async def toggle(ctx: lightbulb.Context) -> None:
-    global autoTL
-    if autoTL:
-        embed = (hikari.Embed(description=f'Automatic text translation has been set to False.', color='#FF0000'))
+async def translate_toggle(ctx: lightbulb.Context) -> None:
+    if get_setting('auto_translate'):
+        try:
+            write_setting('auto_translate', False)
+            embed = hikari.Embed(description=f'Automatic text translation has been set to False.', color='#FF0000')
+        except:
+            embed = hikari.Embed(description=f'Failed to set automatic text translation!', color=get_setting('embed_error_color'))
     else:
-        embed = (hikari.Embed(description=f'Automatic text translation has been set to True.', color='#32CD32'))
-    autoTL = not autoTL
-    await ctx.respond(embed)
+        try:
+            write_setting('auto_translate', True)
+            embed = hikari.Embed(description=f'Automatic text translation has been set to True.', color='#32CD32')
+        except:
+            embed = hikari.Embed(description=f'Failed to set automatic text translation!', color=get_setting('embed_error_color'))
+    
+    await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 def get_conf_indicator(confidence):
     if confidence > 0.8:
@@ -181,19 +188,19 @@ async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
     if isinstance(event.exception, lightbulb.CommandNotFound):
         return
     if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color='#FF0000'))
+        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
         return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color='#FF0000'))
+        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
         return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color='#FF0000'))
+        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
         return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color='#FF0000'))
+    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
     await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     raise event.exception
 
-## Add as a plugin ##
+## Definitions ##
 
 def load(bot):
     bot.add_plugin(plugin)
