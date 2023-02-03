@@ -6,9 +6,11 @@ import random
 import requests
 import json
 
+from startup import WORDNIK_API_KEY
 from bot import get_setting
 
 plugin = lightbulb.Plugin('Fun')
+apiKey = WORDNIK_API_KEY
 
 ## Random Animals ##
 
@@ -110,6 +112,70 @@ async def today_fact(ctx: lightbulb.Context) -> None:
     
     embed = hikari.Embed(title='Useless Fact of the Day!', description=request.get('text'), color=get_setting('embed_color'))
     await ctx.respond(embed)
+
+## Word of the Day Command ##
+
+@plugin.command
+@lightbulb.command('wotd', 'Get the word of the day!')
+@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+async def today_word(ctx: lightbulb.Context) -> None:
+    wordOfTheDayUrl = f"http://api.wordnik.com/v4/words.json/wordOfTheDay?api_key={apiKey}"
+    response = requests.get(wordOfTheDayUrl)
+    if response.status_code == 200:
+        embed = hikari.Embed(color=get_setting('embed_color'))
+        word = response.json()
+        wordText = word['word'].capitalize()
+        note = word['note']
+        definitions = word['definitions']
+        examples = word['examples']
+        embed.title = f'Word of the day: {wordText}'
+        embed.description = f'{note}\n\n**Definitions:**'
+        for definition in definitions:
+            embed.description = f'{embed.description}\n{definition["partOfSpeech"].capitalize()}: {definition["text"]}'
+        embed.description = f'{embed.description}\n\n**Examples:**'
+        for example in examples:
+            embed.description = f'{embed.description}\n- {example["text"]}'
+    else:
+        embed = hikari.Embed(description='Failed to get the word of the day', color=get_setting('embed_error_color'))
+        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return
+    
+    await ctx.respond(embed)
+
+## Random Word Command ##
+
+@rand.child
+@lightbulb.command('word', 'Get a random word!')
+@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
+async def rand_word(ctx: lightbulb.Context) -> None:
+    randomWordUrl = f"http://api.wordnik.com/v4/words.json/randomWord?api_key={apiKey}"
+    response = requests.get(randomWordUrl)
+    if response.status_code == 200:
+        embed = hikari.Embed(color=get_setting('embed_color'))
+        word = response.json()
+        wordText = word['word']
+        definitionUrl = f"http://api.wordnik.com/v4/word.json/{wordText}/definitions?api_key={apiKey}"
+        definitionResponse = requests.get(definitionUrl)
+        if definitionResponse.status_code == 200:
+            definitions = definitionResponse.json()
+            embed.title = f'Random word: {wordText.capitalize()}'
+            embed.description = '**Definitions:**'
+            for i, definition in enumerate(definitions):
+                definitionText = definition['text']
+                definitionText = definitionText.replace('<xref>', '').replace('</xref>', '').replace('<em>', '').replace('</em>', '')
+                partOfSpeechText = definition['partOfSpeech']
+                embed.description = f'{embed.description}\n{partOfSpeechText.capitalize()}: {definitionText}'
+        else:
+            embed = hikari.Embed(description='Failed to get definition', color=get_setting('embed_error_color'))
+            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+            return
+    else:
+        embed = hikari.Embed(description='Failed to get a random word', color=get_setting('embed_error_color'))
+        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return
+    
+    await ctx.respond(embed)
+
 
 ## Bored Command ##
 

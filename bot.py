@@ -1,9 +1,12 @@
 import os
 import json
 import io
+import subprocess
+import sys
 
 import hikari
 import lightbulb
+from lightbulb.ext import tasks
 import miru
 
 import sqlite3
@@ -79,6 +82,9 @@ async def on_message(event: hikari.MessageCreateEvent):
 
 ## Functions ##
 
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 def get_setting(option: str):
     with open('settings.json', 'r') as openfile:
         settings = dict(json.load(openfile))
@@ -107,9 +113,11 @@ def verify_user(user: hikari.User):
 
 if __name__ == '__main__':
     if os.name != 'nt':
+        install('uvloop')
         import uvloop
         uvloop.install()
     miru.install(bot)
+    tasks.load(bot)
     bot.load_extensions_from('./extentions')
     bot.run(
         status=hikari.Status.DO_NOT_DISTURB, 
