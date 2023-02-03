@@ -8,6 +8,7 @@ Tux Bot is an open source, multi-use bot programmed by **Pie12#1069**. Tux Bot i
 - A Full Fledged out RPG System
 - Tux Rushsite Integration
 - Automatic Text Translation
+- OpenAI Integration
 - Fun/Useless Commands
 - And Many More!
 
