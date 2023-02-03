@@ -1,8 +1,6 @@
 ## Description
 Tux Bot is an open source, multi-use bot programmed by **Pie12#1069**. Tux Bot is written using [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API for writing Discord Bot. Which means it is still in an alpha state, so expect some minor bugs! This bot is specifically for the Tux servers. However, feel free to run this bot for your personal use. Please check the license before performing any actions related to this bot. 
 
-Shoutouts to **Ryan#3388** and **BoboTheChimp#6164** for helping!
-
 ## Features
 
 - Customized Discord User Profiles 
