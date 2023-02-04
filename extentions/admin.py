@@ -414,7 +414,7 @@ class BetView(miru.View):
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        self.cursor.execute(f'SELECT balance FROM database WHERE user_id = {user.id}') # moves cursor to user's balance from database
+        self.cursor.execute(f'SELECT balance FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance from database
         bal = self.cursor.fetchone() # grabs the value of user's balance
         
         try: # just in case for errors
@@ -437,7 +437,7 @@ class BetView(miru.View):
                 self.bet1.update({user.id: amount})
                 self.participant1.append(user.id)
         
-        sql = ('UPDATE database SET balance = ? WHERE user_id = ?') # update user's new balance in database
+        sql = ('UPDATE economy SET balance = ? WHERE user_id = ?') # update user's new balance in database
         val = (balance - (amount), user.id)
         embed = (hikari.Embed(title='Success!', description=f'Your total coins on **Green** is 🪙 {(self.bet1[user.id]):,}!\nNew Balance: 🪙 {(balance - amount):,}', color=get_setting('embed_success_color')))
 
@@ -479,7 +479,7 @@ class BetView(miru.View):
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        self.cursor.execute(f'SELECT balance FROM database WHERE user_id = {user.id}') # moves cursor to user's balance from database
+        self.cursor.execute(f'SELECT balance FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance from database
         bal = self.cursor.fetchone() # grabs the value of user's balance
         
         try: # just in case for errors
@@ -502,7 +502,7 @@ class BetView(miru.View):
                 self.bet1.update({user.id: amount})
                 self.participant1.append(user.id)
         
-        sql = ('UPDATE database SET balance = ? WHERE user_id = ?') # update user's new balance in database
+        sql = ('UPDATE economy SET balance = ? WHERE user_id = ?') # update user's new balance in database
         val = (balance - (amount), user.id)
         embed = (hikari.Embed(title='Success!', description=f'Your total coins on **Green** is 🪙 {(self.bet1[user.id]):,}!\nNew Balance: 🪙 {(balance - amount):,}', color=get_setting('embed_success_color')))
 
@@ -544,7 +544,7 @@ class BetView(miru.View):
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        self.cursor.execute(f'SELECT balance FROM database WHERE user_id = {user.id}') # moves cursor to user's balance from database
+        self.cursor.execute(f'SELECT balance FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance from database
         bal = self.cursor.fetchone() # grabs the value of user's balance
         
         try: # just in case for errors
@@ -567,7 +567,7 @@ class BetView(miru.View):
                 self.bet1.update({user.id: amount})
                 self.participant1.append(user.id)
         
-        sql = ('UPDATE database SET balance = ? WHERE user_id = ?') # update user's new balance in database
+        sql = ('UPDATE economy SET balance = ? WHERE user_id = ?') # update user's new balance in database
         val = (balance - (amount), user.id)
         embed = (hikari.Embed(title='Success!', description=f'Your total coins on **Green** is 🪙 {(self.bet1[user.id]):,}!\nNew Balance: 🪙 {(balance - amount):,}', color=get_setting('embed_success_color')))
 
@@ -611,7 +611,7 @@ class BetView(miru.View):
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        self.cursor.execute(f'SELECT balance FROM database WHERE user_id = {user.id}') # moves cursor to user's balance from database
+        self.cursor.execute(f'SELECT balance FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance from database
         bal = self.cursor.fetchone() # grabs the value of user's balance
         
         try: # just in case for errors
@@ -634,7 +634,7 @@ class BetView(miru.View):
                 self.bet2.update({user.id: amount})
                 self.participant2.append(user.id)
         
-        sql = ('UPDATE database SET balance = ? WHERE user_id = ?') # update user's new balance in database
+        sql = ('UPDATE economy SET balance = ? WHERE user_id = ?') # update user's new balance in database
         val = (balance - (amount), user.id)
         embed = (hikari.Embed(title='Success!', description=f'Your total coins on **Blue** is 🪙 {(self.bet2[user.id]):,}!\nNew Balance: 🪙 {(balance - amount):,}', color=get_setting('embed_success_color')))
 
@@ -674,7 +674,7 @@ class BetView(miru.View):
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        self.cursor.execute(f'SELECT balance FROM database WHERE user_id = {user.id}') # moves cursor to user's balance from database
+        self.cursor.execute(f'SELECT balance FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance from database
         bal = self.cursor.fetchone() # grabs the value of user's balance
         
         try: # just in case for errors
@@ -697,7 +697,7 @@ class BetView(miru.View):
                 self.bet2.update({user.id: amount})
                 self.participant2.append(user.id)
         
-        sql = ('UPDATE database SET balance = ? WHERE user_id = ?') # update user's new balance in database
+        sql = ('UPDATE economy SET balance = ? WHERE user_id = ?') # update user's new balance in database
         val = (balance - (amount), user.id)
         embed = (hikari.Embed(title='Success!', description=f'Your total coins on **Blue** is 🪙 {(self.bet2[user.id]):,}!\nNew Balance: 🪙 {(balance - amount):,}', color=get_setting('embed_success_color')))
 
@@ -738,7 +738,7 @@ class BetView(miru.View):
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        self.cursor.execute(f'SELECT balance FROM database WHERE user_id = {user.id}') # moves cursor to user's balance from database
+        self.cursor.execute(f'SELECT balance FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance from database
         bal = self.cursor.fetchone() # grabs the value of user's balance
         
         try: # just in case for errors
@@ -761,7 +761,7 @@ class BetView(miru.View):
                 self.bet2.update({user.id: amount})
                 self.participant2.append(user.id)
         
-        sql = ('UPDATE database SET balance = ? WHERE user_id = ?') # update user's new balance in database
+        sql = ('UPDATE economy SET balance = ? WHERE user_id = ?') # update user's new balance in database
         val = (balance - (amount), user.id)
         embed = (hikari.Embed(title='Success!', description=f'Your total coins on **Blue** is 🪙 {(self.bet2[user.id]):,}!\nNew Balance: 🪙 {(balance - amount):,}', color=get_setting('embed_success_color')))
 
@@ -853,7 +853,7 @@ class GreenWinButton(miru.Button):
             embed.set_thumbnail(self.highestBet.avatar_url)
             
             for user in self.bets:
-                self.cursor.execute(f'SELECT balance, total FROM database WHERE user_id = {user}') # moves cursor to user's balance and total from database
+                self.cursor.execute(f'SELECT balance, total FROM economy WHERE user_id = {user}') # moves cursor to user's balance and total from database
                 bal = self.cursor.fetchone() # grabs the value of user's balance
                 
                 try: # just in case for errors
@@ -863,14 +863,14 @@ class GreenWinButton(miru.Button):
                     balance = 0
                     total = 0
                 
-                sql = ('UPDATE database SET balance = ?, total = ? WHERE user_id = ?') # update user's new balance and total in database
+                sql = ('UPDATE economy SET balance = ?, total = ? WHERE user_id = ?') # update user's new balance and total in database
                 val = (balance + round(self.payout * self.bets.get(user)), total + round(self.payout * self.bets.get(user)), user)
 
                 self.cursor.execute(sql, val) # executes the instructions
                 self.db.commit() # saves changes 
             
             for user in self.losers:
-                self.cursor.execute(f'SELECT loss FROM database WHERE user_id = {user}') # moves cursor to user's loss from database
+                self.cursor.execute(f'SELECT loss FROM economy WHERE user_id = {user}') # moves cursor to user's loss from database
                 val = self.cursor.fetchone() # grabs the value of user's total loss
                 
                 try: # just in case for errors
@@ -878,7 +878,7 @@ class GreenWinButton(miru.Button):
                 except:
                     loss = 0
                 
-                sql = ('UPDATE database SET loss = ? WHERE user_id = ?') # update user's new loss in database
+                sql = ('UPDATE economy SET loss = ? WHERE user_id = ?') # update user's new loss in database
                 val = (loss + self.losers.get(user), user)
 
                 self.cursor.execute(sql, val) # executes the instructions
@@ -910,7 +910,7 @@ class BlueWinButton(miru.Button):
             embed.set_thumbnail(self.highestBet.avatar_url)
             
             for user in self.bets:
-                self.cursor.execute(f'SELECT balance, total FROM database WHERE user_id = {user}') # moves cursor to user's balance and total from database
+                self.cursor.execute(f'SELECT balance, total FROM economy WHERE user_id = {user}') # moves cursor to user's balance and total from database
                 bal = self.cursor.fetchone() # grabs the value of user's balance
                 
                 try: # just in case for errors
@@ -920,14 +920,14 @@ class BlueWinButton(miru.Button):
                     balance = 0
                     total = 0
                 
-                sql = ('UPDATE database SET balance = ?, total = ? WHERE user_id = ?') # update user's new balance and total in database
+                sql = ('UPDATE economy SET balance = ?, total = ? WHERE user_id = ?') # update user's new balance and total in database
                 val = (balance + round(self.payout * self.bets.get(user)), total + round(self.payout * self.bets.get(user)), user)
 
                 self.cursor.execute(sql, val) # executes the instructions
                 self.db.commit() # saves changes 
             
             for user in self.losers:
-                self.cursor.execute(f'SELECT loss FROM database WHERE user_id = {user}') # moves cursor to user's loss from database
+                self.cursor.execute(f'SELECT loss FROM economy WHERE user_id = {user}') # moves cursor to user's loss from database
                 val = self.cursor.fetchone() # grabs the value of user's total loss
                 
                 try: # just in case for errors
@@ -935,7 +935,7 @@ class BlueWinButton(miru.Button):
                 except:
                     loss = 0
                 
-                sql = ('UPDATE database SET loss = ? WHERE user_id = ?') # update user's new loss in database
+                sql = ('UPDATE economy SET loss = ? WHERE user_id = ?') # update user's new loss in database
                 val = (loss + self.losers.get(user), user)
 
                 self.cursor.execute(sql, val) # executes the instructions

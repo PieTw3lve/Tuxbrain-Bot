@@ -27,21 +27,24 @@ bot = lightbulb.BotApp(
 async def on_ready(event: hikari.StartedEvent) -> None:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor() # checks if db exists
-    cursor.execute('''CREATE TABLE IF NOT EXISTS database (
+    cursor.execute('''CREATE TABLE IF NOT EXISTS economy (
         user_id INTEGER, 
         balance INTEGER,
         total INTEGER,
         loss INTEGER,
-        tpass INTEGER,
-        chicken TEXT,
-        chicken_date TEXT,
-        chicken_health INTEGER,
-        chicken_strength INTEGER,
-        chicken_defense INTEGER,
-        chicken_hit_rate INTEGER,
-        chicken_level INTEGER,
-        chicken_experience INTEGER,
-        chicken_items TEXT
+        tpass INTEGER
+    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS chicken (
+        user_id INTEGER, 
+        breed TEXT,
+        date TEXT,
+        health INTEGER,
+        strength INTEGER,
+        defense INTEGER,
+        hit_rate INTEGER,
+        level INTEGER,
+        experience INTEGER,
+        items TEXT
     )''')
     
     if not os.path.isfile('settings.json') or not os.access('settings.json', os.R_OK): # checks if file exists
@@ -72,8 +75,12 @@ async def on_message(event: hikari.MessageCreateEvent):
     cursor = db.cursor()
     
     if verify_user(user) == None: # if user has never been register
-        sql = ('INSERT INTO database(user_id, balance, total, loss, tpass, chicken, chicken_date, chicken_health, chicken_strength, chicken_defense, chicken_hit_rate, chicken_level, chicken_experience, chicken_items) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        val = (user.id, 100, 100, 0, 0, 'N/A', 'N/A', 0, 0, 0, 0, 0, 0, 'None')
+        sql = ('INSERT INTO economy(user_id, balance, total, loss, tpass) VALUES (?, ?, ?, ?, ?)')
+        val = (user.id, 100, 100, 0, 0)
+        cursor.execute(sql, val) 
+        
+        sql = ('INSERT INTO chicken(user_id, breed, date, health, strength, defense, hit_rate, level, experience, items) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        val = (user.id, 'N/A', 'N/A', 0, 0, 0, 0, 0, 0, 'None')
         cursor.execute(sql, val) 
     
     db.commit() # saves changes
@@ -104,7 +111,7 @@ def verify_user(user: hikari.User):
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT user_id FROM database WHERE user_id = {user.id}') # moves cursor to user's id from database
+    cursor.execute(f'SELECT user_id FROM economy WHERE user_id = {user.id}') # moves cursor to user's id from database
     result = cursor.fetchone() # grabs the value of user's id
     
     return result

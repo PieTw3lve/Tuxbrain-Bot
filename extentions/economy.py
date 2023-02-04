@@ -32,7 +32,7 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT balance, total, loss, tpass FROM database WHERE user_id = {user.id}') # moves cursor to user's balance, total, and tpass from database
+    cursor.execute(f'SELECT balance, total, loss, tpass FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance, total, and tpass from database
     bal = cursor.fetchone() # grabs the values of user's balance and total
     
     try: # just in case for errors
@@ -59,31 +59,38 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
 
 ## Leaderboard Command ##
 
-@tasks.task(h=1, auto_start=True)
+@tasks.task(m=30, auto_start=True)
 async def refresh_leaderboard():
     global leaderboardEco, leaderboardEcoLastRefresh
+    
+    leaderboardEco = []
     leaderboardEcoLastRefresh = datetime.now().astimezone()
-    # print('Updating leaderboard...')
 
     # Connect to database file
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
 
     # Query to retrieve user balances
-    query = "SELECT user_id, balance, tpass FROM database ORDER BY balance DESC"
+    query = "SELECT user_id, balance, tpass FROM economy ORDER BY balance DESC"
     cursor.execute(query)
 
     # Store results in a list
     results = cursor.fetchall()
 
     # Initialize rank, leaderboard, and print header
-    rank = 1
+    rank = 0
+    lastBalance = None
 
     # Loop through each result
     for result in results:
         # Unpack the result tuple
         user_id, balance, tpass = result
 
+        # Checks if the previous balance was the same
+        if balance != lastBalance:
+            rank += 1
+            lastBalance = balance
+        
         # Add the rank, user ID, and balance to leaderboard
         if rank == 1:
             leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': '🥇'})
@@ -93,11 +100,10 @@ async def refresh_leaderboard():
             leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': '🥉'})
         else:
             leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': f'{rank}.'})
-
-        rank += 1
     
     # Commit changes and close the connection
     db.commit()
+    cursor.close()
     db.close()
 
 @plugin.command
@@ -107,19 +113,24 @@ async def baltop(ctx: lightbulb.SlashContext) -> None:
     rankings = []
     balances = []
     tpasses = []
-    for i in range(len(leaderboardEco)-1):
+
+    for i in range(len(leaderboardEco)):
         rankings.append(f'{leaderboardEco[i]["rank"]} <@{leaderboardEco[i]["user_id"]}>')
         balances.append(f'🪙 {leaderboardEco[i]["balance"]:,}')
         tpasses.append(f'🎟️ {leaderboardEco[i]["tpass"]:,}')
-
-    try:
+    
+    if len(rankings) >= 1:
         embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('embed_color'), timestamp=leaderboardEcoLastRefresh)
         embed.add_field(name='Discord User', value='\n'.join(rankings), inline=True)
         embed.add_field(name='Balance', value='\n'.join(balances), inline=True)
         embed.add_field(name='Tux Pass', value='\n'.join(tpasses), inline=True)
         embed.set_footer(f'Last updated')
-    except:
-        embed = hikari.Embed(title='Economy Leaderboard', description='No users detected!', color=get_setting('embed_color'), timestamp=leaderboardEcoLastRefresh)
+    else:
+        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('embed_color'), timestamp=leaderboardEcoLastRefresh)
+        embed.add_field(name='Discord User', value='🥇 Unknown', inline=True)
+        embed.add_field(name='Balance', value='🪙 0', inline=True)
+        embed.add_field(name='Tux Pass', value='🎟️ 0', inline=True)
+        embed.set_footer(f'Last updated')
     
     await ctx.respond(embed)
 
@@ -1367,7 +1378,7 @@ def check_sufficient_amount(userID: str, amount: int) -> bool:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT balance FROM database WHERE user_id = {userID}') # moves cursor to user's balance from database
+    cursor.execute(f'SELECT balance FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
     val = cursor.fetchone() # grabs the values of user's balance
     
     try:
@@ -1387,7 +1398,7 @@ def set_money(userID: str, amount: int) -> bool:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    sql = ('UPDATE database SET balance = ? WHERE user_id = ?')
+    sql = ('UPDATE economy SET balance = ? WHERE user_id = ?')
     val = (amount, userID)
     
     cursor.execute(sql, val) # executes the instructions
@@ -1401,7 +1412,7 @@ def add_money(userID: str, amount: int, updateGain: bool) -> bool:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT balance, total FROM database WHERE user_id = {userID}') # moves cursor to user's balance from database
+    cursor.execute(f'SELECT balance, total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
     val = cursor.fetchone() # grabs the values of user's balance
     
     try:
@@ -1411,7 +1422,7 @@ def add_money(userID: str, amount: int, updateGain: bool) -> bool:
         balance = 0
         total = 0
     
-    sql = ('UPDATE database SET balance = ?, total = ? WHERE user_id = ?')
+    sql = ('UPDATE economy SET balance = ?, total = ? WHERE user_id = ?')
     val = (balance + amount, total + amount, userID) if updateGain else (balance + amount, total, userID)
     
     cursor.execute(sql, val) # executes the instructions
@@ -1425,7 +1436,7 @@ def remove_money(userID: str, amount: int, updateLoss: bool) -> bool:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT balance, loss FROM database WHERE user_id = {userID}') # moves cursor to user's balance from database
+    cursor.execute(f'SELECT balance, loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
     val = cursor.fetchone() # grabs the values of user's balance
     
     try:
@@ -1438,7 +1449,7 @@ def remove_money(userID: str, amount: int, updateLoss: bool) -> bool:
     if balance < amount:
         return False
     
-    sql = ('UPDATE database SET balance = ?, loss = ? WHERE user_id = ?')
+    sql = ('UPDATE economy SET balance = ?, loss = ? WHERE user_id = ?')
     val = (balance - amount, loss + amount, userID) if updateLoss else (balance - amount, loss, userID)
     
     cursor.execute(sql, val) # executes the instructions
@@ -1452,7 +1463,7 @@ def add_gain(userID: str, amount: int):
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT total FROM database WHERE user_id = {userID}') # moves cursor to user's balance from database
+    cursor.execute(f'SELECT total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
     val = cursor.fetchone() # grabs the values of user's balance
     
     try:
@@ -1460,7 +1471,7 @@ def add_gain(userID: str, amount: int):
     except:
         gain = 0
     
-    sql = ('UPDATE database SET total = ? WHERE user_id = ?')
+    sql = ('UPDATE economy SET total = ? WHERE user_id = ?')
     val = (gain + amount, userID)
     
     cursor.execute(sql, val) # executes the instructions
@@ -1474,7 +1485,7 @@ def remove_gain(userID: str, amount: int):
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT total FROM database WHERE user_id = {userID}') # moves cursor to user's balance from database
+    cursor.execute(f'SELECT total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
     val = cursor.fetchone() # grabs the values of user's balance
     
     try:
@@ -1482,7 +1493,7 @@ def remove_gain(userID: str, amount: int):
     except:
         gain = 0
     
-    sql = ('UPDATE database SET total = ? WHERE user_id = ?')
+    sql = ('UPDATE economy SET total = ? WHERE user_id = ?')
     val = (gain - amount, userID)
     
     cursor.execute(sql, val) # executes the instructions
@@ -1496,7 +1507,7 @@ def add_loss(userID: str, amount: int):
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT loss FROM database WHERE user_id = {userID}') # moves cursor to user's balance from database
+    cursor.execute(f'SELECT loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
     val = cursor.fetchone() # grabs the values of user's balance
     
     try:
@@ -1504,7 +1515,7 @@ def add_loss(userID: str, amount: int):
     except:
         loss = 0
     
-    sql = ('UPDATE database SET loss = ? WHERE user_id = ?')
+    sql = ('UPDATE economy SET loss = ? WHERE user_id = ?')
     val = (loss + amount, userID)
     
     cursor.execute(sql, val) # executes the instructions
@@ -1518,7 +1529,7 @@ def remove_loss(userID: str, amount: int):
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT loss FROM database WHERE user_id = {userID}') # moves cursor to user's balance from database
+    cursor.execute(f'SELECT loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
     val = cursor.fetchone() # grabs the values of user's balance
     
     try:
@@ -1526,7 +1537,7 @@ def remove_loss(userID: str, amount: int):
     except:
         loss = 0
     
-    sql = ('UPDATE database SET loss = ? WHERE user_id = ?')
+    sql = ('UPDATE economy SET loss = ? WHERE user_id = ?')
     val = (loss - amount, userID)
     
     cursor.execute(sql, val) # executes the instructions

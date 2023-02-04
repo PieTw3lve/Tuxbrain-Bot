@@ -460,7 +460,7 @@ def has_cock(user: hikari.User) -> bool:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    cursor.execute(f'SELECT chicken FROM database WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
+    cursor.execute(f'SELECT breed FROM chicken WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
     val = cursor.fetchone() # grabs the values of user's chicken
     
     try:
@@ -477,7 +477,7 @@ def add_cock(user: hikari.User, name: str, date: str, level: int, exp: int, heal
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    sql = ('UPDATE database SET chicken = ?, chicken_date = ?, chicken_level = ?, chicken_experience = ?, chicken_health = ?, chicken_strength = ?, chicken_defense = ?, chicken_hit_rate = ?, chicken_items = ? WHERE user_id = ?') # update user's chicken in database
+    sql = ('UPDATE chicken SET breed = ?, date = ?, level = ?, experience = ?, health = ?, strength = ?, defense = ?, hit_rate = ?, items = ? WHERE user_id = ?') # update user's chicken in database
     val = (name, date, level, exp, health, strength, defense, hit, items, user.id)
     
     cursor.execute(sql, val) # executes the instructions
@@ -496,7 +496,7 @@ def get_cock_info(user: hikari.User) -> dict:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
         
-    cursor.execute(f'SELECT chicken, chicken_date, chicken_health, chicken_strength, chicken_defense, chicken_hit_rate, chicken_level, chicken_experience, chicken_items FROM database WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
+    cursor.execute(f'SELECT breed, date, health, strength, defense, hit_rate, level, experience, items FROM chicken WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
     val = cursor.fetchone() # grabs the values of user's chicken
        
     try: # just in case for errors
@@ -565,7 +565,7 @@ def item_loot_drop(user: hikari.User) -> str:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
         
-    cursor.execute(f'SELECT chicken_items FROM database WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
+    cursor.execute(f'SELECT items FROM chicken WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
     val = cursor.fetchone() # grabs the values of user's chicken experience
     
     try:
@@ -582,7 +582,7 @@ def item_loot_drop(user: hikari.User) -> str:
     items = list(set(items))
     items = ', '.join(items)
     
-    sql = ('UPDATE database SET chicken_items = ? WHERE user_id = ?')
+    sql = ('UPDATE chicken SET items = ? WHERE user_id = ?')
     val = (items, user.id)
     
     cursor.execute(sql, val) # executes the instructions
@@ -647,7 +647,7 @@ def add_exp(user: hikari.User, number: int) -> dict:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
         
-    cursor.execute(f'SELECT chicken_level, chicken_experience, chicken_health, chicken_strength, chicken_defense FROM database WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
+    cursor.execute(f'SELECT level, experience, health, strength, defense FROM chicken WHERE user_id = {user.id}') # moves cursor to user's chicken info from database
     val = cursor.fetchone() # grabs the values of user's chicken experienc
     
     try:
@@ -671,15 +671,15 @@ def add_exp(user: hikari.User, number: int) -> dict:
     if experience + number >= 100 and level < 100:
         level = level + 1
         levelUp = True
-        sql = ('UPDATE database SET chicken_level = ?, chicken_experience = ?, chicken_health = ?, chicken_strength = ?, chicken_defense = ? WHERE user_id = ?')
+        sql = ('UPDATE chicken SET level = ?, experience = ?, health = ?, strength = ?, defense = ? WHERE user_id = ?')
         val = (level, (experience + number) - 100, health + healthVal, strength + strengthVal, defense + defenseVal, user.id)
     elif experience + number <= 100:
         levelUp = False
-        sql = ('UPDATE database SET chicken_experience = ? WHERE user_id = ?')
+        sql = ('UPDATE chicken SET experience = ? WHERE user_id = ?')
         val = (experience + number, user.id)
     else:
         levelUp = False
-        sql = ('UPDATE database SET chicken_experience = ? WHERE user_id = ?')
+        sql = ('UPDATE chicken SET experience = ? WHERE user_id = ?')
         val = (100, user.id)
     
     cursor.execute(sql, val) # executes the instructions
@@ -691,7 +691,7 @@ def reset_exp(user: hikari.User) -> None:
     db = sqlite3.connect('database.sqlite')
     cursor = db.cursor()
     
-    sql = ('UPDATE database SET chicken_experience = ? WHERE user_id = ?')
+    sql = ('UPDATE chicken SET experience = ? WHERE user_id = ?')
     val = (0, user.id)
     
     cursor.execute(sql, val) # executes the instructions
