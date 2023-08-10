@@ -8,13 +8,14 @@ Tux Bot is an open source, multi-use Discord bot written in hikari.py, a new sta
 - Pokémon Card Collecting and Trading: `shop`, `inventory`, `open`, `info`, and `trade`!
 - Interactable Games: `russian-roulette`, `rps`, `connect4`, `blackjack`, and `Hangman`!
 - TuxBrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
+- Moderation: `announce`, `poll`, `purge`, `traslate` and **4** more!
 - Fun/Useless Commands: `random`, `fact`, `wotd`, and `bored`!
-- And Many More!
 
 ## Installation
 1. Ensure that you have Python 3.11.0 or later installed.
 2. Use the requirements.txt file included to install the dependencies with one command (see below).
 3. If the above method doesn't work, install each dependency individually.
+4. Set up and operate a [Lavalink](https://github.com/lavalink-devs/Lavalink) server to enable music playback.
 
 ```
 pip install -r requirements.txt
