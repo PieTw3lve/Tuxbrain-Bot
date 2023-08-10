@@ -3,13 +3,12 @@ Tux Bot is an open source, multi-use Discord bot written in hikari.py, a new sta
 
 ## Features
 
-- Customized Discord User Profiles 
-- Economy Manager and Interactable Games (Gambling!)
-- A Full Fledged out RPG System
-- Tux Rushsite Integration
-- Automatic Text Translation
-- OpenAI Integration
-- Fun/Useless Commands
+- Economy Integration: `leaderboard`, `balance`, `daily`, `pay`,  and **6** more!
+- Music Player: `play`, `controller`, `join`, and `leave`!
+- Pokémon Card Collecting and Trading: `shop`, `inventory`, `open`, `info`, and `trade`!
+- Interactable Games: `russian-roulette`, `rps`, `connect4`, `blackjack`, and `Hangman`!
+- TuxBrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
+- Fun/Useless Commands: `random`, `fact`, `wotd`, and `bored`!
 - And Many More!
 
 ## Installation
@@ -32,4 +31,4 @@ pip install -r requirements.txt
 - Lightbulb: https://github.com/tandemdude/hikari-lightbulb
 - Miru: https://github.com/HyperGH/hikari-miru
 - Google Translate: https://github.com/ssut/py-googletrans
-- OpenAI: https://openai.com/
+- Lavalink: https://github.com/lavalink-devs/Lavalink
