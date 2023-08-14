@@ -23,7 +23,7 @@ async def print_translation(event: hikari.MessageCreateEvent) -> None:
 @plugin.command
 @lightbulb.add_cooldown(length=10.0, uses=1, bucket=lightbulb.UserBucket)
 @lightbulb.command('translate', 'Toggles automatic text translation.', aliases=['tl'])
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def translate_toggle(ctx: lightbulb.Context) -> None:
     if get_setting('auto_translate'):
         try:

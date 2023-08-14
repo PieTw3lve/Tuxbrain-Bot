@@ -5,7 +5,7 @@ import asyncio
 
 from datetime import datetime, timezone, timedelta
 from bot import get_setting, write_setting, verify_user
-from .economy import add_money, set_money, remove_money, add_loss
+from .economy import set_money, add_money, add_ticket, remove_money, remove_ticket, add_loss
 
 plugin = lightbulb.Plugin('Admin')
 
@@ -13,7 +13,7 @@ plugin = lightbulb.Plugin('Admin')
 
 @plugin.command
 @lightbulb.command('admin', 'Administer bot configurations.')
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashCommandGroup)
+@lightbulb.implements(lightbulb.SlashCommandGroup)
 async def admin(ctx: lightbulb.Context) -> None:
     return
 
@@ -173,7 +173,7 @@ class CancelButton(miru.Button):
 @admin.child
 @lightbulb.option("amount", "The number of messages to purge.", type=int, required=True, max_value=1000)
 @lightbulb.command("purge", "Purge messages from this channel.", aliases=["clear","prune"], pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def purge(ctx: lightbulb.Context, amount: int) -> None:
     channel = ctx.channel_id
 
@@ -415,12 +415,12 @@ class BettingView(miru.Modal):
 @lightbulb.option('blue', 'Outcome 1, like "Yes"', type=str, required=True)
 @lightbulb.option('name', 'What users will bet, like "Will I win five games in a row?"', type=str, required=True)
 @lightbulb.command('bet', 'Start a live interactive bet!', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: int) -> None:
     embed = hikari.Embed(title=f'{name} (Open)', description=f'Submissions will close in {format_seconds(timer)}.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
     embed.add_field(name=f'{blue} (Blue) 50%', value='Total Coins: 🪙 0\nPayout: 💸 0.00\nParticipants: 👥 0\nHighest Bet: 🪙 0 (<@None>)', inline=True)
     embed.add_field(name=f'{green} (Green) 50%', value='Total Coins: 🪙 0\nPayout: 💸 0.00\nParticipants: 👥 0\nHighest Bet: 🪙 0 (<@None>)', inline=True)
-    embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
+    embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
 
     event = asyncio.Event()
     task = asyncio.create_task(cancel_sleep(event, timer))  # Start the cancel_sleep task
@@ -481,7 +481,7 @@ def format_seconds(seconds):
 @lightbulb.option('amount', 'The amount that will be set to.', type=int, min_value=1, max_value=None, required=True)
 @lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
 @lightbulb.command('eco-set', "Set a server member's wallet to a specific amount.", pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def set_balance(ctx: lightbulb.Context, user: hikari.User, amount: int):
     if user.is_bot: # checks if the user is a bot
         embed = hikari.Embed(description='You are not allowed to set money to this user!', color=get_setting('embed_error_color'))
@@ -490,7 +490,7 @@ async def set_balance(ctx: lightbulb.Context, user: hikari.User, amount: int):
         embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif set_money(user.id, amount):
-        embed = (hikari.Embed(description=f"You set {user.username}'s wallet to 🪙 {amount:,}", color=get_setting('embed_color')))
+        embed = (hikari.Embed(description=f"You set {user.global_name}'s wallet to 🪙 {amount:,}", color=get_setting('embed_color')))
         await ctx.respond(embed)
     return
 
@@ -501,7 +501,7 @@ async def set_balance(ctx: lightbulb.Context, user: hikari.User, amount: int):
 @lightbulb.option('amount', 'The amount that will be added to.', type=int, min_value=1, max_value=None, required=True)
 @lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
 @lightbulb.command('eco-add', "Add coins to a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def add_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
     if user.is_bot: # checks if the user is a bot
         embed = hikari.Embed(description='You are not allowed to add money to this user!', color=get_setting('embed_error_color'))
@@ -510,7 +510,26 @@ async def add_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, up
         embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif add_money(user.id, amount, update):
-        embed = (hikari.Embed(description=f"You added 🪙 {amount:,} to {user.username}'s wallet!", color=get_setting('embed_color')))
+        embed = (hikari.Embed(description=f"You added 🪙 {amount:,} to {user.global_name}'s wallet!", color=get_setting('embed_color')))
+        await ctx.respond(embed)
+    return
+
+## Add Ticket Command ##
+
+@admin.child
+@lightbulb.option('amount', 'The amount that will be added to.', type=int, min_value=1, max_value=None, required=True)
+@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
+@lightbulb.command('eco-add-ticket', "Add tickets to a server member's wallet.", pass_options=True)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def add_balance(ctx: lightbulb.Context, user: hikari.User, amount: int):
+    if user.is_bot: # checks if the user is a bot
+        embed = hikari.Embed(description='You are not allowed to add tickets to this user!', color=get_setting('embed_error_color'))
+        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+    elif verify_user(user) == None: # if user has never been register
+        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('embed_error_color'))
+        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+    elif add_ticket(user.id, amount):
+        embed = (hikari.Embed(description=f"You added {amount:,} 🎟️ to {user.global_name}'s wallet!", color=get_setting('embed_color')))
         await ctx.respond(embed)
     return
     
@@ -521,8 +540,8 @@ async def add_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, up
 @lightbulb.option('update', 'This will update net loss.', type=bool, required=True)
 @lightbulb.option('amount', 'The amount that will be removed from.', type=int, min_value=1, max_value=None, required=True)
 @lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('eco-take', "Remove coins to a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.command('eco-take', "Remove coins from a server member's wallet.", pass_options=True)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def take_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
     if user.is_bot: # checks if the user is a bot
         embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('embed_error_color'))
@@ -531,10 +550,32 @@ async def take_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, u
         embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif remove_money(user.id, amount, update):
-        embed = (hikari.Embed(description=f"You took 🪙 {amount:,} from {user.username}'s wallet!", color=get_setting('embed_color')))
+        embed = (hikari.Embed(description=f"You took 🪙 {amount:,} from {user.global_name}'s wallet!", color=get_setting('embed_color')))
         await ctx.respond(embed)
     else:
-        embed = (hikari.Embed(description=f"That amount exceeds {user.username}'s wallet!", color=get_setting('embed_error_color')))
+        embed = (hikari.Embed(description=f"That amount exceeds {user.global_name}'s wallet!", color=get_setting('embed_error_color')))
+        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+    return
+
+## Take Ticket Command ##
+
+@admin.child
+@lightbulb.option('amount', 'The amount that will be removed from.', type=int, min_value=1, max_value=None, required=True)
+@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
+@lightbulb.command('eco-take-ticket', "Remove tickets from a server member's wallet.", pass_options=True)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def take_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
+    if user.is_bot: # checks if the user is a bot
+        embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('embed_error_color'))
+        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+    elif verify_user(user) == None: # if user has never been register
+        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('embed_error_color'))
+        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+    elif remove_ticket(user.id, amount):
+        embed = (hikari.Embed(description=f"You took {amount:,} 🎟️ from {user.global_name}'s wallet!", color=get_setting('embed_color')))
+        await ctx.respond(embed)
+    else:
+        embed = (hikari.Embed(description=f"That amount exceeds {user.global_name}'s wallet!", color=get_setting('embed_error_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     return
 

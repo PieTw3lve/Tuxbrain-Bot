@@ -280,7 +280,7 @@ class PackShop(miru.View):
 
 @plugin.command
 @lightbulb.command('shop', 'Open the PokéShop menu.')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def shop(ctx: lightbulb.Context) -> None:
     embed = hikari.Embed(title='Welcome to the PokéShop!', description='Get your hands on the newest Pokémon cards at the Pokémon Booster Pack Shop! Simply choose from one of the two options below to start building your collection today. \n\nA standard booster pack costs 🪙 200, while the premium booster pack, which offers a **3x boost** on the chance of getting rare quality cards, can be yours for just 1 🎟️.', color=get_setting('embed_color'))
     embed.set_thumbnail('assets/img/pokemon/shop_icon.png')
@@ -298,19 +298,20 @@ class Inventory:
         self.cursor = self.db.cursor()
         self.user = user
         self.ctx = ctx
+        self.max = get_setting('pokemon_max_capacity')
 
     def show_inventory(self, items_per_page):
         inventory = self.get_inventory()
 
         if not inventory:
-            embed = hikari.Embed(title=f"{self.user.username}'s Inventory", description=f'No cards or packs found!', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'No cards or packs found!', color=get_setting('embed_color'))
             return [embed]
         else:
             items, cards = inventory
         
         pages = []
         for i in range(0, len(items), items_per_page):
-            embed = hikari.Embed(title=f"{self.user.username}'s Inventory", color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'Capacity: `{self.get_inventory_capacity()}/{self.max}`', color=get_setting('embed_color'))
             # embed.set_thumbnail('assets/img/pokemon/inventory_icon.png')
             end = i + items_per_page
             for pack in items[i:end]:
@@ -323,7 +324,7 @@ class Inventory:
                     embed.edit_field(1, embed.fields[1].name, f'{embed.fields[1].value}\n{id}')
             pages.append(embed)
         for i in range(0, len(cards), items_per_page):
-            embed = hikari.Embed(title=f"{self.user.username}'s Inventory", color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'Capacity: `{self.get_inventory_capacity()}/{self.max}`', color=get_setting('embed_color'))
             # embed.set_thumbnail('assets/img/pokemon/inventory_icon.png')
             end = i + items_per_page
             for card in cards[i:end]:
@@ -406,7 +407,12 @@ class Inventory:
         cards = [card for card in cards if card[-2] == 0] if not s else cards
         
         return cards
-   
+    
+    def get_inventory_capacity(self):
+        items, cards = self.get_inventory()
+        total = len(items) + len(cards)
+        return total
+
     async def sell(self, cards: list) -> None:
         value = 0
         for card in cards:
@@ -459,14 +465,14 @@ class PromptView(miru.View):
 
 @plugin.command
 @lightbulb.command('inventory', 'Manage your Pokémon cards and packs inventory.')
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashCommandGroup)
+@lightbulb.implements(lightbulb.SlashCommandGroup)
 async def inventory(ctx: lightbulb.Context) -> None:
     return
 
 @inventory.child
 @lightbulb.option('user', 'The user to get information about.', type=hikari.User, required=False)
 @lightbulb.command('open', "Open a server member's pack inventory.", pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> None:
     if not (guild := ctx.get_guild()):
         embed = hikari.Embed(description='This command may only be used in servers.', color=get_setting('embed_error_color'))
@@ -495,8 +501,9 @@ async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> No
 ## Packs Inventory Sell Command ##
 
 class SellView(miru.View):
-    def __init__(self, inventory: Inventory) -> None:
+    def __init__(self, embed: hikari.Embed, inventory: Inventory) -> None:
         super().__init__(timeout=None, autodefer=True)
+        self.embed = embed
         self.inventory = inventory
     
     @miru.text_select(
@@ -523,9 +530,10 @@ class SellView(miru.View):
                 cards = self.inventory.get_dupe_cards(True, True)
         
         view = PromptView()
-        embed = hikari.Embed(title=f'Are you sure?', color=get_setting('embed_error_color'))
-        embed.set_footer('This action is irreversible!')
-        message = await ctx.edit_response(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
+        self.embed.title = 'Are you sure?'
+        self.embed.color = get_setting('embed_error_color')
+        self.embed.set_footer('This action is irreversible!')
+        message = await ctx.edit_response(self.embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
 
         await view.start(message)
         await view.wait()
@@ -533,7 +541,10 @@ class SellView(miru.View):
         if view.answer:
             await self.inventory.sell(cards)
         else:
-            await ctx.edit_response(hikari.Embed(description=f'Selling proccess has been cancelled.', color=get_setting('embed_error_color')), components=[], flags=hikari.MessageFlag.EPHEMERAL)
+            self.embed.title = 'Selling proccess has been cancelled.'
+            self.embed.description = 'No cards has been sold.'
+            self.embed.set_footer(None)
+            await ctx.edit_response(self.embed, components=[], flags=hikari.MessageFlag.EPHEMERAL)
     
     async def view_check(self, ctx: ViewContext) -> bool:
         return self.inventory.get_inventory() != None
@@ -541,13 +552,13 @@ class SellView(miru.View):
 
 @inventory.child
 @lightbulb.command('sell', "Sell your cards.", pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def sell(ctx: lightbulb.Context) -> None:
     inventory = Inventory(ctx, ctx.author)
     embed = hikari.Embed(title='Sell Menu', description='Favorited cards will **not** be accounted for in the algorithm. \nIn the future, additional selling options may become available. \n\n> Normal = 🪙 20 \n> Shiny = 🪙 40 \n‍', color=get_setting('embed_error_color'))
     embed.set_thumbnail('assets/img/pokemon/convert_icon.png')
     embed.set_footer(text='Once you sell cards, the action cannot be undone.')
-    view = SellView(inventory)
+    view = SellView(embed, inventory)
     message = await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL) 
 
     await view.start(message)
@@ -557,28 +568,29 @@ async def sell(ctx: lightbulb.Context) -> None:
 @plugin.command
 @lightbulb.option('uuid', 'Enter a pack ID you want to open.', type=str, required=True)
 @lightbulb.command('open', 'Open a card pack.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def open(ctx: lightbulb.Context, uuid: str) -> None:
     inventory = Inventory(ctx, ctx.user)
     result = inventory.get_item(uuid)
 
     if not result:
         embed = hikari.Embed(description='You do not own this pack!', color=get_setting('embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     else:
         item_type, item = result
 
     if item_type == 'Card':
-            embed = hikari.Embed(description='You cannot open a card!', color=get_setting('embed_error_color'))
-            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-            return
+        embed = hikari.Embed(description='You cannot open a card!', color=get_setting('embed_error_color'))
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
     pack_id, user, date, pack_type = item
     
-    if pack_type == 'Standard':
+    if inventory.get_inventory_capacity() + get_setting('pokemon_pack_amount') > inventory.max:
+        embed = hikari.Embed(description='You do not have enough inventory space!', color=get_setting('embed_error_color'))
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+    elif pack_type == 'Standard':
         pack = StandardPokemonCardPack(ctx.user, ctx)
-    elif pack_type == 'Premium':
+    else:
         pack = PremiumPokemonCardPack(ctx.user, ctx)
     
     await pack.open(pack_id)
@@ -691,7 +703,7 @@ class SellButton(miru.Button):
 @plugin.command
 @lightbulb.option('uuid', 'Enter a pack or card ID to get more info on it.', type=str, required=True)
 @lightbulb.command('info', 'View additional info on a card or pack.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def open(ctx: lightbulb.Context, uuid: str) -> None:
     db = sqlite3.connect(get_setting('database_data_dir'))
     cursor = db.cursor()
@@ -808,22 +820,38 @@ class TradeView(miru.View):
                 self.embed.edit_field(0, f'{self.embed.fields[0].name} ✅', self.embed.fields[0].value)
             else:
                 self.user1_ready = False
-                self.embed.edit_field(0, f'{self.user1.username} Trade Offer', self.embed.fields[0].value)
+                self.embed.edit_field(0, f'{self.user1.global_name} Trade Offer', self.embed.fields[0].value)
         else:
             if not self.user2_ready:
                 self.user2_ready = True
                 self.embed.edit_field(1, f'{self.embed.fields[1].name} ✅', self.embed.fields[1].value)
             else:
                 self.user2_ready = False
-                self.embed.edit_field(1, f'{self.user2.username} Trade Offer', self.embed.fields[1].value)
+                self.embed.edit_field(1, f'{self.user2.global_name} Trade Offer', self.embed.fields[1].value)
         
         if self.user1_ready and self.user2_ready:
-            self.complete_trade()
-            self.embed.title = 'Trade has been completed!'
-            self.embed.color = get_setting('embed_success_color')
-            await ctx.edit_response(self.embed, components=[])
-            self.stop()
-            return
+            user1Inv = Inventory(self.ctx, self.user1)
+            user2Inv = Inventory(self.ctx, self.user2)
+            if user1Inv.get_inventory_capacity() + len(self.user2_offer) > user1Inv.max:
+                self.embed.title = 'Trade Error!'
+                self.embed.description = f'{self.user1.global_name} does not have enough inventory space!'
+                self.embed.color = get_setting('embed_error_color')
+                self.embed.set_footer(None)
+                self.stop()
+                return await self.ctx.edit_last_response(self.embed, components=[])
+            elif user2Inv.get_inventory_capacity() + len(self.user1_offer) > user2Inv.max:
+                self.embed.title = 'Trade Error!'
+                self.embed.description = f'{self.user2.global_name} does not have enough inventory space!'
+                self.embed.color = get_setting('embed_error_color')
+                self.embed.set_footer(None)
+                self.stop()
+                return await self.ctx.edit_last_response(self.embed, components=[])
+            else:
+                self.complete_trade()
+                self.embed.title = 'Trade has been completed!'
+                self.embed.color = get_setting('embed_success_color')
+                self.stop()
+                return await ctx.edit_response(self.embed, components=[])
 
         await ctx.edit_response(self.embed)
 
@@ -847,7 +875,7 @@ class TradeView(miru.View):
     
     @miru.button(label='Exit', style=hikari.ButtonStyle.DANGER, row=1, custom_id='exit')
     async def exit(self, button: miru.Button, ctx: miru.ViewContext) -> None:
-        self.embed.title = f'{self.user1.username} has declined the trade!' if ctx.user.id == self.user1.id else f'{self.user2.username} has declined the trade!'
+        self.embed.title = f'{self.user1.global_name} has declined the trade!' if ctx.user.id == self.user1.id else f'{self.user2.global_name} has declined the trade!'
         self.embed.color = get_setting('embed_error_color')
         await ctx.edit_response(self.embed, components=[])
         self.stop()
@@ -1000,17 +1028,17 @@ class RemoveItemModal(miru.Modal):
 @plugin.command
 @lightbulb.option('user', 'The user to trade with.', type=hikari.User, required=True)
 @lightbulb.command('trade', "Trade items or cards with a server member.", pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def trade(ctx: lightbulb.Context, user: hikari.User) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
         embed = hikari.Embed(description='You are not allowed to trade with this user!', color=get_setting('embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
         return
     
-    embed = hikari.Embed(title=f'Trading with {user.username}...', description='Use the buttons below to edit the Items/Cards in your trade.', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f'Trading with {user.global_name}...', description='Use the buttons below to edit the Items/Cards in your trade.', color=get_setting('embed_color'))
     embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
-    embed.add_field(name=f'{ctx.author.username} Trade Offer', value='`Item Limit: 0/10`\n' + '\n'.join(['• -' for i in range(10)]), inline=True)
-    embed.add_field(name=f'{user.username} Trade Offer', value='`Item Limit: 0/10`\n' + '\n'.join(['• -' for i in range(10)]), inline=True)
+    embed.add_field(name=f'{ctx.author.global_name} Trade Offer', value='`Item Limit: 0/10`\n' + '\n'.join(['• -' for i in range(10)]), inline=True)
+    embed.add_field(name=f'{user.global_name} Trade Offer', value='`Item Limit: 0/10`\n' + '\n'.join(['• -' for i in range(10)]), inline=True)
     embed.set_footer('Trade menu will time out in 2 minutes.')
 
     view = TradeView(ctx, embed, ctx.author, user)

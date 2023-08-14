@@ -3,6 +3,7 @@ import lightbulb
 import miru
 import requests
 import json
+import re
 
 from bot import WORDNIK_API_KEY, get_setting
 
@@ -12,13 +13,13 @@ plugin = lightbulb.Plugin('Fun')
 
 @plugin.command
 @lightbulb.command('random', 'Get something random!')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommandGroup)
+@lightbulb.implements(lightbulb.SlashCommandGroup)
 async def rand(ctx: lightbulb.Context) -> None:
     pass
 
 @rand.child
 @lightbulb.command('fox', 'Get a random picture of a fox!')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def today_fact(ctx: lightbulb.Context) -> None:
     url = 'https://apilist.fun/out/randomfox'
     request = dict(json.loads(requests.get(url).text))
@@ -27,7 +28,7 @@ async def today_fact(ctx: lightbulb.Context) -> None:
 
 @rand.child
 @lightbulb.command('cat', 'Get a random picture of a cat!')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def today_fact(ctx: lightbulb.Context) -> None:
     url = 'https://api.thecatapi.com/v1/images/search'
     request = list(json.loads(requests.get(url).text))
@@ -36,7 +37,7 @@ async def today_fact(ctx: lightbulb.Context) -> None:
 
 @rand.child
 @lightbulb.command('dog', 'Get a random picture of a dog!')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def today_fact(ctx: lightbulb.Context) -> None:
     url = 'https://apilist.fun/out/randomdog'
     request = dict(json.loads(requests.get(url).text))
@@ -47,7 +48,7 @@ async def today_fact(ctx: lightbulb.Context) -> None:
 
 @rand.child
 @lightbulb.command('joke', 'Get a random unfunny joke!')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def joke(ctx: lightbulb.Context) -> None:
     url = 'https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit&type=twopart'
     request = dict(json.loads(requests.get(url).text))
@@ -59,7 +60,7 @@ async def joke(ctx: lightbulb.Context) -> None:
 
 @rand.child
 @lightbulb.command('riddle', 'Get a random riddle!')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def riddle(ctx: lightbulb.Context) -> None:
     url = 'https://riddles-api.vercel.app/random'
     request = dict(json.loads(requests.get(url).text))
@@ -71,7 +72,7 @@ async def riddle(ctx: lightbulb.Context) -> None:
 
 @rand.child
 @lightbulb.command('fact', 'Get a random useless fact.')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def rand_fact(ctx: lightbulb.Context) -> None:
     url = 'https://uselessfacts.jsph.pl/random.json?language=en'
     request = dict(json.loads(requests.get(url).text))
@@ -83,7 +84,7 @@ async def rand_fact(ctx: lightbulb.Context) -> None:
 
 @plugin.command
 @lightbulb.command('fact', 'Get the useless fact of the day.')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def today_fact(ctx: lightbulb.Context) -> None:
     url = 'https://uselessfacts.jsph.pl/today.json?language=en'
     request = dict(json.loads(requests.get(url).text))
@@ -95,7 +96,7 @@ async def today_fact(ctx: lightbulb.Context) -> None:
 
 @plugin.command
 @lightbulb.command('wotd', 'Get the word of the day.')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def today_word(ctx: lightbulb.Context) -> None:
     wordOfTheDayUrl = f"http://api.wordnik.com/v4/words.json/wordOfTheDay?api_key={WORDNIK_API_KEY}"
     response = requests.get(wordOfTheDayUrl)
@@ -114,52 +115,17 @@ async def today_word(ctx: lightbulb.Context) -> None:
         for example in examples:
             embed.description = f'{embed.description}\n- {example["text"]}'
     else:
-        embed = hikari.Embed(description='Failed to get the word of the day', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(title='Failed to get the word of the day', description='Did you fill in your Wordnik api key?', color=get_setting('embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     await ctx.respond(embed)
-
-## Random Word Command ##
-
-@rand.child
-@lightbulb.command('word', 'Get a random word.')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashSubCommand)
-async def rand_word(ctx: lightbulb.Context) -> None:
-    randomWordUrl = f"http://api.wordnik.com/v4/words.json/randomWord?api_key={WORDNIK_API_KEY}"
-    response = requests.get(randomWordUrl)
-    if response.status_code == 200:
-        embed = hikari.Embed(color=get_setting('embed_color'))
-        word = response.json()
-        wordText = word['word']
-        definitionUrl = f"http://api.wordnik.com/v4/word.json/{wordText}/definitions?api_key={WORDNIK_API_KEY}"
-        definitionResponse = requests.get(definitionUrl)
-        if definitionResponse.status_code == 200:
-            definitions = definitionResponse.json()
-            embed.title = f'Random word: {wordText.capitalize()}'
-            embed.description = '**Definitions:**'
-            for i, definition in enumerate(definitions):
-                definitionText = definition['text']
-                definitionText = definitionText.replace('<xref>', '').replace('</xref>', '').replace('<em>', '').replace('</em>', '')
-                partOfSpeechText = definition['partOfSpeech']
-                embed.description = f'{embed.description}\n{partOfSpeechText.capitalize()}: {definitionText}'
-        else:
-            embed = hikari.Embed(description='Failed to get definition', color=get_setting('embed_error_color'))
-            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-            return
-    else:
-        embed = hikari.Embed(description='Failed to get a random word', color=get_setting('embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
-    
-    await ctx.respond(embed)
-
 
 ## Bored Command ##
 
 @plugin.command
 @lightbulb.command('bored', 'Get an activity suggestion from the bot.')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def bored(ctx: lightbulb.Context) -> None:
     url = 'https://www.boredapi.com/api/activity'
     request = dict(json.loads(requests.get(url).text))
@@ -169,12 +135,20 @@ async def bored(ctx: lightbulb.Context) -> None:
 
 ## Hangman Command ##
 
+def contains_special_characters(input_string):
+    pattern = r'[!@#$%^&*(),.?":{}|<>]'
+    return bool(re.search(pattern, input_string))
+
 @plugin.command
 @lightbulb.option('theme', 'The theme of the word!', type=str, required=True)
 @lightbulb.option('word', 'The word players will have to guess!', type=str, required=True)
 @lightbulb.command('hangman', 'Play a game of Hangman.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
+    if contains_special_characters(word):
+        embed = hikari.Embed(description='You are not allowed to include special characters!', color=get_setting('embed_error_color'))
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+
     embed = hikari.Embed(title=f'Hangman game has started!', description='This menu is only for hiding your command.', color=get_setting('embed_color'))
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
@@ -249,7 +223,7 @@ class HangmanLobbyView(miru.View):
     @miru.button(label='Join Game', style=hikari.ButtonStyle.PRIMARY, row=1)
     async def join(self, button: miru.Button, ctx: miru.Context) -> None:
         player = f'<@{ctx.user.id}>'
-        playerInfo = {'name': f'{ctx.user.username}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
+        playerInfo = {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
         
         if player in self.game['guessers'] or ctx.user.id == self.game["author"].id: # checks if user already joined
             embed = hikari.Embed(description='You already joined this game!', color=get_setting('embed_error_color'))
@@ -328,7 +302,7 @@ class HangmanGameView(miru.View):
             self.mistakes = self.mistakes + 1
             self.guesses.append(letter)
             
-            embed = hikari.Embed(title=f"Incorrect! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"Incorrect! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
             embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
             embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
             embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -337,7 +311,7 @@ class HangmanGameView(miru.View):
             if self.mistakes != 7:
                 await ctx.edit_response(embed, components=self.build())
             else:
-                embed = hikari.Embed(title=f"Incorrect, the word was {self.game['word'].capitalize()}! {self.game['author']} wins!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f"Incorrect, the word was {self.game['word'].capitalize()}! {self.game['author']} wins!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
                 embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
                 embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
                 embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -352,14 +326,14 @@ class HangmanGameView(miru.View):
             for i in index:
                 self.wordVisual[i] = letter
         
-            embed = hikari.Embed(title=f"Correct! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"Correct! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
             embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
             embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
             embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
             embed.set_thumbnail(self.guesser['url'])
         
             if r'''\_''' not in self.wordVisual:
-                embed = hikari.Embed(title=f"Correct! The guessing team wins!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f"Correct! The guessing team wins!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
                 embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
                 embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
                 embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -410,7 +384,7 @@ class HangmanGameView(miru.View):
             self.mistakes = self.mistakes + 1
             self.guesses.append(letter)
             
-            embed = hikari.Embed(title=f"Incorrect! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"Incorrect! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
             embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
             embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
             embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -419,7 +393,7 @@ class HangmanGameView(miru.View):
             if self.mistakes != 7:
                 await ctx.edit_response(embed, components=self.build())
             else:
-                embed = hikari.Embed(title=f"Incorrect, the word was {self.game['word'].capitalize()}! {self.game['author']} wins!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: {len(self.game["word"].replace(" ", "")):,}\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f"Incorrect, the word was {self.game['word'].capitalize()}! {self.game['author']} wins!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: {len(self.game["word"].replace(" ", "")):,}\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
                 embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
                 embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
                 embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -434,14 +408,14 @@ class HangmanGameView(miru.View):
             for i in index:
                 self.wordVisual[i] = letter
         
-            embed = hikari.Embed(title=f"Correct! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"Correct! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
             embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
             embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
             embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
             embed.set_thumbnail(self.guesser['url'])
         
             if r'''\_''' not in self.wordVisual:
-                embed = hikari.Embed(title=f"Correct! The guessing team wins!", description=f'`{ctx.user.username} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f"Correct! The guessing team wins!", description=f'`{ctx.user.global_name} has guessed letter {letter.capitalize()}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
                 embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
                 embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
                 embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -489,7 +463,7 @@ class HangmanGameView(miru.View):
             self.mistakes = self.mistakes + 1
             self.guesses.append(number)
             
-            embed = hikari.Embed(title=f"Incorrect! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.username} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"Incorrect! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.global_name} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
             embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
             embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
             embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -498,7 +472,7 @@ class HangmanGameView(miru.View):
             if self.mistakes != 7:
                 await ctx.edit_response(embed, components=self.build())
             else:
-                embed = hikari.Embed(title=f"Incorrect, the word was {self.game['word'].capitalize()}! {self.game['author']} wins!", description=f'`{ctx.user.username} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f"Incorrect, the word was {self.game['word'].capitalize()}! {self.game['author']} wins!", description=f'`{ctx.user.global_name} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
                 embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
                 embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
                 embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
@@ -513,14 +487,14 @@ class HangmanGameView(miru.View):
             for i in index:
                 self.wordVisual[i] = number
         
-            embed = hikari.Embed(title=f"Correct! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.username} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"Correct! It's {self.guesser['name']} Turn!", description=f'`{ctx.user.global_name} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
             embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
             embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
             embed.set_image(f'assets/img/hangman/{self.mistakes}.png')
             embed.set_thumbnail(self.guesser['url'])
         
             if r'''\_''' not in self.wordVisual:
-                embed = hikari.Embed(title=f"Correct! The guessing team wins!", description=f'`{ctx.user.username} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f"Correct! The guessing team wins!", description=f'`{ctx.user.global_name} has guessed number {number}.`\n\nHost: <@{self.author}>\nGuessers: {", ".join(self.game["guessers"])}\nWord Count: `{len(self.game["word"].replace(" ", "")):,}`\nTheme: **{self.game["theme"].capitalize()}**', color=get_setting('embed_color'))
                 embed.add_field(name='__Current letters__', value=' '.join(self.wordVisual), inline=True)
                 embed.add_field(name='__Guesses__', value=', '.join(self.guesses).upper() if len(self.guesses) > 0 else 'None', inline=True)
                 embed.set_image(f'assets/img/hangman/{self.mistakes}.png')

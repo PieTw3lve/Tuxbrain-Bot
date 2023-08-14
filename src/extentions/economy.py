@@ -50,7 +50,7 @@ async def update_leaderboard():
 
 @plugin.command
 @lightbulb.command('leaderboard', 'Displays leaderboard rankings.', aliases=['baltop'], pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def baltop(ctx: lightbulb.SlashContext) -> None:
     rankings = []
     balances = []
@@ -83,8 +83,8 @@ async def baltop(ctx: lightbulb.SlashContext) -> None:
 
 @plugin.command
 @lightbulb.option('user', 'The user to get information about.', type=hikari.User, required=False)
-@lightbulb.command('balance', 'Get balance on a server member.', aliases=['bal'], pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.command('balance', 'Get balance of a server member.', aliases=['bal'], pass_options=True)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
     if user == None: # if no user has been sent
         user = ctx.author
@@ -93,7 +93,7 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
-    username = user.username
+    username = user.global_name
     
     db = sqlite3.connect(get_setting('database_data_dir'))
     cursor = db.cursor()
@@ -117,7 +117,7 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
     
     embed = (
         hikari.Embed(title=f"{username}'s Balance", description=f'Wallet: 🪙 {balance:,}\nNet Gain: 🪙 {total:,}\nNet Loss: 🪙 {loss:,}\nTux Pass: {tpass:,} 🎟️', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
-        .set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
+        .set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         .set_thumbnail(user.avatar_url if user.avatar_url != None else user.default_avatar_url)
     )
     
@@ -128,7 +128,7 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
 @plugin.command
 @lightbulb.add_cooldown(length=86400.0, uses=1, bucket=lightbulb.UserBucket)
 @lightbulb.command('daily', 'Get your daily reward!')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def daily(ctx: lightbulb.Context) -> None:
     user = ctx.author
     earnings = random.randint(120,360)
@@ -149,7 +149,7 @@ async def daily(ctx: lightbulb.Context) -> None:
 @lightbulb.option('number', 'The number of coins', type=int, min_value=1, max_value=None, required=True)
 @lightbulb.option('user', 'The user you are about to pay.', type=hikari.User, required=True)
 @lightbulb.command('pay', 'Give a server member money.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def pay(ctx: lightbulb.SlashContext, user: hikari.User, number: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
         embed = hikari.Embed(description='You are not allowed to send money to this user!', color=get_setting('embed_error_color'))
@@ -173,7 +173,7 @@ async def pay(ctx: lightbulb.SlashContext, user: hikari.User, number: int) -> No
     
     add_money(user.id, number, False)
     
-    embed = (hikari.Embed(description=f'You sent 🪙 {number:,} to {user.username}!', color=get_setting('embed_color')))
+    embed = (hikari.Embed(description=f'You sent 🪙 {number:,} to {user.global_name}!', color=get_setting('embed_color')))
     await ctx.respond(embed)
 
 ## Coinflip Command ##
@@ -181,7 +181,7 @@ async def pay(ctx: lightbulb.SlashContext, user: hikari.User, number: int) -> No
 @plugin.command
 @lightbulb.option('number', 'Number of coinflip(s)', type=int, min_value=1, max_value=100, required=True)
 @lightbulb.command('coinflip', 'Flips a coin.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def coinflip(ctx: lightbulb.SlashContext, number: int) -> None:
     result = []
     heads = 0
@@ -230,7 +230,7 @@ class CheckView(miru.View):
 
 @plugin.command
 @lightbulb.command('draw', 'Draw cards from a deck.')
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def draw(ctx: lightbulb.Context):
     player = ctx.author
     deck = [
@@ -308,7 +308,7 @@ async def draw(ctx: lightbulb.Context):
 @lightbulb.option('bet', 'The amount players will bet.', type=int, min_value=100, max_value=None, required=True)
 @lightbulb.option('capacity', 'How many bullet?', type=int, min_value=6, max_value=100, required=True)
 @lightbulb.command('russian-roulette', 'Play a game of Russian Roulette.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     if verify_user(ctx.user) == None: # if user has never been register
         embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
@@ -319,9 +319,9 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
 
-    players = {f'<@{ctx.user.id}>': {'name': f'{ctx.user.username}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}}
+    players = {f'<@{ctx.user.id}>': {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}}
     
-    embed = hikari.Embed(title=f'{ctx.user.username} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f'{ctx.user.global_name} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('embed_color'))
     embed.set_image('assets/img/revolver.png')
     embed.add_field(name='__Game info__', value=f'Initial Bet: 🪙 {bet:,}\nBet Pool: 🪙 {bet:,}\nChamber Capacity: `{capacity:,}`', inline=True)
     embed.add_field(name='__Player List__', value=f'{", ".join(players)}', inline=True)
@@ -338,7 +338,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     if not view.gameStart: # if lobby timed out
         return
     
-    embed = hikari.Embed(title=f"It's {ctx.user.username} Turn!", description=f'Players: {", ".join(view.game["players"])}\nBet Pool: 🪙 {view.game["pool"]:,}\nBullets Remaining: `{view.game["capacity"]}`', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f"It's {ctx.user.global_name} Turn!", description=f'Players: {", ".join(view.game["players"])}\nBet Pool: 🪙 {view.game["pool"]:,}\nBullets Remaining: `{view.game["capacity"]}`', color=get_setting('embed_color'))
     embed.set_image('assets/img/revolver.png')
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.set_footer(text=f'You have {15.0} seconds to choose an action!')
@@ -376,7 +376,7 @@ class RRLobbyView(miru.View):
     @miru.button(label='Join Game', style=hikari.ButtonStyle.PRIMARY, row=1)
     async def join(self, button: miru.Button, ctx: miru.Context) -> None:
         player = f'<@{ctx.user.id}>'
-        playerInfo = {'name': f'{ctx.user.username}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
+        playerInfo = {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
         
         if player in self.game['players']: # checks if user already joined
             embed = hikari.Embed(description='You already joined this game!', color=get_setting('embed_error_color'))
@@ -520,8 +520,8 @@ class RRGameView(miru.View):
 @lightbulb.option('wins', 'How many wins does a player need to win.', type=int, min_value=1, max_value=10, required=True)
 @lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=0, max_value=2000, required=True)
 @lightbulb.option('user', 'The user to play against.', hikari.User, required=True)
-@lightbulb.command('rps', 'Play a game of RPS against a server member.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.command('rps', 'Play a game of Rock-Paper-Scissors.', pass_options=True)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
         embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('embed_error_color'))
@@ -1012,12 +1012,12 @@ class Connect4GameView(miru.View):
         
         if self.game.hasWon(player):
             if self.game.currentPlayer == '1':
-                self.embed.description = f'**{self.author.username}** wins!\n{self.game.printBoard()}'
+                self.embed.description = f'**{self.author.global_name}** wins!\n{self.game.printBoard()}'
                 self.embed.set_thumbnail(self.author.avatar_url if self.author.avatar_url != None else self.author.default_avatar_url)
                 add_money(self.author.id, self.bet*2, True)
                 add_loss(self.opponent.id, self.bet)
             else:
-                self.embed.description = f'**{self.opponent.username}** wins!\n{self.game.printBoard()}'
+                self.embed.description = f'**{self.opponent.global_name}** wins!\n{self.game.printBoard()}'
                 self.embed.set_thumbnail(self.opponent.avatar_url if self.opponent.avatar_url != None else self.opponent.default_avatar_url)
                 add_money(self.opponent.id, self.bet*2, True)
                 add_loss(self.author.id, self.bet)
@@ -1028,23 +1028,23 @@ class Connect4GameView(miru.View):
         
         if self.game.currentPlayer == '1':
             self.game.currentPlayer = '2'
-            self.embed.description = f"It's **{self.opponent.username}** turn! Make your move!\n{self.game.printBoard()}"
+            self.embed.description = f"It's **{self.opponent.global_name}** turn! Make your move!\n{self.game.printBoard()}"
             self.embed.set_thumbnail(self.opponent.avatar_url if self.opponent.avatar_url != None else ctx.user.default_avatar_url)
         else:
             self.game.currentPlayer = '1'
-            self.embed.description = f"It's **{self.author.username}** turn! Make your move!\n{self.game.printBoard()}"
+            self.embed.description = f"It's **{self.author.global_name}** turn! Make your move!\n{self.game.printBoard()}"
             self.embed.set_thumbnail(self.author.avatar_url if self.author.avatar_url != None else ctx.user.default_avatar_url)
         
         await ctx.edit_response(self.embed)
 
     async def on_timeout(self) -> None:
         if self.game.currentPlayer == '1':
-            self.embed.description = f'**{self.author.username}** wins!\n{self.game.printBoard()}'
+            self.embed.description = f'**{self.author.global_name}** wins!\n{self.game.printBoard()}'
             self.embed.set_thumbnail(self.author.avatar_url if self.author.avatar_url != None else self.author.default_avatar_url)
             add_money(self.author.id, self.bet*2, True)
             add_loss(self.opponent.id, self.bet)
         else:
-            self.embed.description = f'**{self.opponent.username}** wins!\n{self.game.printBoard()}'
+            self.embed.description = f'**{self.opponent.global_name}** wins!\n{self.game.printBoard()}'
             self.embed.set_thumbnail(self.opponent.avatar_url if self.opponent.avatar_url != None else self.opponent.default_avatar_url)
             add_money(self.opponent.id, self.bet*2, True)
             add_loss(self.author.id, self.bet)
@@ -1061,8 +1061,8 @@ class Connect4GameView(miru.View):
 @plugin.command
 @lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=0, max_value=2000, required=True)
 @lightbulb.option('user', 'The user to play against.', hikari.User, required=True)
-@lightbulb.command('connect4', 'Play a game of Connect Four against a server member.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.command('connect4', 'Play a game of Connect Four.', pass_options=True)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
         embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('embed_error_color'))
@@ -1094,7 +1094,7 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     
     game = Connect4()
     
-    embed = hikari.Embed(title='Welcome to a game of Connect Four!', description=f"It's **{ctx.author.username}** turn! Make your move!\n{game.printBoard()}", color=get_setting('embed_color'))
+    embed = hikari.Embed(title='Welcome to a game of Connect Four!', description=f"It's **{ctx.author.global_name}** turn! Make your move!\n{game.printBoard()}", color=get_setting('embed_color'))
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.set_footer('You have 60 seconds to choose an option or you will automatically forfeit!')
 
@@ -1280,7 +1280,7 @@ class BlackJackView(miru.View):
 @plugin.command
 @lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=20, max_value=2000, required=True)
 @lightbulb.command('blackjack', 'Play a game of Blackjack.', aliases=['bj'], pass_options=True)
-@lightbulb.implements(lightbulb.PrefixCommand, lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     user = ctx.user
     deck = Deck()

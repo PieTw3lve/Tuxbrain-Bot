@@ -64,8 +64,12 @@ async def on_ready(event: hikari.StartedEvent) -> None:
         print ('Either file is missing or is not readable, creating file...')
         
         dictionary = {
-            "database_data_dir": "database/database.sqlite",
+            "database_data_dir": 'database/database.sqlite',
             'rushsite_register_link': 'https://bit.ly/3tH1nI2',
+            'starting_balance': 1000,
+            'starting_tux_pass': 0,
+            'pokemon_pack_amount': 7,
+            'pokemon_max_capacity': 2000,
             'command_cooldown': 5,
             'embed_color': '#249EDB',
             'embed_important_color': 'b03f58',
@@ -86,12 +90,12 @@ async def on_message(event: hikari.MessageCreateEvent):
     
     user = event.author
     
-    db = sqlite3.connect('database.sqlite')
+    db = sqlite3.connect(get_setting('database_data_dir'))
     cursor = db.cursor()
     
     if verify_user(user) == None: # if user has never been register
         sql = ('INSERT INTO economy(user_id, balance, total, loss, tpass) VALUES (?,?,?,?,?)')
-        val = (user.id, 1000, 1000, 0, 0)
+        val = (user.id, get_setting('starting_balance'), get_setting('starting_balance'), 0, get_setting('starting_tux_pass'))
         cursor.execute(sql, val) 
     
     db.commit() # saves changes
@@ -119,7 +123,7 @@ def write_setting(option: str, value):
         json.dump(data, openfile, indent=4)
 
 def verify_user(user: hikari.User):
-    db = sqlite3.connect('database.sqlite')
+    db = sqlite3.connect(get_setting('database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT user_id FROM economy WHERE user_id = {user.id}') # moves cursor to user's id from database

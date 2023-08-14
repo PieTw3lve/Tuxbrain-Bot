@@ -61,7 +61,7 @@ async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
 
 @plugin.command
 @lightbulb.command('song', 'Listen and manage songs in a voice channel.')
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashCommandGroup)
+@lightbulb.implements(lightbulb.SlashCommandGroup)
 async def song(ctx: lightbulb.Context) -> None:
     return
 
@@ -113,6 +113,9 @@ class PlayerManager():
 
         return line
     
+    def truncate_string(self, song, max_length):
+        return f"{song[:max_length - 3]}..." if len(song) > max_length else song
+
     def get_current_track(self):
         try:
             return f'[{self.player.current.title}]({self.player.current.uri})\nRequested by: <@{self.player.current.requester}>\n\n{self.get_current_track_status()} **{self.move_marker(int(self.player.position), self.player.current.duration)}** `[{self.milliseconds_to_youtube_timestamp(int(self.player.position))}/{self.milliseconds_to_youtube_timestamp(self.player.current.duration)}]` :sound:'
@@ -125,7 +128,7 @@ class PlayerManager():
 @song.child
 @lightbulb.add_checks(lightbulb.guild_only)
 @lightbulb.command('join', 'Joins the voice channel you are in.', auto_defer=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def join(ctx: lightbulb.Context) -> None:
     """
         Connect the bot to the voice channel the user is currently in 
@@ -147,7 +150,7 @@ async def join(ctx: lightbulb.Context) -> None:
 @song.child
 @lightbulb.add_checks(lightbulb.guild_only)
 @lightbulb.command('leave', 'Leaves voice channel, clearing queue.', auto_defer=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def leave(ctx: lightbulb.Context) -> None:
     """Leaves the voice channel the bot is in, clearing the queue."""
 
@@ -161,6 +164,9 @@ async def leave(ctx: lightbulb.Context) -> None:
         embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('embed_error_color')))
         return await ctx.respond(embed)
 
+    await playerManager.player.set_pause(False) # turn off pause
+    playerManager.player.set_shuffle(False) # turn off shuffle
+    playerManager.player.set_loop(0)  # turn off loop
     playerManager.player.queue.clear()  # clear queue
     await playerManager.player.stop()  # stop player
     playerManager.player.channel_id = None  # update the channel_id of the player to None
@@ -176,7 +182,7 @@ async def leave(ctx: lightbulb.Context) -> None:
 @song.child
 @lightbulb.option('query', 'Youtube URL, Twitch URL, or search query.', modifier=lightbulb.OptionModifier.CONSUME_REST, required=True)
 @lightbulb.command('play', 'Searches query on youtube, or adds the URL to the queue.', auto_defer = True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def play(ctx: lightbulb.Context) -> None:
     """Searches the query on youtube, or adds the URL to the queue."""
 
@@ -243,7 +249,7 @@ async def play(ctx: lightbulb.Context) -> None:
 @song.child
 @lightbulb.option('option', 'List of modifiers', choices=['Queue', 'Pause', 'Skip', 'Shuffle', 'Loop', 'Clear'], required=True)
 @lightbulb.command('controller', 'Manage music player options.', pass_options=True)
-@lightbulb.implements(lightbulb.PrefixSubCommand, lightbulb.SlashSubCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def controller(ctx: lightbulb.Context, option: str) -> None:
     playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
     clientVoiceState = ctx.bot.cache.get_voice_state(ctx.guild_id, ctx.author)
@@ -262,7 +268,7 @@ async def controller(ctx: lightbulb.Context, option: str) -> None:
             queue = []
             pages = (len(playerManager.player.queue) + 9) // 10
             for index, item in enumerate(playerManager.player.queue[:10], start=1):
-                queue.append(f"`{index}.` [{item.title}]({item.uri}) `[{playerManager.milliseconds_to_youtube_timestamp(item.duration)}]`")
+                queue.append(f"`{index}.` [{playerManager.truncate_string(item.title, 50)}]({item.uri}) `[{playerManager.milliseconds_to_youtube_timestamp(item.duration)}]`")
             embed = hikari.Embed(title='Now Playing', description=f'{playerManager.get_current_track()}\n\n**Up next:**\n{f"{chr(10)}".join(queue)}' if len(queue) != 0 else f'{playerManager.get_current_track()}\n\n**Up next:**\n- No tracks in queue!', color=(get_setting('embed_color')), timestamp=datetime.now().astimezone())
             embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
             embed.add_field(name='In queue', value=len(playerManager.player.queue), inline=True)
@@ -348,6 +354,9 @@ class EventHandler:
 
     @lavalink.listener(lavalink.QueueEndEvent)
     async def queue_finish(self, event: lavalink.QueueEndEvent):
+        await event.player.set_pause(False) # turn off pause
+        event.player.set_shuffle(False) # turn off shuffle
+        event.player.set_loop(0) # turn off loop
         await event.player.stop()  # stop player
         event.player.channel_id = None  # update the channel_id of the player to None
         await plugin.bot.update_voice_state(event.player.guild_id, None)
