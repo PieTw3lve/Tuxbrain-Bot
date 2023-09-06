@@ -38,7 +38,7 @@ class InfoView(miru.View):
             case 'About':
                 author = await ctx.bot.rest.fetch_user('291001658362560513')
                 embed.title = '💬 About'
-                embed.description = 'Tuxbrain Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use Discord bot written in [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API. It was programmed by **Pie12#1069** and is currently in development, so there may be some bugs. Although it was designed for the Tuxbrain servers, it can also be used for personal use. However, please make sure to check the license before using it. \n\nIf you find any bugs, please mention or private message **Pie12#1069** on Discord.'
+                embed.description = 'Tuxbrain Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use Discord bot written in [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API. It was programmed by **Pie12#1069** and is currently in development, so there may be some bugs. Although it was designed for the Tuxbrain servers, it can also be used for personal use. However, please make sure to check the license before using it. \n\nIf you find any bugs, please report it on [github](https://github.com/PieTw3lve/Tuxbrain-Bot/issues).'
                 embed.set_thumbnail(author.avatar_url)
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
