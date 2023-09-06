@@ -12,6 +12,7 @@ plugin = lightbulb.Plugin('Fun')
 ## Random Animals ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('random', 'Get something random!')
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def rand(ctx: lightbulb.Context) -> None:
@@ -83,6 +84,7 @@ async def rand_fact(ctx: lightbulb.Context) -> None:
 ## Useless Fact of the Day Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('fact', 'Get the useless fact of the day.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def today_fact(ctx: lightbulb.Context) -> None:
@@ -95,6 +97,7 @@ async def today_fact(ctx: lightbulb.Context) -> None:
 ## Word of the Day Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('wotd', 'Get the word of the day.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def today_word(ctx: lightbulb.Context) -> None:
@@ -124,6 +127,7 @@ async def today_word(ctx: lightbulb.Context) -> None:
 ## Bored Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('bored', 'Get an activity suggestion from the bot.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def bored(ctx: lightbulb.Context) -> None:
@@ -140,6 +144,7 @@ def contains_special_characters(input_string):
     return bool(re.search(pattern, input_string))
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('theme', 'The theme of the word!', type=str, required=True)
 @lightbulb.option('word', 'The word players will have to guess!', type=str, required=True)
 @lightbulb.command('hangman', 'Play a game of Hangman.', pass_options=True)
@@ -510,25 +515,6 @@ class HangmanGameView(miru.View):
     async def view_check(self, ctx: miru.Context) -> bool:
         return ctx.user.id == self.guesser['id']
     
-## Error Handler ##
-
-@plugin.set_error_handler()
-async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.CommandNotFound):
-        return
-    if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
-    await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    raise event.exception
-
 ## Definitions ##
 
 def load(bot):

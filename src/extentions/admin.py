@@ -4,14 +4,16 @@ import miru
 import asyncio
 
 from datetime import datetime, timezone, timedelta
-from bot import get_setting, write_setting, verify_user
+from bot import DEFAULT_GUILD_ID, get_setting, write_setting, verify_user
 from .economy import set_money, add_money, add_ticket, remove_money, remove_ticket, add_loss
+from .error import Error
 
-plugin = lightbulb.Plugin('Admin')
+plugin = lightbulb.Plugin('Admin', default_enabled_guilds=DEFAULT_GUILD_ID)
 
 ## Admin Subcommand ##
 
 @plugin.command
+@lightbulb.app_command_permissions(perms=hikari.Permissions.ADMINISTRATOR, dm_enabled=False)
 @lightbulb.command('admin', 'Administer bot configurations.')
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def admin(ctx: lightbulb.Context) -> None:
@@ -381,33 +383,32 @@ class BettingView(miru.Modal):
             if verify_user(ctx.user) == None: # if user has never been register
                 embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
-                return
+                return self.stop()
+            elif self.amount < 1:
+                embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('embed_error_color'))
+                await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
+                return self.stop()
             elif remove_money(userID, self.amount, False) == False:
                 embed = hikari.Embed(title='Bet Error', description='You do not have enough money!', color=get_setting('embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
-                self.stop()
-                return
+                return self.stop()
             elif userID in self.greenTeam.keys() and not self.team:
                 embed = hikari.Embed(description="You can only bet on one team!", color=get_setting('embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
-                self.stop()
-                return
+                return self.stop()
             elif userID in self.blueTeam.keys() and self.team:
                 embed = hikari.Embed(description="You can only bet on one team!", color=get_setting('embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
-                self.stop()
-                return
+                return self.stop()
             else:
                 embed = hikari.Embed(title='Success', description=f'You added 🪙 {self.amount:,} to {"Blue" if not self.team else "Green"}! \nYour total is 🪙 {entry + self.amount if entry is not None else self.amount:,}.', color=get_setting('embed_success_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 self.valid = True
-                self.stop()
-                return
+                return self.stop()
         except:
             embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
-            self.stop()
-            return
+            return self.stop()
 
 @admin.child
 @lightbulb.option('timer', 'How long users have to bet on the outcome (in seconds).', type=int, min_value=5, required=True)
@@ -417,7 +418,7 @@ class BettingView(miru.Modal):
 @lightbulb.command('bet', 'Start a live interactive bet!', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: int) -> None:
-    embed = hikari.Embed(title=f'{name} (Open)', description=f'Submissions will close in {format_seconds(timer)}.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title=f'{name} (Open)', description=f'Submissions will close in {Error().format_seconds(timer)}.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
     embed.add_field(name=f'{blue} (Blue) 50%', value='Total Coins: 🪙 0\nPayout: 💸 0.00\nParticipants: 👥 0\nHighest Bet: 🪙 0 (<@None>)', inline=True)
     embed.add_field(name=f'{green} (Green) 50%', value='Total Coins: 🪙 0\nPayout: 💸 0.00\nParticipants: 👥 0\nHighest Bet: 🪙 0 (<@None>)', inline=True)
     embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
@@ -433,7 +434,7 @@ async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: i
     # Update timer real time
     while not event.is_set():
         remaining = event.end_time - datetime.now().astimezone()
-        embed.description = f'Submissions will close in {format_seconds(int(remaining.total_seconds()))}.'
+        embed.description = f'Submissions will close in {Error().format_seconds(int(remaining.total_seconds()))}.'
         await message.edit(embed=embed)
         await asyncio.sleep(10)  # Update the timer every 60 seconds
     
@@ -453,27 +454,6 @@ async def cancel_sleep(event: asyncio.Event, timer: int) -> None:
         event.set()  # Set the event when the timer expires
     except asyncio.CancelledError:
         event.set()  # Set the event when the sleep is canceled
-
-def format_seconds(seconds):
-    minutes, seconds = divmod(seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    days, hours = divmod(hours, 24)
-
-    time = []
-
-    if days:
-        time.append(f"{days} day{'s' if days > 1 else ''}")
-        time.append(f"{hours} hour{'s' if hours > 1 else ''}")
-    elif hours:
-        time.append(f"{hours} hour{'s' if hours > 1 else ''}")
-        time.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
-    elif minutes:
-        time.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
-        time.append(f"{seconds} second{'s' if seconds > 1 else ''}")
-    else:
-        time.append(f"{seconds} second{'s' if seconds > 1 else ''}")
-
-    return " and ".join(time)
 
 ## Set Balance Command ##
 
@@ -578,25 +558,6 @@ async def take_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, u
         embed = (hikari.Embed(description=f"That amount exceeds {user.global_name}'s wallet!", color=get_setting('embed_error_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     return
-
-## Error Handler ##
-
-@plugin.set_error_handler()
-async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.CommandNotFound):
-        return
-    if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
-    await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    raise event.exception
 
 ## Add as a plugin ##
 

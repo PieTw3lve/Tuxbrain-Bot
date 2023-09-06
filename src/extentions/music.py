@@ -60,6 +60,7 @@ async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
 ## Song Subcommand ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('song', 'Listen and manage songs in a voice channel.')
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def song(ctx: lightbulb.Context) -> None:
@@ -126,7 +127,6 @@ class PlayerManager():
 ## Join Command ##
 
 @song.child
-@lightbulb.add_checks(lightbulb.guild_only)
 @lightbulb.command('join', 'Joins the voice channel you are in.', auto_defer=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def join(ctx: lightbulb.Context) -> None:
@@ -148,7 +148,6 @@ async def join(ctx: lightbulb.Context) -> None:
 ## Leave Command ##
 
 @song.child
-@lightbulb.add_checks(lightbulb.guild_only)
 @lightbulb.command('leave', 'Leaves voice channel, clearing queue.', auto_defer=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def leave(ctx: lightbulb.Context) -> None:
@@ -244,10 +243,36 @@ async def play(ctx: lightbulb.Context) -> None:
     if not playerManager.player.is_playing:
         await playerManager.player.play()
 
+## Queue Command ##
+
+@song.child
+@lightbulb.command('queue', 'Get a list of the queue.', pass_options=True)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def queue(ctx: lightbulb.Context) -> None:
+    playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
+    if not playerManager.player.is_playing:
+        embed = hikari.Embed(description='No track is playing!', color=(get_setting('embed_error_color')))
+        return await ctx.respond(embed)
+    
+    queue = []
+    pages = (len(playerManager.player.queue) + 9) // 10
+    
+    for index, item in enumerate(playerManager.player.queue[:10], start=1):
+        queue.append(f"`{index}.` [{playerManager.truncate_string(item.title, 50)}]({item.uri}) `[{playerManager.milliseconds_to_youtube_timestamp(item.duration)}]`")
+    
+    embed = hikari.Embed(title='Now Playing', description=f'{playerManager.get_current_track()}\n\n**Up next:**\n{f"{chr(10)}".join(queue)}' if len(queue) != 0 else f'{playerManager.get_current_track()}\n\n**Up next:**\n- No tracks in queue!', color=(get_setting('embed_color')), timestamp=datetime.now().astimezone())
+    embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
+    embed.add_field(name='In queue', value=len(playerManager.player.queue), inline=True)
+    embed.add_field(name='Total length', value=playerManager.queue_to_youtube_timestamp(playerManager.player.queue), inline=True)
+    embed.add_field(name='Page', value=f'1 out of {pages}' if pages != 0 else '1 out of 1', inline=True)
+    embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
+    
+    await ctx.respond(embed)
+
 ## Controller Command ##
 
 @song.child
-@lightbulb.option('option', 'List of modifiers', choices=['Queue', 'Pause', 'Skip', 'Shuffle', 'Loop', 'Clear'], required=True)
+@lightbulb.option('option', 'List of modifiers', choices=['Pause', 'Skip', 'Shuffle', 'Loop', 'Clear'], required=True)
 @lightbulb.command('controller', 'Manage music player options.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def controller(ctx: lightbulb.Context, option: str) -> None:
@@ -264,18 +289,6 @@ async def controller(ctx: lightbulb.Context, option: str) -> None:
         return await ctx.respond(embed)
     
     match option:
-        case 'Queue':
-            queue = []
-            pages = (len(playerManager.player.queue) + 9) // 10
-            for index, item in enumerate(playerManager.player.queue[:10], start=1):
-                queue.append(f"`{index}.` [{playerManager.truncate_string(item.title, 50)}]({item.uri}) `[{playerManager.milliseconds_to_youtube_timestamp(item.duration)}]`")
-            embed = hikari.Embed(title='Now Playing', description=f'{playerManager.get_current_track()}\n\n**Up next:**\n{f"{chr(10)}".join(queue)}' if len(queue) != 0 else f'{playerManager.get_current_track()}\n\n**Up next:**\n- No tracks in queue!', color=(get_setting('embed_color')), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
-            embed.add_field(name='In queue', value=len(playerManager.player.queue), inline=True)
-            embed.add_field(name='Total length', value=playerManager.queue_to_youtube_timestamp(playerManager.player.queue), inline=True)
-            embed.add_field(name='Page', value=f'1 out of {pages}' if pages != 0 else '1 out of 1', inline=True)
-            embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
-            await ctx.respond(embed)
         case 'Pause':
             paused = not playerManager.player.paused
             await playerManager.player.set_pause(paused)

@@ -4,6 +4,8 @@ import hikari
 import lightbulb
 import miru
 import sqlite3
+import random
+import re
 
 from lightbulb.ext import tasks
 from datetime import datetime
@@ -20,6 +22,7 @@ from .admin import printProgressBar
 plugin = lightbulb.Plugin('Rushsite')
 
 dataDirectory = 'database/rushsite'
+trophiesIndex = {'s1': '<:TrophyS1:1143265272510304308>', 's2': '<:TrophyS2:1143265277925142578>', 's3': '<:TrophyS3:1143265282614366258>', 's4': '<:TrophyS4:1143265285848178778>', 's5': '<:TrophyS5:1143272567965237360>',}
 rushsiteStats = {}
 allNames = []
 
@@ -28,12 +31,22 @@ async def update_rushsite_data():
     global rushsiteStats, allNames
     teamStats = defaultdict(lambda: defaultdict(int))
     playerStats = defaultdict(lambda: defaultdict(int))
-    playerTeams = defaultdict(set)
+    playerTeams = defaultdict(list)
     mostCommonMaps = defaultdict(lambda: defaultdict(int))
     mostCommonSide = defaultdict(lambda: defaultdict(int))
-    validValueCount = defaultdict(lambda: defaultdict(int)) # To track the count of valid values for each field
+    validValueCount = defaultdict(lambda: defaultdict(int))
+    teamTrophyWins = defaultdict(list)
+    playerTrophyWins = defaultdict(list)
 
-    for filename in os.listdir(dataDirectory):
+
+    sqlite_files = [filename for filename in os.listdir(dataDirectory) if filename.endswith('.sqlite')]
+    
+    def custom_sort(filename):
+        return int(filename.split('_s')[1].split('.sqlite')[0])
+    
+    sorted_sqlite_files = sorted(sqlite_files, key=custom_sort)
+
+    for filename in sorted_sqlite_files:
         if filename.endswith('.sqlite'):
             path = os.path.join(dataDirectory, filename)
             conn = sqlite3.connect(path)
@@ -64,6 +77,7 @@ async def update_rushsite_data():
                     validValueCount[teamName]['Final_Placing'] += 1
                     if team[7] == 1:
                         teamStats[teamName]['Trophies_Won'] += 1
+                        teamTrophyWins[teamName].append(filename.replace('rushsite_', '').replace('.sqlite', ''))
                     else:
                         teamStats[teamName]['Trophies_Won'] += 0
                 else:
@@ -91,18 +105,24 @@ async def update_rushsite_data():
             # Calculate player stats
             cursor.execute('SELECT * FROM Player_Stats')
             db = cursor.fetchall()
-            statLabels = ['Wins', 'Draws', 'Losses', 'K', 'A', 'D', 'MVP', 'SCORE', 'UD', 'EF', 'RP', 'DMG', 'HSK', 'Trophies']
+            statLabels = ['Wins', 'Draws', 'Losses', 'K', 'A', 'D', 'MVP', 'SCORE', 'UD', 'EF', 'RP', 'DMG', 'HSK', 'Victories']
             for player in db:
                 playerName = player[0]
-                playerTeams[playerName].add(player[1])
+                # playerTeams[playerName].add(player[1])
+                playerTeams[playerName].append(player[1])
                 
                 for index, stat in enumerate(player[2:], start=2):
+                    if statLabels[index-2] == 'Victories' and player[15] == 1:
+                        playerTrophyWins[playerName].append(filename.replace('rushsite_', '').replace('.sqlite', ''))
                     playerStats[playerName][statLabels[index-2]] += stat if stat is not None else 0
             conn.close()
 
     # Include player teams in the players dictionary
     for playerName, teams in playerTeams.items():
-        playerStats[playerName]['Teams'] = list(teams)
+        teams.reverse()
+        teamList = []
+        [teamList.append(x) for x in teams if x not in teamList]
+        playerStats[playerName]['Teams'] = teamList
 
     # Calculate averages for team stats
     for teamName in teamStats.keys():
@@ -128,15 +148,24 @@ async def update_rushsite_data():
         ]
         teamStats[teamName]['Most_Common_Map'] = most_common_map if most_common_map else ''
 
-    rushsiteStats = {'Teams': dict(teamStats), 'Players': dict(playerStats)}
+    rushsiteStats = {'Teams': dict(teamStats), 'Players': dict(playerStats), 'Team_Trophy_Wins': teamTrophyWins, 'Player_Trophy_Wins': playerTrophyWins}
     allNames = (list(rushsiteStats['Teams'].keys()), list(rushsiteStats['Players'].keys()))
 
 ## Rushsite Subcommand ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('rushsite', 'Search through Rushsite statistics.')
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def rushsite(ctx: lightbulb.Context) -> None:
+    return
+
+@plugin.command
+@lightbulb.app_command_permissions(perms=hikari.Permissions.ADMINISTRATOR, dm_enabled=False)
+@lightbulb.app_command_permissions(dm_enabled=False)
+@lightbulb.command('rushsite-admin', 'Admin privileges for Rushsite commands.')
+@lightbulb.implements(lightbulb.SlashCommandGroup)
+async def rushsite_admin(ctx: lightbulb.Context) -> None:
     return
 
 ## Rushsite Strike Command ##
@@ -296,7 +325,7 @@ class StrikeViewPlayoffs(miru.View):
                 self.embed.description = f'**{map.capitalize()}** was chosen!'
         return
 
-@rushsite.child
+@rushsite_admin.child
 @lightbulb.option('mode', 'Changes how striking works.', type=str, choices=['Pools','Playoffs'], required=True)
 @lightbulb.option('user2', 'The user that will strike second.', type=hikari.User, required=True)
 @lightbulb.option('user1', 'The user that will strike first.', type=hikari.User, required=True)
@@ -332,6 +361,53 @@ async def strike(ctx: lightbulb.Context, maps: str, user1: hikari.User, user2: h
     
     await view.start(message)
 
+## Generate Pools ##
+
+@rushsite_admin.child
+@lightbulb.option('groups', 'Number of groups to evenly distributing them into.', type=int, required=True)
+@lightbulb.option('teams', 'Provide a list of teams by entering them separated with commas.', type=str, required=True)
+@lightbulb.command('generate-pools', 'Generates randomized pools of teams from a given list.', pass_options=True)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def pools(ctx: lightbulb.Context, teams: str, groups: int) -> None:
+    teamList = teams.replace(' ', '').split(',')
+
+    if len(teamList) < groups:
+        embed = (hikari.Embed(description=f'Group number is larger than the team list!', color=get_setting('embed_error_color')))
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+    
+    embed = hikari.Embed(title=f'Generated Pools', color=get_setting('embed_color'))
+    teamsPerGroup, remainder = divmod(len(teamList), groups)
+    teamIter = iter(teamList)
+    groupList = [[] for _ in range(groups)]
+
+    random.shuffle(teamList)
+    for group in groupList:
+        for _ in range(teamsPerGroup):
+            try:
+                team = next(teamIter)
+                group.append(team)
+            except StopIteration:
+                break
+    
+    for i, team in enumerate(teamIter):
+        groupList[i % groups].append(team)
+    
+    for i, group in enumerate(groupList, start=1):
+        embed.add_field(name=f'Group {i}', value=f'> {f"{chr(10)}> ".join(group)}', inline=True)
+    
+    await ctx.respond(embed)
+    
+## Overview Command ##
+
+@rushsite.child
+@lightbulb.option('season', 'The name of the stat.', type=str, choices=['Season 1', 'Season 2', 'Season 3'], required=True)
+@lightbulb.command('overview', 'Get an overview of a specific season.', pass_options=True)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def overview(ctx: lightbulb.Context, season: str) -> None:
+    embed = hikari.Embed(title=f'{season} Overview', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+    embed.set_image(f'assets/img/rushsite/overviews/{season.lower().replace(" ", "_")}.png')
+    embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+    await ctx.respond(embed)
 
 ## SignUp Command ##
 
@@ -339,7 +415,7 @@ async def strike(ctx: lightbulb.Context, maps: str, user1: hikari.User, user2: h
 @lightbulb.command('register', 'Register now for the latest Rushsite tournament!', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def signup(ctx: lightbulb.Context) -> None:
-    embed = hikari.Embed(title='Rushsite Tournament Registration', description=f"Join us and sign up for the latest [Rushsite tournament]({get_setting('rushsite_register_link')})!\nDon't miss the action, as the tournament will be streamed live on [Twitch](https://twitch.tv/ryqb)!", color=get_setting('embed_color'))
+    embed = hikari.Embed(title='Rushsite Tournament Registration', description=f"Join us and sign up for the latest Rushsite tournament by private messaging <@265992381780721675>!\nDon't miss the action, as the tournament will be streamed live on [Twitch](https://twitch.tv/ryqb)!", color=get_setting('embed_color'))
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 ## Search Command ##
@@ -354,18 +430,23 @@ async def search(ctx: lightbulb.Context, name: str) -> None:
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif name in allNames[0]: # If name is a team
         teamName = allNames[0][allNames[0].index(name)]
-        
+        trophies = []
+
+        for trophy in rushsiteStats['Team_Trophy_Wins'][teamName]:
+            trophies.append(trophiesIndex.get(trophy))
+
         try:
-            wins, draws, losses, mapsPlayed, avgGroupPoints, avgGroupPlacing, avgFinalPlacing, trophies, tWinRate, ctWinRate, commonSide, commonMap = rushsiteStats['Teams'][teamName].values()
+            wins, draws, losses, mapsPlayed, avgGroupPoints, avgGroupPlacing, avgFinalPlacing, victories, tWinRate, ctWinRate, commonSide, commonMap = rushsiteStats['Teams'][teamName].values()
         except ValueError:
-            wins, draws, losses, mapsPlayed, avgGroupPoints, avgGroupPlacing, avgFinalPlacing, trophies, commonSide, commonMap = rushsiteStats['Teams'][teamName].values()
+            wins, draws, losses, mapsPlayed, avgGroupPoints, avgGroupPlacing, avgFinalPlacing, victories, commonSide, commonMap = rushsiteStats['Teams'][teamName].values()
             tWinRate = None
             ctWinRate = None
         if commonSide == ['Even']:
             commonSide = ['CT', 'T']
         
-        thumbnail = f'assets/img/rushsite/logos/{str(teamName).lower().replace(" ", "")}.png'
-        embed = (hikari.Embed(title=f'Team: {teamName} {" ".join([f"{chr(92)}🏆" for i in range(int(trophies))])}', color=get_setting('embed_color'), timestamp=datetime.now().astimezone()))
+        img = re.sub(r'[^a-zA-Z0-9\s]', '', str(teamName).lower().replace(" ", ""))
+        thumbnail = f'assets/img/rushsite/logos/{img}.png'
+        embed = (hikari.Embed(title=f'Team: {teamName} {" ".join(trophies)}', color=get_setting('embed_color'), timestamp=datetime.now().astimezone()))
         embed.set_thumbnail(thumbnail if os.path.exists(thumbnail) else 'assets/img/rushsite/logos/placeholder.png')
         embed.add_field(name='Favorite Maps', value=f'> {f"{chr(10)}> ".join(commonMap)}', inline=True)
         embed.add_field(name='Avg. Group Placings', value=f'> {add_ordinal_suffix(avgGroupPlacing)}', inline=True)
@@ -378,15 +459,22 @@ async def search(ctx: lightbulb.Context, name: str) -> None:
         await ctx.respond(embed)
     else: # If name is a player
         playerName = allNames[1][allNames[1].index(name)]
-        wins, draws, losses, kills, assists, deaths, mvp, score, ud, ef, rp, dmg, hsk, trophies, teams = rushsiteStats['Players'][playerName].values()
-        thumbnail = f'assets/img/rushsite/logos/{str(teams[len(teams)-1]).lower().replace(" ", "")}.png'
+        wins, draws, losses, kills, assists, deaths, mvp, score, ud, ef, rp, dmg, hsk, victories, teams = rushsiteStats['Players'][playerName].values()
+        thumbnail = f'assets/img/rushsite/logos/{str(teams[0]).lower().replace(" ", "")}.png'
+        trophies = []
+
+        if playerName == 'Pie12':
+            trophies.append('🐐')
+
+        for trophy in rushsiteStats['Player_Trophy_Wins'][playerName]:
+            trophies.append(trophiesIndex.get(trophy))
         
         try:
             kdr = kills/deaths
         except ZeroDivisionError:
             kdr = 0
         
-        embed = (hikari.Embed(title=f'Player: {playerName} ({", ".join(teams)}) {" ".join([f"{chr(92)}🏆" for i in range(int(trophies))])}', color=get_setting('embed_color'), timestamp=datetime.now().astimezone()))
+        embed = (hikari.Embed(title=f'Player: {playerName} ({", ".join(teams)}) {" ".join(trophies)}', color=get_setting('embed_color'), timestamp=datetime.now().astimezone()))
         embed.set_thumbnail(thumbnail if os.path.exists(thumbnail) else 'assets/img/rushsite/logos/placeholder.png')
         embed.add_field(name='Kills', value=f'> {kills:,}', inline=True)
         embed.add_field(name='Assists', value=f'> {assists:,}', inline=True)
@@ -425,14 +513,14 @@ def add_ordinal_suffix(number):
     else:
         return f"{lower_number}{lower_suffix}-{upper_number}{upper_suffix}"
 
-## Top Command ##
+## Rank Command ##
 
 @rushsite.child
 @lightbulb.option('stat', 'The name of the stat.', type=str, choices=['Wins','Draws','Losses','Kills','Assists','Deaths','MVPs','Score','Damage','Utility Damage','Enemies Flashed','Rounds Played','Headshot Kills','Tournament Victories'], required=True)
-@lightbulb.command('top', 'Get the top 10 players based on chosen stat.', pass_options=True)
+@lightbulb.command('rank', 'Get the top 10 players based on chosen stat.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def search(ctx: lightbulb.Context, stat: str) -> None:
-    statDict = {'Wins': 'Wins', 'Draws': 'Draws', 'Losses': 'Losses', 'Kills': 'K', 'Assists': 'A', 'Deaths': 'D', 'MVPs': 'MVP', 'Score': 'SCORE', 'Utility Damage': 'UD', 'Enemies Flashed': 'EF', 'Rounds Played': 'RP', 'Damage': 'DMG', 'Headshot Kills': 'HSK', 'Tournament Victories': 'Trophies'}
+    statDict = {'Wins': 'Wins', 'Draws': 'Draws', 'Losses': 'Losses', 'Kills': 'K', 'Assists': 'A', 'Deaths': 'D', 'MVPs': 'MVP', 'Score': 'SCORE', 'Utility Damage': 'UD', 'Enemies Flashed': 'EF', 'Rounds Played': 'RP', 'Damage': 'DMG', 'Headshot Kills': 'HSK', 'Tournament Victories': 'Victories'}
     amount = 10
     
     users, values = get_top_stats(rushsiteStats['Players'], statDict.get(stat), amount)
@@ -451,25 +539,6 @@ def get_top_stats(playerStats: dict, statName: str, amount: int) -> list:
         users.append(f'`{i}.` {str(player)}')
         values.append(f'`{str(rushsiteStats["Players"][player][statName])}`')
     return (users, values)
-
-## Error Handler ##
-
-@plugin.set_error_handler()
-async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.CommandNotFound):
-        return
-    if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
-    await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    raise event.exception
 
 ## Definitions ##
 

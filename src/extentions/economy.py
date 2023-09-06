@@ -1,11 +1,15 @@
+import typing as t
 import hikari
 import lightbulb
 import miru
 import sqlite3
 import random
+import asyncio
 
 from lightbulb.ext import tasks
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from miru.context.view import ViewContext
 from bot import get_setting, verify_user
 
 plugin = lightbulb.Plugin('Economy')
@@ -49,6 +53,7 @@ async def update_leaderboard():
     db.close()
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('leaderboard', 'Displays leaderboard rankings.', aliases=['baltop'], pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def baltop(ctx: lightbulb.SlashContext) -> None:
@@ -82,6 +87,7 @@ async def baltop(ctx: lightbulb.SlashContext) -> None:
 ## Balance Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('user', 'The user to get information about.', type=hikari.User, required=False)
 @lightbulb.command('balance', 'Get balance of a server member.', aliases=['bal'], pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
@@ -125,27 +131,274 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
 
 ## Daily Command ##
 
+class DailyManager:
+    def __init__(self, user: hikari.User) -> None:
+        self.db = sqlite3.connect(get_setting('database_data_dir'))
+        self.cursor = self.db.cursor()
+        self.streak = int()
+        self.date = str()
+        self.update_streak(user)
+
+    def update_streak(self, user: hikari.User) -> None:
+        # Check if there's a record for yesterday
+        user = user
+        today = datetime.now().strftime('%Y-%m-%d')
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        self.cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {user.id}')
+        self.streak, self.date = self.cursor.fetchone()
+
+        if self.date == yesterday or self.date == today:
+            self.streak += 1 if self.streak < 20 else 0
+        else:
+            self.streak = 1
+        
+        self.update_streak_sqlite(today, user)
+
+    def update_streak_sqlite(self, date: str, user: hikari.User) -> None:
+        db = sqlite3.connect(get_setting('database_data_dir'))
+        cursor = db.cursor()
+
+        cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {user.id}')
+        val = cursor.fetchone() 
+
+        sql = ('UPDATE economy SET streak = ?, date = ? WHERE user_id = ?')
+        val = (self.streak, date, user.id)
+        
+        cursor.execute(sql, val)
+        db.commit()
+        cursor.close()
+        db.close()
+
+class DailyChestsView(miru.View):
+    def __init__(self, dailyManager: DailyManager, user: hikari.User) -> None:
+        super().__init__(timeout=None, autodefer=True)
+        self.dailyManager = dailyManager
+        self.user = user
+        self.options = self.generate_options(dailyManager.streak)
+        # print(self.options)
+    
+    @miru.text_select(
+        custom_id='info_select',
+        placeholder='Select a Treasure Chest',
+        options=[
+            miru.SelectOption(label='Old Chest', emoji='<:small_chest:1143255749322100837>', description='Worn and enigmatic, with tales of bygone days.', value='0'),
+            miru.SelectOption(label='Standard Chest', emoji='<:medium_chest:1143258292253118525>', description='Unremarkable yet dependable.', value='1'),
+            miru.SelectOption(label='Luxurious Chest', emoji='<:large_chest:1143260812002218164>', description='Lavish and extravagant, may promise grand rewards.', value='2'),
+        ]
+    )
+    async def chests(self, select: miru.TextSelect, ctx: miru.Context) -> None:
+        amount = self.options[int(select.values[0])][0] * self.options[int(select.values[0])][1]
+        add_money(self.user.id, amount, True)
+
+        match select.values[0]:
+            case '0':
+                chest = 'Old Chest'
+                description = 'With a creaking sound, you gingerly open it. Inside, you find a modest sum of coins, their aged appearance hinting at the wisdom of the past. The Old Chest offers a reminder that even the simplest treasures hold value when viewed through the lens of history.'
+                img = 'assets/img/emotes/small_chest.png'
+            case '1':
+                chest = 'Standard Chest'
+                description = 'With a steady hand, you unlock it. Inside, you discover a sum of coins that neither beguiles nor overwhelms, leaving you with a sense of steady progression. The Standard Chest reaffirms the virtue of reliability in an unpredictable world.'
+                img = 'assets/img/emotes/medium_chest.png'
+            case '2':
+                chest = 'Luxurious Chest'
+                description = 'Tempted by the allure of immense wealth, you decide to open it. With a dramatic flourish, the chest reveals a dazzling array of coins. Yet, you sense the weight of responsibility that accompanies such wealth, a reminder that great riches come with equally great risks.'
+                img = 'assets/img/emotes/large_chest.png'
+
+        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+        embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+        embed.set_thumbnail(img)
+    
+        await ctx.edit_response(embed, components=[])
+        self.stop()
+    
+    def generate_coin_amount(self, streak: int) -> int:
+        minCoins = 60 + (streak * 5)
+        maxCoins = 120 + (streak * 10)
+        return random.randint(minCoins, maxCoins)
+    
+    def generate_multiplier(self) -> int:
+        multipliers = [1, 2, 3, 4]
+        probabilities = [80, 10, 5, 1]
+        return random.choices(multipliers, probabilities)[0]
+
+    def generate_options(self, streak: int) -> list:
+        options = []
+        for i in range(3):
+            amount = self.generate_coin_amount(streak)
+            multiplier = self.generate_multiplier()
+            options.append((amount, multiplier))
+        return options
+    
+    async def view_check(self, ctx: ViewContext) -> bool:
+        return ctx.user == self.user
+
+class DailyMysteryBoxView(miru.View):
+    def __init__(self, dailyManager: DailyManager, user: hikari.User) -> None:
+        super().__init__(timeout=None, autodefer=True)
+        self.dailyManager = dailyManager
+        self.user = user
+        self.options = self.generate_options(dailyManager.streak)
+        # print(self.options)
+    
+    @miru.user_select(placeholder='Select a User')
+    async def get_users(self, select: miru.UserSelect, ctx: miru.ViewContext) -> None:
+        user = select.values[0]
+        if user.is_bot:
+            embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('embed_error_color'))
+            return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        elif user.id == ctx.user.id:
+            amount = round(self.options[1][0] * self.options[1][1])
+            add_money(self.user.id, amount, True)
+
+            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/dailies/question_mark.png')
+            embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+        
+            await ctx.edit_response(embed, components=[])
+            self.stop()
+        else:
+            if verify_user(user) == None: # if user has never been register
+                embed = hikari.Embed(description="This user doesn't have a balance!", color=get_setting('embed_error_color'))
+                return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+            
+            amount = self.options[0][0] * self.options[0][1]
+            add_money(self.user.id, amount, True)
+            add_money(user.id, amount, True)
+            
+            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/dailies/question_mark.png')
+            embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+        
+            await ctx.edit_response(embed, components=[])
+            self.stop()
+    
+    def generate_coin_amount(self, streak: int) -> int:
+        minCoins = 60 + (streak * 5)
+        maxCoins = 120 + (streak * 10)
+        return random.randint(minCoins, maxCoins)
+    
+    def generate_multiplier(self) -> int:
+        multipliers = [0.25, 0.5, 1, 2]
+        probabilities = [10, 80, 20, 5]
+        return random.choices(multipliers, probabilities)[0]
+
+    def generate_options(self, streak: int) -> list:
+        options = []
+        for i in range(2):
+            if i % 2 == 0:
+                amount = self.generate_coin_amount(streak)
+                multiplier = 1
+                options.append((amount, multiplier))
+            else:
+                amount = self.generate_coin_amount(streak)
+                multiplier = self.generate_multiplier()
+                options.append((amount, multiplier))
+        return options
+
+    async def view_check(self, ctx: ViewContext) -> bool:
+        return ctx.user == self.user
+
+class DailyFoxView(miru.View):
+    def __init__(self, dailyManager: DailyManager, user: hikari.User) -> None:
+        super().__init__(timeout=None, autodefer=True)
+        self.dailyManager = dailyManager
+        self.user = user
+        self.options = self.generate_options(dailyManager.streak)
+        # print(self.options)
+    
+    @miru.text_select(
+        custom_id='info_select',
+        placeholder='Select an Option',
+        options=[
+            miru.SelectOption(label='PET THE GOD DAMN FOX', emoji='🫳', description='You simply must pet the fox, no questions asked.', value='0'),
+            miru.SelectOption(label='Leave the Fox Alone', emoji='<:sleeping_fox:1143665534030848080>', description='Let the fox rest peacefully and continue with your day.', value='1'),
+        ]
+    )
+    async def fox(self, select: miru.TextSelect, ctx: miru.Context) -> None:
+        amount = self.options[int(select.values[0])][0] * self.options[int(select.values[0])][1]
+        add_money(self.user.id, amount, True)
+
+        embed = hikari.Embed(color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+        match select.values[0]:
+            case '0':
+                embed.title = 'A Touch of Fate'
+                embed.description = f'As you extend your hand to gently pet the curious red fox, you initiate a unique connection with the wild.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.'
+            case '1':
+                embed.title = "Respecting Nature's Rhythm"
+                embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.'
+
+        embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+        embed.set_thumbnail('assets/img/dailies/fox.png')
+    
+        await ctx.edit_response(embed, components=[])
+        self.stop()
+
+    def generate_coin_amount(self, streak: int) -> int:
+        minCoins = 80 + (streak * 10)
+        maxCoins = 140 + (streak * 20)
+        return random.randint(minCoins, maxCoins)
+    
+    def generate_multiplier(self) -> int:
+        multipliers = [1, 2]
+        probabilities = [75, 25]
+        return random.choices(multipliers, probabilities)[0]
+
+    def generate_options(self, streak: int) -> list:
+        options = []
+        for i in range(2):
+            amount = self.generate_coin_amount(streak)
+            multiplier = self.generate_multiplier()
+            options.append((amount, multiplier))
+        return options
+    
+    async def view_check(self, ctx: ViewContext) -> bool:
+        return ctx.user == self.user
+
 @plugin.command
-@lightbulb.add_cooldown(length=86400.0, uses=1, bucket=lightbulb.UserBucket)
+@lightbulb.app_command_permissions(dm_enabled=False)
+@lightbulb.add_cooldown(length=72000.0, uses=1, bucket=lightbulb.UserBucket)
 @lightbulb.command('daily', 'Get your daily reward!')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def daily(ctx: lightbulb.Context) -> None:
-    user = ctx.author
-    earnings = random.randint(120,360)
-    
-    if verify_user(user) == None: # if user has never been register
+    if verify_user(ctx.author) == None: # if user has never been register
         embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
-    elif add_money(user.id, earnings, True):
-        embed = (hikari.Embed(description=f'You earned 🪙 {earnings}!', color=get_setting('embed_color')))
-        await ctx.respond(embed)
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
-    return
+    dailyManager = DailyManager(ctx.author)
+    scenarioList = ([1, 2, 3], [80, 10, 5])
+    scenario = random.choices(scenarioList[0], scenarioList[1])[0]
+    
+    match scenario:
+        case 1: # The Choice of Chests
+            embed = hikari.Embed(title=f'The Choice of Chests: Unveiling Your Fate', description="In a dimly lit chamber, three chests await your selection, each with a predetermined sum of coins inside. Your decision will unveil not just wealth, but a reflection of your desires and your readiness for life's uncertainties. Choose wisely, for destiny awaits.", color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/dailies/treasure_chest.png')
+            embed.add_field(name='<:small_chest:1143255749322100837> - Old Chest', value='This weathered and timeworn chest may hold a hidden treasure of unknown worth, offering an element of mystery and nostalgia.')
+            embed.add_field(name='<:medium_chest:1143258292253118525> - Standard Chest', value='The middle-of-the-road option, this chest offers a reliable chance at a decent haul of coins, without any frills or extravagance.')
+            embed.add_field(name='<:large_chest:1143260812002218164> - Luxurious Chest', value='The epitome of opulence, this chest tends to promise high-value rewards, making it the grandest and most alluring choice among the three.')
+            embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+            view = DailyChestsView(dailyManager, ctx.author)
+        case 2: # The Mystery Box
+            embed = hikari.Embed(title=f'The Mystery Box: A Decision to Share or Snare', description="Before you lies an enigmatic mystery box, an object shrouded in intrigue and uncertainty. Its exterior, adorned with intricate patterns, beckons you to uncover its secrets. However, this box comes with a twist: it holds the power to either reward your generosity or ensnare your curiosity.", color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/dailies/question_mark.png')
+            embed.add_field(name='The Gift of Connection', value='If you choose to share this mysterious box with another soul, a remarkable surprise awaits. Inside, you will find not just a reward for your generosity, but a token of camaraderie and connection. Perhaps a heartwarming message or a gesture of goodwill that can forge a bond between you and your chosen companion.')
+            embed.add_field(name='The Solitary Treasure', value="If you opt to open the box for yourself, a grand reward might also await. It could be a treasure beyond your wildest dreams or a revelation that changes your life's course. The enigma rewards those who trust in their instincts and tread their path alone.")
+            embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+            view = DailyMysteryBoxView(dailyManager, ctx.author)
+        case 3: # Enchanted Encounter
+            embed = hikari.Embed(title=f'Enchanted Encounter: A Choice in the Wilderness', description="As you wander along a serene forest trail, the dappled sunlight filtering through the thick canopy overhead, you suddenly stumble upon an unexpected sight. There, nestled among the ferns and moss-covered rocks, is a small, curious creature. It's a red fox, its fiery fur contrasting beautifully with the lush greenery of the forest.", color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/dailies/fox.png')
+            embed.add_field(name=':palm_down_hand: - PET THE GOD DAMN FOX', value="You're overwhelmed by an irresistible urge. You simply must pet the fox, no questions asked. It's as if the universe itself conspires for you to pet that fox at this very moment.")
+            embed.add_field(name='<:sleeping_fox:1143665534030848080> - Leave the Fox Alone', value="Let the fox rest peacefully and continue with your day.")
+            embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
+            view = DailyFoxView(dailyManager, ctx.author)
+    
+    message = await ctx.respond(embed, components=view.build())
+    await view.start(message)
 
 ## Pay Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('number', 'The number of coins', type=int, min_value=1, max_value=None, required=True)
 @lightbulb.option('user', 'The user you are about to pay.', type=hikari.User, required=True)
 @lightbulb.command('pay', 'Give a server member money.', pass_options=True)
@@ -179,6 +432,7 @@ async def pay(ctx: lightbulb.SlashContext, user: hikari.User, number: int) -> No
 ## Coinflip Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('number', 'Number of coinflip(s)', type=int, min_value=1, max_value=100, required=True)
 @lightbulb.command('coinflip', 'Flips a coin.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
@@ -190,15 +444,15 @@ async def coinflip(ctx: lightbulb.SlashContext, number: int) -> None:
     for i in range(number):
         number = random.randint(1,2)
         if number == 1:
-            result.append('Heads')
+            result.append('<:heads:1142649356827242536>')
             heads += 1
         else:
-            result.append('Tails')
+            result.append('<:tails:1142651928824774737>')
             tails += 1
 
-    result = (', '.join(result))
+    result = (' '.join(result))
 
-    embed = (hikari.Embed(title='Coinflip Result(s):', description=result, color=get_setting('embed_color')))
+    embed = (hikari.Embed(title='Coinflip Result:' if number == 1 else 'Coinflip Results:', description=result, color=get_setting('embed_color')))
     embed.add_field('Summary:', f'Heads: {heads} Tails: {tails}')
     await ctx.respond(embed)
 
@@ -229,6 +483,7 @@ class CheckView(miru.View):
         return ctx.user.id == self.author.id
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('draw', 'Draw cards from a deck.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def draw(ctx: lightbulb.Context):
@@ -305,6 +560,7 @@ async def draw(ctx: lightbulb.Context):
 ## Russian Roulette ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('bet', 'The amount players will bet.', type=int, min_value=100, max_value=None, required=True)
 @lightbulb.option('capacity', 'How many bullet?', type=int, min_value=6, max_value=100, required=True)
 @lightbulb.command('russian-roulette', 'Play a game of Russian Roulette.', pass_options=True)
@@ -312,12 +568,10 @@ async def draw(ctx: lightbulb.Context):
 async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     if verify_user(ctx.user) == None: # if user has never been register
         embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif remove_money(ctx.user.id, bet, False) == False: # if user has enough money
         embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
     players = {f'<@{ctx.user.id}>': {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}}
     
@@ -517,6 +771,7 @@ class RRGameView(miru.View):
 ## RPS Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('wins', 'How many wins does a player need to win.', type=int, min_value=1, max_value=10, required=True)
 @lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=0, max_value=2000, required=True)
 @lightbulb.option('user', 'The user to play against.', hikari.User, required=True)
@@ -1059,6 +1314,7 @@ class Connect4GameView(miru.View):
             return ctx.user.id == self.opponent.id
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=0, max_value=2000, required=True)
 @lightbulb.option('user', 'The user to play against.', hikari.User, required=True)
 @lightbulb.command('connect4', 'Play a game of Connect Four.', pass_options=True)
@@ -1278,6 +1534,7 @@ class BlackJackView(miru.View):
         return ctx.user.id == self.author.id
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=20, max_value=2000, required=True)
 @lightbulb.command('blackjack', 'Play a game of Blackjack.', aliases=['bj'], pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
@@ -1321,25 +1578,6 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     
     message = await ctx.respond(embed, components=view.build())
     await view.start(message)
-
-## Error Handler ##
-
-@plugin.set_error_handler()
-async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.CommandNotFound):
-        return
-    if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
-    await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    raise event.exception
 
 ## Definitions ##
 

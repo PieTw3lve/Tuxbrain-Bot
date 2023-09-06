@@ -279,7 +279,8 @@ class PackShop(miru.View):
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 @plugin.command
-@lightbulb.command('shop', 'Open the PokéShop menu.')
+@lightbulb.app_command_permissions(dm_enabled=False)
+@lightbulb.command('packshop', 'Open the PokéShop menu.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def shop(ctx: lightbulb.Context) -> None:
     embed = hikari.Embed(title='Welcome to the PokéShop!', description='Get your hands on the newest Pokémon cards at the Pokémon Booster Pack Shop! Simply choose from one of the two options below to start building your collection today. \n\nA standard booster pack costs 🪙 200, while the premium booster pack, which offers a **3x boost** on the chance of getting rare quality cards, can be yours for just 1 🎟️.', color=get_setting('embed_color'))
@@ -464,7 +465,8 @@ class PromptView(miru.View):
         self.stop()
 
 @plugin.command
-@lightbulb.command('inventory', 'Manage your Pokémon cards and packs inventory.')
+@lightbulb.app_command_permissions(dm_enabled=False)
+@lightbulb.command('packinventory', 'Manage your Pokémon cards and packs inventory.')
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def inventory(ctx: lightbulb.Context) -> None:
     return
@@ -566,8 +568,9 @@ async def sell(ctx: lightbulb.Context) -> None:
 ## Packs Open Command ##
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('uuid', 'Enter a pack ID you want to open.', type=str, required=True)
-@lightbulb.command('open', 'Open a card pack.', pass_options=True)
+@lightbulb.command('packopen', 'Open a card pack.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def open(ctx: lightbulb.Context, uuid: str) -> None:
     inventory = Inventory(ctx, ctx.user)
@@ -701,8 +704,9 @@ class SellButton(miru.Button):
         self.cursor.close()
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('uuid', 'Enter a pack or card ID to get more info on it.', type=str, required=True)
-@lightbulb.command('info', 'View additional info on a card or pack.', pass_options=True)
+@lightbulb.command('packinfo', 'View additional info on a card or pack.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def open(ctx: lightbulb.Context, uuid: str) -> None:
     db = sqlite3.connect(get_setting('database_data_dir'))
@@ -1026,8 +1030,9 @@ class RemoveItemModal(miru.Modal):
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('user', 'The user to trade with.', type=hikari.User, required=True)
-@lightbulb.command('trade', "Trade items or cards with a server member.", pass_options=True)
+@lightbulb.command('packtrade', "Trade items or cards with a server member.", pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def trade(ctx: lightbulb.Context, user: hikari.User) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
@@ -1046,25 +1051,6 @@ async def trade(ctx: lightbulb.Context, user: hikari.User) -> None:
     
     await view.start(message)
     await view.wait()
-
-## Error Handler ##
-
-@plugin.set_error_handler()
-async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.CommandNotFound):
-        return
-    if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
-    await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    raise event.exception
 
 ## Definitions ##
 

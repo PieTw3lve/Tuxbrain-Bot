@@ -29,6 +29,7 @@ class InfoView(miru.View):
     )
     async def select_menu(self, select: miru.TextSelect, ctx: miru.Context) -> None:
         option = select.values[0]
+        hide = ['rushsite-admin']
         commands = []
         description = []
         
@@ -58,11 +59,12 @@ class InfoView(miru.View):
             case 'Fun':
                 embed.title = '🎲 Fun Commands'
                 sections = ['Fun']
-        
+
         for section in sections:
             for cmd, desc in self.commands[section]:
-                commands.append(f'• {cmd.capitalize()}')
-                description.append(f'{desc}')
+                if cmd not in hide:
+                    commands.append(f'• {cmd.capitalize()}')
+                    description.append(f'{desc}')
         
         embed.add_field('Commands', '\n'.join(commands) if len(commands) > 0 else 'None', inline=True)
         embed.add_field('Description', '\n'.join(description) if len(description) > 0 else 'None', inline=True)
@@ -73,6 +75,7 @@ class InfoView(miru.View):
         return True
 
 @plugin.command
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('help', 'Displays the help menu.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def help(ctx: lightbulb.Context) -> None:
@@ -93,7 +96,7 @@ async def help(ctx: lightbulb.Context) -> None:
 ## Ping Command ##
 
 @plugin.command
-@lightbulb.add_cooldown(length=10.0, uses=1, bucket=lightbulb.UserBucket)
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('ping', "Displays bot's latency.")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def ping(ctx: lightbulb.Context) -> None:
@@ -103,18 +106,13 @@ async def ping(ctx: lightbulb.Context) -> None:
 ## Profile Command ##
 
 @plugin.command
-@lightbulb.add_cooldown(length=10.0, uses=1, bucket=lightbulb.UserBucket)
+@lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('user', 'The user to get information about.', hikari.User, required=False)
 @lightbulb.command('profile', 'Get info on a server member.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def profile(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> None:
-    if not (guild := ctx.get_guild()):
-        embed = hikari.Embed(description='This command may only be used in servers.', color=get_setting('embed_error_color'))
-        await ctx.respond(embed)
-        return
-
     user = user or ctx.author
-    user = ctx.bot.cache.get_member(guild, user)
+    user = ctx.bot.cache.get_member(ctx.get_guild(), user)
     
     if not user:
         embed = hikari.Embed(description='That user is not in the server.', color=get_setting('embed_error_color'))
@@ -138,25 +136,6 @@ async def profile(ctx: lightbulb.Context, user: Optional[hikari.User] = None) ->
     )
 
     await ctx.respond(embed)
-
-## Error Handler ##
-
-@plugin.set_error_handler()
-async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.CommandNotFound):
-        return
-    if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
-    await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    raise event.exception
 
 ## Definitions ##
 

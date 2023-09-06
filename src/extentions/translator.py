@@ -21,6 +21,7 @@ async def print_translation(event: hikari.MessageCreateEvent) -> None:
             await event.message.respond(f'{lang} ({conf:.02f}): {translation.text}', reply=True)
 
 @plugin.command
+@lightbulb.app_command_permissions(perms=hikari.Permissions.ADMINISTRATOR, dm_enabled=False)
 @lightbulb.add_cooldown(length=10.0, uses=1, bucket=lightbulb.UserBucket)
 @lightbulb.command('translate', 'Toggles automatic text translation.', aliases=['tl'])
 @lightbulb.implements(lightbulb.SlashCommand)
@@ -169,25 +170,6 @@ def find_full_lang(lang) -> str:
         case 'yi':
             return 'Yiddish'
     return 'en'
-
-## Error Handler ##
-
-@plugin.set_error_handler()
-async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.CommandNotFound):
-        return
-    if isinstance(event.exception, lightbulb.NotEnoughArguments):
-        embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        embed = (hikari.Embed(description=f'Command is on cooldown. Try again in {round(event.exception.retry_after)} second(s).', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    if isinstance(event.exception, lightbulb.NotOwner):
-        embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('embed_error_color')))
-        return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('embed_error_color')))
-    await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    raise event.exception
 
 ## Definitions ##
 
