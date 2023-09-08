@@ -30,8 +30,8 @@
 | join	|	Makes the bot join your voice channel.	|	`song join`	|
 | leave	|	Makes the bot disconnect from your voice channel.	|	`song leave`	|
 | play	|	Play a song.	|	`song play <link / song name>`	|
+| queue	|	Displays the queue.	|	`song queue`	|
 | controller	|	Manage music player options.	|	`song controller <option>`	|
-| queue	|	Displays the queue.	|	`song controller queue`	|
 | pause	|	Pauses the music.	|	`song controller pause`	|
 | skip	|	Skips the current song.	|	`song controller skip`	|
 | shuffle	|	Shuffles the playlist.	|	`song controller shuffle`	|
@@ -42,12 +42,12 @@
 ## Pokémon
 |	Command	| description	| Usage
 |---------------|--------------------|--------------|
-| shop	|	Open the PokéShop menu.	|	`shop`	|
-| inventory open	|	Open a server member's inventory.	|	`inventory open [user]`	|
-| inventory sell	|	Sell your cards.	|	`inventory sell`	|
-| open	|	Open a card pack.	|	`open <uuid>`	|
-| info	|	View additional info on a card or pack.	|	`info <uuid>`	|
-| trade	|	Trade items or cards with a server member.	|	`trade <user>`	|
+| packshop	|	Open the PokéShop menu.	|	`packshop`	|
+| packinventory open	|	Open a server member's inventory.	|	`packinventory open [user]`	|
+| packinventory sell	|	Sell your cards.	|	`packinventory sell`	|
+| packopen	|	Open a card pack.	|	`packopen <uuid>`	|
+| packinfo	|	View additional info on a card or pack.	|	`packinfo <uuid>`	|
+| packtrade	|	Trade items or cards with a server member.	|	`packtrade <user>`	|
 
 
 ## Rushsite
@@ -56,7 +56,8 @@
 | register	|	Register now for the latest Rushsite tournament!	|	`rushsite register`	|
 | search	|	Get info about this player or team.	|	`rushsite search <player / team>`	|
 | top	|	Get the top 10 player based on chosen stat.	|	`rushsite top <stat>`	|
-| strike	|	Choose a map by taking turns eliminating maps one by one.	|	`rushsite strike <user> <user>`	|
+| strike	|	Choose a map by taking turns eliminating maps one by one.	|	`rushsite-admin strike <maps> <user> <user> <mode>`	|
+| generate-pools	|	Generates randomized pools of teams from a given list.	|	`rushsite-admin generate-pools <teams> <groups>`	|
 
 
 ## Fun
