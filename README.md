@@ -1,5 +1,5 @@
 ## Description
-Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a new static-typed Python API. It was programmed by **Pie12#1069** and is currently in development, so there may be some bugs. Although it was designed for the Tuxbrain servers, it can also be used for personal use. However, please make sure to check the license before using it.
+Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a new static-typed Python API wrapper. It is programmed by `pie12` to serve as the official Tuxbrain.org Discord bot. The bot is currently still in development, so there may be some bugs. While the initial design of the bot was intended for Tuxbrain.org servers, the bot can be hosted and utilized on any server.
 
 ## Features
 
