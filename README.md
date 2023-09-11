@@ -32,4 +32,4 @@ pip install -r requirements.txt
 - Lightbulb: https://github.com/tandemdude/hikari-lightbulb
 - Miru: https://github.com/HyperGH/hikari-miru
 - Google Translate: https://github.com/ssut/py-googletrans
-- Lavalink: https://github.com/lavalink-devs/Lavalink
+- Lavalink: https://github.com/Devoxin/Lavalink.py
