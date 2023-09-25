@@ -1,5 +1,4 @@
 import os
-import typing as t
 import hikari
 import lightbulb
 import miru
@@ -215,16 +214,16 @@ class StrikeViewPools(miru.View):
             if select not in ['t', 'ct']:
                 self.remove_item(item)
                 self.add_item(SideSelection())
-                embed = hikari.Embed(title=f'**{self.user2.global_name}** choose your starting side on {winner}:', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f'**{self.user2.global_name}** choose your starting side on {winner}:', color=get_setting('settings', 'embed_color'))
                 embed.set_image(f'assets/img/rushsite/maps/{winner.lower()}.png')
                 await ctx.edit_response(embed, components=self.build())
             elif select == 't':
-                embed = hikari.Embed(title=f'Strike Results:', description=f'The chosen map is **{winner}**!\n\n{self.user2.global_name} will start on **Terrorist**\n{self.user1.global_name} will start on **Counter-Terrorist**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f'Strike Results:', description=f'The chosen map is **{winner}**!\n\n{self.user2.global_name} will start on **Terrorist**\n{self.user1.global_name} will start on **Counter-Terrorist**', color=get_setting('settings', 'embed_color'))
                 embed.set_image(f'assets/img/rushsite/maps/{winner.lower()}.png')
                 await ctx.edit_response(embed, components=[])
                 self.stop()
             else:
-                embed = hikari.Embed(title=f'Strike Results:', description=f'The chosen map is **{winner}**!\n\n{self.user2.global_name} will start on **Counter-Terrorist**\n{self.user1.global_name} will start on **Terrorist**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f'Strike Results:', description=f'The chosen map is **{winner}**!\n\n{self.user2.global_name} will start on **Counter-Terrorist**\n{self.user1.global_name} will start on **Terrorist**', color=get_setting('settings', 'embed_color'))
                 embed.set_image(f'assets/img/rushsite/maps/{winner.lower()}.png')
                 await ctx.edit_response(embed, components=[])
                 self.stop()
@@ -281,7 +280,7 @@ class StrikeViewPlayoffs(miru.View):
                 self.round = 1
                 self.mapPicks.append(self.maps[0])
                 map = self.mapPicks[self.round-1]
-                embed = hikari.Embed(title=f'**{self.user2.global_name if self.round % 2 == 0 else self.user1.global_name}** choose your starting side on {map}:', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f'**{self.user2.global_name if self.round % 2 == 0 else self.user1.global_name}** choose your starting side on {map}:', color=get_setting('settings', 'embed_color'))
                 embed.set_image(f'assets/img/rushsite/maps/{map.lower()}.png')
                 return await ctx.edit_response(embed, components=self.build())
             elif select == 't':
@@ -290,7 +289,7 @@ class StrikeViewPlayoffs(miru.View):
                 self.sidePicks.append('Counter-Terrorist')
 
             if self.round == 3:
-                embed = hikari.Embed(title=f'Strike Results:', description=f'\n`Map 1`: **{self.mapPicks[0]}**\n{self.user1.global_name} will start on **{self.sidePicks[0]}**\n{self.user2.global_name} will start on **{"Terrorist" if self.sidePicks[0] == "Counter-Terrorist" else "Counter-Terrorist"}**\n\n`Map 2`: **{self.mapPicks[1]}**\n{self.user2.global_name} will start on **{self.sidePicks[1]}**\n{self.user1.global_name} will start on **{"Terrorist" if self.sidePicks[1] == "Counter-Terrorist" else "Counter-Terrorist"}**\n\n`Map 3`: **{self.mapPicks[2]}**\n{self.user2.global_name} will start on **{self.sidePicks[2]}**\n{self.user1.global_name} will start on **{"Terrorist" if self.sidePicks[2] == "Counter-Terrorist" else "Counter-Terrorist"}**', color=get_setting('embed_color'))
+                embed = hikari.Embed(title=f'Strike Results:', description=f'\n`Map 1`: **{self.mapPicks[0]}**\n{self.user1.global_name} will start on **{self.sidePicks[0]}**\n{self.user2.global_name} will start on **{"Terrorist" if self.sidePicks[0] == "Counter-Terrorist" else "Counter-Terrorist"}**\n\n`Map 2`: **{self.mapPicks[1]}**\n{self.user2.global_name} will start on **{self.sidePicks[1]}**\n{self.user1.global_name} will start on **{"Terrorist" if self.sidePicks[1] == "Counter-Terrorist" else "Counter-Terrorist"}**\n\n`Map 3`: **{self.mapPicks[2]}**\n{self.user2.global_name} will start on **{self.sidePicks[2]}**\n{self.user1.global_name} will start on **{"Terrorist" if self.sidePicks[2] == "Counter-Terrorist" else "Counter-Terrorist"}**', color=get_setting('settings', 'embed_color'))
                 embed.set_image(f'assets/img/rushsite/maps/{self.mapPicks[0].lower()}.png')
                 self.stop()
                 return await ctx.edit_response(embed, components=[])
@@ -298,7 +297,7 @@ class StrikeViewPlayoffs(miru.View):
             self.round += 1
             self.turns = ['Pick']
             map = self.mapPicks[self.round-1]
-            embed = hikari.Embed(title=f'**{self.user2.global_name}** choose your starting side on {map}:', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f'**{self.user2.global_name}** choose your starting side on {map}:', color=get_setting('settings', 'embed_color'))
             embed.set_image(f'assets/img/rushsite/maps/{map.lower()}.png')
             await ctx.edit_response(embed, components=self.build())
 
@@ -334,15 +333,15 @@ class StrikeViewPlayoffs(miru.View):
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def strike(ctx: lightbulb.Context, maps: str, user1: hikari.User, user2: hikari.User, mode: str) -> None:
     if user1.is_bot or user2.is_bot:
-        embed = hikari.Embed(description='You are not allowed to initiate a strike with a bot!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to initiate a strike with a bot!', color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif user1 == user2:
-        embed = hikari.Embed(description='You are not allowed to initiate a strike with yourself!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to initiate a strike with yourself!', color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
     mapList = maps.replace(' ', '').split(',')
     options = list()
-    embed = hikari.Embed(title=f'Turn 1: {user1.global_name} choose a stage to eliminate!', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f'Turn 1: {user1.global_name} choose a stage to eliminate!', color=get_setting('settings', 'embed_color'))
     embed.set_image('assets/img/rushsite/maps/stage_list.png')
     
     for map in mapList:
@@ -352,7 +351,7 @@ async def strike(ctx: lightbulb.Context, maps: str, user1: hikari.User, user2: h
         view = StrikeViewPools(embed, mapList, user1, user2)
     else:
         if len(mapList) != 7:
-            embed = hikari.Embed(description='Map list has to include 7 maps!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='Map list has to include 7 maps!', color=get_setting('settings', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         view = StrikeViewPlayoffs(embed, mapList, user1, user2)
     
@@ -372,10 +371,10 @@ async def pools(ctx: lightbulb.Context, teams: str, groups: int) -> None:
     teamList = teams.replace(' ', '').split(',')
 
     if len(teamList) < groups:
-        embed = (hikari.Embed(description=f'Group number is larger than the team list!', color=get_setting('embed_error_color')))
+        embed = (hikari.Embed(description=f'Group number is larger than the team list!', color=get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
-    embed = hikari.Embed(title=f'Generated Pools', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f'Generated Pools', color=get_setting('settings', 'embed_color'))
     teamsPerGroup, remainder = divmod(len(teamList), groups)
     teamIter = iter(teamList)
     groupList = [[] for _ in range(groups)]
@@ -404,7 +403,7 @@ async def pools(ctx: lightbulb.Context, teams: str, groups: int) -> None:
 @lightbulb.command('overview', 'Get an overview of a specific season.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def overview(ctx: lightbulb.Context, season: str) -> None:
-    embed = hikari.Embed(title=f'{season} Overview', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title=f'{season} Overview', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
     embed.set_image(f'assets/img/rushsite/overviews/{season.lower().replace(" ", "_")}.png')
     embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
     await ctx.respond(embed)
@@ -412,10 +411,19 @@ async def overview(ctx: lightbulb.Context, season: str) -> None:
 ## SignUp Command ##
 
 @rushsite.child
-@lightbulb.command('register', 'Register now for the latest Rushsite tournament!', pass_options=True)
+@lightbulb.command('info', 'Get info for the latest Rushsite tournament!', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def signup(ctx: lightbulb.Context) -> None:
-    embed = hikari.Embed(title='Rushsite Tournament Registration', description=f"Join us and sign up for the latest Rushsite tournament by private messaging <@265992381780721675>!\nDon't miss the action, as the tournament will be streamed live on [Twitch](https://twitch.tv/ryqb)!", color=get_setting('embed_color'))
+    embed = hikari.Embed(title='Rushsite Tournament Information', description=f"Rushsite is a seasonal CS:GO 2v2 wingman competition. Six teams or more fight through group stages and playoff brackets to become champion!", color=get_setting('settings', 'embed_color'))
+    embed.set_thumbnail('assets/img/rushsite/logos/placeholder.png')
+    embed.add_field(name='Game', value='Counter-Strike 2', inline=True)
+    embed.add_field(name='Current Season', value='Season 4', inline=True)
+    embed.add_field(name='Teams', value='N/A', inline=True)
+    embed.add_field(name='Map Pool', value='N/A', inline=True)
+    embed.add_field(name='Prize Pool', value='N/A', inline=True)
+    embed.add_field(name='Start Date', value='N/A', inline=True)
+    embed.add_field(name='Where can I sign up?', value='The tournament is open and any team can register. Sign up by private messaging <@265992381780721675>.', inline=False)
+    embed.add_field(name='Where can I watch?', value="Don't miss the action, as the tournament will be streamed live on [Twitch](https://twitch.tv/ryqb)!", inline=False)
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 ## Search Command ##
@@ -426,7 +434,7 @@ async def signup(ctx: lightbulb.Context) -> None:
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def search(ctx: lightbulb.Context, name: str) -> None:
     if name not in allNames[0] + allNames[1]: # If name is not in teams or players
-        embed = (hikari.Embed(description=f'The player or team name cannot be found.', color=get_setting('embed_error_color')))
+        embed = (hikari.Embed(description=f'The player or team name cannot be found.', color=get_setting('settings', 'embed_error_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif name in allNames[0]: # If name is a team
         teamName = allNames[0][allNames[0].index(name)]
@@ -446,7 +454,7 @@ async def search(ctx: lightbulb.Context, name: str) -> None:
         
         img = re.sub(r'[^a-zA-Z0-9\s]', '', str(teamName).lower().replace(" ", ""))
         thumbnail = f'assets/img/rushsite/logos/{img}.png'
-        embed = (hikari.Embed(title=f'Team: {teamName} {" ".join(trophies)}', color=get_setting('embed_color'), timestamp=datetime.now().astimezone()))
+        embed = (hikari.Embed(title=f'Team: {teamName} {" ".join(trophies)}', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone()))
         embed.set_thumbnail(thumbnail if os.path.exists(thumbnail) else 'assets/img/rushsite/logos/placeholder.png')
         embed.add_field(name='Favorite Maps', value=f'> {f"{chr(10)}> ".join(commonMap)}', inline=True)
         embed.add_field(name='Avg. Group Placings', value=f'> {add_ordinal_suffix(avgGroupPlacing)}', inline=True)
@@ -463,9 +471,6 @@ async def search(ctx: lightbulb.Context, name: str) -> None:
         thumbnail = f'assets/img/rushsite/logos/{str(teams[0]).lower().replace(" ", "")}.png'
         trophies = []
 
-        if playerName == 'Pie12':
-            trophies.append('🐐')
-
         for trophy in rushsiteStats['Player_Trophy_Wins'][playerName]:
             trophies.append(trophiesIndex.get(trophy))
         
@@ -474,7 +479,7 @@ async def search(ctx: lightbulb.Context, name: str) -> None:
         except ZeroDivisionError:
             kdr = 0
         
-        embed = (hikari.Embed(title=f'Player: {playerName} ({", ".join(teams)}) {" ".join(trophies)}', color=get_setting('embed_color'), timestamp=datetime.now().astimezone()))
+        embed = (hikari.Embed(title=f'Player: {playerName} ({", ".join(teams)}) {" ".join(trophies)}', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone()))
         embed.set_thumbnail(thumbnail if os.path.exists(thumbnail) else 'assets/img/rushsite/logos/placeholder.png')
         embed.add_field(name='Kills', value=f'> {kills:,}', inline=True)
         embed.add_field(name='Assists', value=f'> {assists:,}', inline=True)
@@ -525,7 +530,7 @@ async def search(ctx: lightbulb.Context, stat: str) -> None:
     
     users, values = get_top_stats(rushsiteStats['Players'], statDict.get(stat), amount)
 
-    embed = hikari.Embed(title=f'Top {amount} players based on {stat}', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title=f'Top {amount} players based on {stat}', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
     embed.add_field(name='Players', value='\n'.join(users), inline=True)
     embed.add_field(name=stat, value='\n'.join(values), inline=True)
     embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)

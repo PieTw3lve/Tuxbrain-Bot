@@ -4,7 +4,6 @@ import lightbulb
 import miru
 import sqlite3
 import random
-import asyncio
 
 from lightbulb.ext import tasks
 from datetime import datetime, timedelta
@@ -24,11 +23,14 @@ async def update_leaderboard():
     leaderboardEco = []
     leaderboardEcoLastRefresh = datetime.now().astimezone()
 
-    db = sqlite3.connect(get_setting('database_data_dir'))
-    cursor = db.cursor()
-    query = "SELECT user_id, balance, tpass FROM economy ORDER BY balance DESC"
-    cursor.execute(query)
-    results = cursor.fetchall()
+    try:
+        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        cursor = db.cursor()
+        query = "SELECT user_id, balance, tpass FROM economy ORDER BY balance DESC"
+        cursor.execute(query)
+        results = cursor.fetchall()
+    except sqlite3.OperationalError as e:
+        results = []
 
     rank = 0
     lastBalance = None
@@ -70,13 +72,13 @@ async def baltop(ctx: lightbulb.SlashContext) -> None:
         except IndexError:
             pass
 
-        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('embed_color'), timestamp=leaderboardEcoLastRefresh)
+        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('settings', 'embed_color'), timestamp=leaderboardEcoLastRefresh)
         embed.add_field(name='Discord User', value='\n'.join(rankings), inline=True)
         embed.add_field(name='Balance', value='\n'.join(balances), inline=True)
         embed.add_field(name='Tux Pass', value='\n'.join(tpasses), inline=True)
         embed.set_footer(f'Last updated')
     else:
-        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('embed_color'), timestamp=leaderboardEcoLastRefresh)
+        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('settings', 'embed_color'), timestamp=leaderboardEcoLastRefresh)
         embed.add_field(name='Discord User', value='🥇 Unknown', inline=True)
         embed.add_field(name='Balance', value='🪙 0', inline=True)
         embed.add_field(name='Tux Pass', value='🎟️ 0', inline=True)
@@ -95,13 +97,13 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
     if user == None: # if no user has been sent
         user = ctx.author
     elif user.is_bot: # user has been sent. checks if user is a bot
-        embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     username = user.global_name
     
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT balance, total, loss, tpass FROM economy WHERE user_id = {user.id}') # moves cursor to user's balance, total, and tpass from database
@@ -122,7 +124,7 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
     db.close()
     
     embed = (
-        hikari.Embed(title=f"{username}'s Balance", description=f'Wallet: 🪙 {balance:,}\nNet Gain: 🪙 {total:,}\nNet Loss: 🪙 {loss:,}\nTux Pass: {tpass:,} 🎟️', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+        hikari.Embed(title=f"{username}'s Balance", description=f'Wallet: 🪙 {balance:,}\nNet Gain: 🪙 {total:,}\nNet Loss: 🪙 {loss:,}\nTux Pass: {tpass:,} 🎟️', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
         .set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         .set_thumbnail(user.avatar_url if user.avatar_url != None else user.default_avatar_url)
     )
@@ -133,7 +135,7 @@ async def balance(ctx: lightbulb.SlashContext, user: hikari.User) -> None:
 
 class DailyManager:
     def __init__(self, user: hikari.User) -> None:
-        self.db = sqlite3.connect(get_setting('database_data_dir'))
+        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
         self.cursor = self.db.cursor()
         self.streak = int()
         self.date = str()
@@ -155,7 +157,7 @@ class DailyManager:
         self.update_streak_sqlite(today, user)
 
     def update_streak_sqlite(self, date: str, user: hikari.User) -> None:
-        db = sqlite3.connect(get_setting('database_data_dir'))
+        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
         cursor = db.cursor()
 
         cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {user.id}')
@@ -204,7 +206,7 @@ class DailyChestsView(miru.View):
                 description = 'Tempted by the allure of immense wealth, you decide to open it. With a dramatic flourish, the chest reveals a dazzling array of coins. Yet, you sense the weight of responsibility that accompanies such wealth, a reminder that great riches come with equally great risks.'
                 img = 'assets/img/emotes/large_chest.png'
 
-        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         embed.set_thumbnail(img)
     
@@ -244,29 +246,29 @@ class DailyMysteryBoxView(miru.View):
     async def get_users(self, select: miru.UserSelect, ctx: miru.ViewContext) -> None:
         user = select.values[0]
         if user.is_bot:
-            embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('settings', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         elif user.id == ctx.user.id:
             amount = round(self.options[1][0] * self.options[1][1])
             add_money(self.user.id, amount, True)
 
-            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail('assets/img/dailies/question_mark.png')
+            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
             await ctx.edit_response(embed, components=[])
             self.stop()
         else:
             if verify_user(user) == None: # if user has never been register
-                embed = hikari.Embed(description="This user doesn't have a balance!", color=get_setting('embed_error_color'))
+                embed = hikari.Embed(description="This user doesn't have a balance!", color=get_setting('settings', 'embed_error_color'))
                 return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             
             amount = self.options[0][0] * self.options[0][1]
             add_money(self.user.id, amount, True)
             add_money(user.id, amount, True)
             
-            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail('assets/img/dailies/question_mark.png')
+            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
             await ctx.edit_response(embed, components=[])
@@ -318,7 +320,7 @@ class DailyFoxView(miru.View):
         amount = self.options[int(select.values[0])][0] * self.options[int(select.values[0])][1]
         add_money(self.user.id, amount, True)
 
-        embed = hikari.Embed(color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
+        embed = hikari.Embed(color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
         match select.values[0]:
             case '0':
                 embed.title = 'A Touch of Fate'
@@ -328,7 +330,7 @@ class DailyFoxView(miru.View):
                 embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.'
 
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
-        embed.set_thumbnail('assets/img/dailies/fox.png')
+        embed.set_thumbnail('assets/img/general/dailies/fox.png')
     
         await ctx.edit_response(embed, components=[])
         self.stop()
@@ -361,7 +363,7 @@ class DailyFoxView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def daily(ctx: lightbulb.Context) -> None:
     if verify_user(ctx.author) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     dailyManager = DailyManager(ctx.author)
@@ -370,23 +372,23 @@ async def daily(ctx: lightbulb.Context) -> None:
     
     match scenario:
         case 1: # The Choice of Chests
-            embed = hikari.Embed(title=f'The Choice of Chests: Unveiling Your Fate', description="In a dimly lit chamber, three chests await your selection, each with a predetermined sum of coins inside. Your decision will unveil not just wealth, but a reflection of your desires and your readiness for life's uncertainties. Choose wisely, for destiny awaits.", color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail('assets/img/dailies/treasure_chest.png')
+            embed = hikari.Embed(title=f'The Choice of Chests: Unveiling Your Fate', description="In a dimly lit chamber, three chests await your selection, each with a predetermined sum of coins inside. Your decision will unveil not just wealth, but a reflection of your desires and your readiness for life's uncertainties. Choose wisely, for destiny awaits.", color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/general/dailies/treasure_chest.png')
             embed.add_field(name='<:small_chest:1143255749322100837> - Old Chest', value='This weathered and timeworn chest may hold a hidden treasure of unknown worth, offering an element of mystery and nostalgia.')
             embed.add_field(name='<:medium_chest:1143258292253118525> - Standard Chest', value='The middle-of-the-road option, this chest offers a reliable chance at a decent haul of coins, without any frills or extravagance.')
             embed.add_field(name='<:large_chest:1143260812002218164> - Luxurious Chest', value='The epitome of opulence, this chest tends to promise high-value rewards, making it the grandest and most alluring choice among the three.')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
             view = DailyChestsView(dailyManager, ctx.author)
         case 2: # The Mystery Box
-            embed = hikari.Embed(title=f'The Mystery Box: A Decision to Share or Snare', description="Before you lies an enigmatic mystery box, an object shrouded in intrigue and uncertainty. Its exterior, adorned with intricate patterns, beckons you to uncover its secrets. However, this box comes with a twist: it holds the power to either reward your generosity or ensnare your curiosity.", color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail('assets/img/dailies/question_mark.png')
+            embed = hikari.Embed(title=f'The Mystery Box: A Decision to Share or Snare', description="Before you lies an enigmatic mystery box, an object shrouded in intrigue and uncertainty. Its exterior, adorned with intricate patterns, beckons you to uncover its secrets. However, this box comes with a twist: it holds the power to either reward your generosity or ensnare your curiosity.", color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.add_field(name='The Gift of Connection', value='If you choose to share this mysterious box with another soul, a remarkable surprise awaits. Inside, you will find not just a reward for your generosity, but a token of camaraderie and connection. Perhaps a heartwarming message or a gesture of goodwill that can forge a bond between you and your chosen companion.')
             embed.add_field(name='The Solitary Treasure', value="If you opt to open the box for yourself, a grand reward might also await. It could be a treasure beyond your wildest dreams or a revelation that changes your life's course. The enigma rewards those who trust in their instincts and tread their path alone.")
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
             view = DailyMysteryBoxView(dailyManager, ctx.author)
         case 3: # Enchanted Encounter
-            embed = hikari.Embed(title=f'Enchanted Encounter: A Choice in the Wilderness', description="As you wander along a serene forest trail, the dappled sunlight filtering through the thick canopy overhead, you suddenly stumble upon an unexpected sight. There, nestled among the ferns and moss-covered rocks, is a small, curious creature. It's a red fox, its fiery fur contrasting beautifully with the lush greenery of the forest.", color=get_setting('embed_color'), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail('assets/img/dailies/fox.png')
+            embed = hikari.Embed(title=f'Enchanted Encounter: A Choice in the Wilderness', description="As you wander along a serene forest trail, the dappled sunlight filtering through the thick canopy overhead, you suddenly stumble upon an unexpected sight. There, nestled among the ferns and moss-covered rocks, is a small, curious creature. It's a red fox, its fiery fur contrasting beautifully with the lush greenery of the forest.", color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed.set_thumbnail('assets/img/general/dailies/fox.png')
             embed.add_field(name=':palm_down_hand: - PET THE GOD DAMN FOX', value="You're overwhelmed by an irresistible urge. You simply must pet the fox, no questions asked. It's as if the universe itself conspires for you to pet that fox at this very moment.")
             embed.add_field(name='<:sleeping_fox:1143665534030848080> - Leave the Fox Alone', value="Let the fox rest peacefully and continue with your day.")
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
@@ -405,28 +407,28 @@ async def daily(ctx: lightbulb.Context) -> None:
 @lightbulb.implements(lightbulb.SlashCommand)
 async def pay(ctx: lightbulb.SlashContext, user: hikari.User, number: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
-        embed = hikari.Embed(description='You are not allowed to send money to this user!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to send money to this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     sender = ctx.author
 
     if verify_user(sender) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     elif verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     elif remove_money(sender.id, number, False) == False:
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     add_money(user.id, number, False)
     
-    embed = (hikari.Embed(description=f'You sent 🪙 {number:,} to {user.global_name}!', color=get_setting('embed_color')))
+    embed = (hikari.Embed(description=f'You sent 🪙 {number:,} to {user.global_name}!', color=get_setting('settings', 'embed_color')))
     await ctx.respond(embed)
 
 ## Coinflip Command ##
@@ -452,7 +454,7 @@ async def coinflip(ctx: lightbulb.SlashContext, number: int) -> None:
 
     result = (' '.join(result))
 
-    embed = (hikari.Embed(title='Coinflip Result:' if number == 1 else 'Coinflip Results:', description=result, color=get_setting('embed_color')))
+    embed = (hikari.Embed(title='Coinflip Result:' if number == 1 else 'Coinflip Results:', description=result, color=get_setting('settings', 'embed_color')))
     embed.add_field('Summary:', f'Heads: {heads} Tails: {tails}')
     await ctx.respond(embed)
 
@@ -511,7 +513,7 @@ async def draw(ctx: lightbulb.Context):
     card = get_card(deck)
     deck.remove(card)
 
-    embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('settings', 'embed_color'))
     message = await ctx.respond(embed,components=view.build())
     message = await message
     
@@ -525,9 +527,9 @@ async def draw(ctx: lightbulb.Context):
                     if len(deck) >= 1:
                         card = get_card(deck)
                         deck.remove(card)
-                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('embed_color'))
+                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('settings', 'embed_color'))
                     else:
-                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('embed_color')))
+                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('settings', 'embed_color')))
                 case 'Draw 5':
                     if len(deck) >= 5:
                         cards = []
@@ -535,18 +537,18 @@ async def draw(ctx: lightbulb.Context):
                             card = get_card(deck)
                             cards.append(get_card_str(card))
                             deck.remove(card)
-                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('embed_color'))
+                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('settings', 'embed_color'))
                     elif len(deck) < 5 and len(deck) > 0:
                         cards = []
                         for i in range(len(deck)):
                             card = get_card(deck)
                             cards.append(get_card_str(card))
                             deck.remove(card)
-                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('embed_color'))
+                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('settings', 'embed_color'))
                     else:
-                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('embed_color')))
+                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('settings', 'embed_color')))
         else:
-            embed = hikari.Embed(description=f"Menu has closed due to inactivity.", color=get_setting('embed_color'))
+            embed = hikari.Embed(description=f"Menu has closed due to inactivity.", color=get_setting('settings', 'embed_color'))
             await ctx.edit_last_response(embed, components=[])
             return
         
@@ -567,15 +569,15 @@ async def draw(ctx: lightbulb.Context):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     if verify_user(ctx.user) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif remove_money(ctx.user.id, bet, False) == False: # if user has enough money
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
     players = {f'<@{ctx.user.id}>': {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}}
     
-    embed = hikari.Embed(title=f'{ctx.user.global_name} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f'{ctx.user.global_name} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('settings', 'embed_color'))
     embed.set_image('assets/img/revolver.png')
     embed.add_field(name='__Game info__', value=f'Initial Bet: 🪙 {bet:,}\nBet Pool: 🪙 {bet:,}\nChamber Capacity: `{capacity:,}`', inline=True)
     embed.add_field(name='__Player List__', value=f'{", ".join(players)}', inline=True)
@@ -592,7 +594,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     if not view.gameStart: # if lobby timed out
         return
     
-    embed = hikari.Embed(title=f"It's {ctx.user.global_name} Turn!", description=f'Players: {", ".join(view.game["players"])}\nBet Pool: 🪙 {view.game["pool"]:,}\nBullets Remaining: `{view.game["capacity"]}`', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f"It's {ctx.user.global_name} Turn!", description=f'Players: {", ".join(view.game["players"])}\nBet Pool: 🪙 {view.game["pool"]:,}\nBullets Remaining: `{view.game["capacity"]}`', color=get_setting('settings', 'embed_color'))
     embed.set_image('assets/img/revolver.png')
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.set_footer(text=f'You have {15.0} seconds to choose an action!')
@@ -612,15 +614,15 @@ class RRLobbyView(miru.View):
     @miru.button(label='Start', style=hikari.ButtonStyle.SUCCESS, row=1)
     async def start_game(self, button: miru.Button, ctx: miru.Context) -> None:
         if self.game.get('author').id != ctx.user.id: # checks if user is host
-            embed = hikari.Embed(description='You are not the host!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You are not the host!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif len(self.game['players']) == 1:
-            embed = hikari.Embed(description='You do not have enough players!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough players!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif self.game['pool'] % (len(self.game['players']) - 1) != 0:
-            embed = hikari.Embed(description="Loser's bet cannot be distributed equally with the current amount of players!", color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description="Loser's bet cannot be distributed equally with the current amount of players!", color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
@@ -633,22 +635,22 @@ class RRLobbyView(miru.View):
         playerInfo = {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
         
         if player in self.game['players']: # checks if user already joined
-            embed = hikari.Embed(description='You already joined this game!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You already joined this game!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif verify_user(ctx.user) == None: # if user has never been register
-            embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif remove_money(ctx.user.id, self.game['amount'], False) == False: # if user has enough money
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
 
         self.game['players'][player] = playerInfo
         self.game['pool'] = self.game['pool'] + self.game['amount']
         
-        embed = hikari.Embed(title=f'{self.game["author"]} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('embed_color'))
+        embed = hikari.Embed(title=f'{self.game["author"]} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('settings', 'embed_color'))
         embed.set_image('assets/img/revolver.png')
         embed.add_field(name='__Game info__', value=f"Initial Bet: 🪙 {self.game['amount']:,}\nBet Pool: 🪙 {self.game['pool']:,}\nChamber Capacity: `{self.game['capacity']:,}`", inline=True)
         embed.add_field(name='__Player List__', value=f'{", ".join(self.game["players"])}', inline=True)
@@ -659,14 +661,14 @@ class RRLobbyView(miru.View):
     @miru.button(label='Refund', style=hikari.ButtonStyle.DANGER, row=1)
     async def refund(self, button: miru.Button, ctx: miru.Context) -> None:
         if self.game['author'].id != ctx.user.id: # checks if user is host
-            embed = hikari.Embed(description='You are not the host!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You are not the host!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
         for player in self.game['players'].values():
             add_money(player['id'], self.game['amount'], False)
         
-        embed = hikari.Embed(title=f"{self.game.get('author')} has refunded all bets!", description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('embed_color'))
+        embed = hikari.Embed(title=f"{self.game.get('author')} has refunded all bets!", description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('settings', 'embed_color'))
         embed.set_image('assets/img/revolver.png')
         embed.add_field(name='__Game info__', value=f"Initial Bet: 🪙 {self.game['amount']:,}\nBet Pool: 🪙 {self.game['pool']:,}\nChamber Capacity: `{self.game['capacity']:,}`", inline=True)
         embed.add_field(name='__Player List__', value=f'{", ".join(self.game["players"])}', inline=True)
@@ -677,7 +679,7 @@ class RRLobbyView(miru.View):
         for player in self.game['players'].values():
             add_money(player['id'], self.game['amount'], False)
         
-        embed = hikari.Embed(title=f"Game has timed out! All bets have been refunded!", color=get_setting('embed_color'))
+        embed = hikari.Embed(title=f"Game has timed out! All bets have been refunded!", color=get_setting('settings', 'embed_color'))
         embed.set_image('assets/img/revolver.png')
         embed.add_field(name='__Game info__', value=f"Initial Bet: 🪙 {self.game['amount']:,}\nBet Pool: 🪙 {self.game['pool']:,}\nChamber Capacity: `{self.game['capacity']:,}`", inline=True)
         embed.add_field(name='__Player List__', value=f'`{", ".join(self.game["players"])}`', inline=True)
@@ -707,7 +709,7 @@ class RRGameView(miru.View):
         if len(self.chamber) == 0:
             return
         elif self.chamber[0]:
-            embed = hikari.Embed(title=f"Oh no! {self.player['name']} shot themself!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('embed_color'))
+            embed = hikari.Embed(title=f"Oh no! {self.player['name']} shot themself!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('settings', 'embed_color'))
             embed.set_image('assets/img/revolver.png')
             embed.set_thumbnail(self.player['url'])
             
@@ -723,7 +725,7 @@ class RRGameView(miru.View):
         
         self.chamber.pop(0) # removes bullet
         
-        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'`{self.gameMessages[random.randint(0, len(self.gameMessages) - 1)]}`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('embed_color'))
+        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'`{self.gameMessages[random.randint(0, len(self.gameMessages) - 1)]}`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('settings', 'embed_color'))
         embed.set_image('assets/img/revolver.png')
         embed.set_thumbnail(self.player['url'])
         embed.set_footer(text=f'You have {self.timeout} seconds to choose an action!')
@@ -740,11 +742,11 @@ class RRGameView(miru.View):
                 self.playerIter = iter(self.game['players'].items())
                 self.player = next(self.playerIter)[1]
         else:
-            embed = hikari.Embed(description='You need to fire at least one shot!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You need to fire at least one shot!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'Players: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('embed_color'))
+        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'Players: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('settings', 'embed_color'))
         embed.set_image('assets/img/revolver.png')
         embed.set_thumbnail(self.player['url'])
         embed.set_footer(text=f'You have {self.timeout} seconds to choose an action!')
@@ -753,7 +755,7 @@ class RRGameView(miru.View):
         await ctx.edit_response(embed, components=self.build())
     
     async def on_timeout(self) -> None:
-        embed = hikari.Embed(title=f"Oh no! {self.player['name']} took too long and the gun exploded!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('embed_color'))
+        embed = hikari.Embed(title=f"Oh no! {self.player['name']} took too long and the gun exploded!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('settings', 'embed_color'))
         embed.set_image('assets/img/revolver.png')
         embed.set_thumbnail(self.player['url'])
         
@@ -779,18 +781,18 @@ class RRGameView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
-        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     elif remove_money(ctx.author.id, bet, False) == False:
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     embed = hikari.Embed(
         title=f'A wild duel request appeared!',
         description=f'**{ctx.author}** has challenged **{user}** to a RPS duel!',
-        color=get_setting('embed_color')
+        color=get_setting('settings', 'embed_color')
     )
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{wins}`!\nBet: 🪙 {bet}')
@@ -809,7 +811,7 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     embed = hikari.Embed(
         title=f"It's Time to D-D-D-D-D-D DUEL!",
         description=f'Winner will receive 🪙 {bet*2}!',
-        color=get_setting('embed_color')
+        color=get_setting('settings', 'embed_color')
     )
     embed.set_thumbnail('assets/img/revolver.png')
     embed.add_field(name=f'{ctx.author} [0]', value='❔', inline=False)
@@ -863,7 +865,7 @@ class DuelView(miru.View):
     @miru.button(label='Accept', style=hikari.ButtonStyle.SUCCESS, row=1)
     async def accept(self, button: miru.Button, ctx: miru.Context) -> None:
         if remove_money(self.opponent.id, self.bet, False) == False:
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
     
@@ -877,7 +879,7 @@ class DuelView(miru.View):
         embed = hikari.Embed(
             title=f'{self.opponent} has declined the duel request!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a RPS duel!',
-            color=get_setting('embed_color')
+            color=get_setting('settings', 'embed_color')
         )
         embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{self.wins}`!\nBet: 🪙 {self.bet}')
@@ -892,7 +894,7 @@ class DuelView(miru.View):
         embed = hikari.Embed(
             title=f'The duel request timed out!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a RPS duel!',
-            color=get_setting('embed_color')
+            color=get_setting('settings', 'embed_color')
         )
         embed.set_thumbnail(self.author.avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: Best of One!\nBet: 🪙 {self.bet}')
@@ -925,7 +927,7 @@ class RPSGameView(miru.View):
                 self.player1['ready'] = True
                 self.player1['actions'].append('🪨')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         elif ctx.user.id == self.opponent.id:
@@ -936,7 +938,7 @@ class RPSGameView(miru.View):
                 self.player2['ready'] = True
                 self.player2['actions'].append('🪨')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         
@@ -986,7 +988,7 @@ class RPSGameView(miru.View):
                 self.player1['ready'] = True
                 self.player1['actions'].append('📄')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         elif ctx.user.id == self.opponent.id:
@@ -997,7 +999,7 @@ class RPSGameView(miru.View):
                 self.player2['ready'] = True
                 self.player2['actions'].append('📄')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         
@@ -1047,7 +1049,7 @@ class RPSGameView(miru.View):
                 self.player1['ready'] = True
                 self.player1['actions'].append('✂️')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         elif ctx.user.id == self.opponent.id:
@@ -1058,7 +1060,7 @@ class RPSGameView(miru.View):
                 self.player2['ready'] = True
                 self.player2['actions'].append('✂️')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         
@@ -1193,7 +1195,7 @@ class Connect4DuelView(miru.View):
     @miru.button(label='Accept', style=hikari.ButtonStyle.SUCCESS, row=1)
     async def accept(self, button: miru.Button, ctx: miru.Context) -> None:
         if remove_money(self.opponent.id, self.bet, False) == False:
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
     
@@ -1207,7 +1209,7 @@ class Connect4DuelView(miru.View):
         embed = hikari.Embed(
             title=f'{self.opponent} has declined the duel request!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a Connect 4 game!',
-            color=get_setting('embed_color')
+            color=get_setting('settings', 'embed_color')
         )
         embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: Bet: 🪙 {self.bet}')
@@ -1222,7 +1224,7 @@ class Connect4DuelView(miru.View):
         embed = hikari.Embed(
             title=f'The game request timed out!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a Connect 4 game!',
-            color=get_setting('embed_color')
+            color=get_setting('settings', 'embed_color')
         )
         embed.set_thumbnail(self.author.avatar_url)
         embed.add_field(name='__Game Info__', value=f'Bet: 🪙 {self.bet}')
@@ -1260,7 +1262,7 @@ class Connect4GameView(miru.View):
         player = '🔴' if self.game.currentPlayer == '1' else '🟡'
         
         if move < 0 or move > 6 or self.game.board[0][move] != '🔵':
-            await ctx.respond(hikari.Embed(description='Invalid move, try again.', color=get_setting('embed_error_color')), flags=hikari.MessageFlag.EPHEMERAL)
+            await ctx.respond(hikari.Embed(description='Invalid move, try again.', color=get_setting('settings', 'embed_error_color')), flags=hikari.MessageFlag.EPHEMERAL)
             move = int(select.values[0]) - 1
             return
         self.game.makeMove(move)
@@ -1321,18 +1323,18 @@ class Connect4GameView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
-        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     elif remove_money(ctx.author.id, bet, False) == False:
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     embed = hikari.Embed(
         title=f'A wild duel request appeared!',
         description=f'**{ctx.author}** has challenged **{user}** to a Connect Four game!',
-        color=get_setting('embed_color')
+        color=get_setting('settings', 'embed_color')
     )
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.add_field(name='__Game Info__', value=f'Bet: 🪙 {bet}')
@@ -1350,7 +1352,7 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     
     game = Connect4()
     
-    embed = hikari.Embed(title='Welcome to a game of Connect Four!', description=f"It's **{ctx.author.global_name}** turn! Make your move!\n{game.printBoard()}", color=get_setting('embed_color'))
+    embed = hikari.Embed(title='Welcome to a game of Connect Four!', description=f"It's **{ctx.author.global_name}** turn! Make your move!\n{game.printBoard()}", color=get_setting('settings', 'embed_color'))
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.set_footer('You have 60 seconds to choose an option or you will automatically forfeit!')
 
@@ -1445,7 +1447,7 @@ class BlackJackView(miru.View):
         if self.player.hand.is_busted():
             self.embed.title = 'You Busted!' # Your hand went over 21
             self.embed.description = f"Your hand went over 21 `Bust!`. You lost 🪙 {self.bet}!"
-            self.embed.color = get_setting('embed_error_color')
+            self.embed.color = get_setting('settings', 'embed_error_color')
             self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
@@ -1455,7 +1457,7 @@ class BlackJackView(miru.View):
         elif self.player.hand.score() == 21:
             self.embed.title = 'Blackjack! You have won!' # Your hand value is exactly 21
             self.embed.description = f"Your hand was exactly 21. You won 🪙 {self.bet * 2}!"
-            self.embed.color = get_setting('embed_success_color')
+            self.embed.color = get_setting('settings', 'embed_success_color')
             self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
@@ -1475,7 +1477,7 @@ class BlackJackView(miru.View):
         if self.dealer.is_busted():
             self.embed.title = 'Dealer Bust!' # Dealer hand went over 21
             self.embed.description = f"The dealer's hand went over 21, `Bust!`. You won 🪙 {self.bet * 2}!"
-            self.embed.color = get_setting('embed_success_color')
+            self.embed.color = get_setting('settings', 'embed_success_color')
             self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
@@ -1484,7 +1486,7 @@ class BlackJackView(miru.View):
         elif self.dealer.hand.score() == 21:
             self.embed.title = 'Blackjack! Dealer has won!' # Dealer hand value is exactly 21
             self.embed.description = f"The dealer's hand was exactly 21. You lost 🪙 {self.bet}!"
-            self.embed.color = get_setting('embed_error_color')
+            self.embed.color = get_setting('settings', 'embed_error_color')
             self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
@@ -1493,7 +1495,7 @@ class BlackJackView(miru.View):
         elif self.player.hand.score() > self.dealer.hand.score():
             self.embed.title = 'You have won!' # Dealer has less value than you
             self.embed.description = f"The dealer's hand had less value in their cards than your hand. You won 🪙 {self.bet * 2}!"
-            self.embed.color = get_setting('embed_success_color')
+            self.embed.color = get_setting('settings', 'embed_success_color')
             self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
@@ -1511,7 +1513,7 @@ class BlackJackView(miru.View):
         else:
             self.embed.title = 'Dealer has won!' # Dealer has more value than you
             self.embed.description = f"The dealer's hand had more value in their cards than your hand. You lost 🪙 {self.bet}!"
-            self.embed.color = get_setting('embed_error_color')
+            self.embed.color = get_setting('settings', 'embed_error_color')
             self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
@@ -1523,7 +1525,7 @@ class BlackJackView(miru.View):
     async def on_timeout(self) -> None:
         self.embed.title = 'Dealer has won!' # Game has timed out
         self.embed.description = f"The game has timed out! You lost 🪙 {self.bet}!"
-        self.embed.color = get_setting('embed_error_color')
+        self.embed.color = get_setting('settings', 'embed_error_color')
         self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
         self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
         self.embed.set_footer(None)
@@ -1535,7 +1537,7 @@ class BlackJackView(miru.View):
 
 @plugin.command
 @lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=20, max_value=2000, required=True)
+@lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=20, max_value=5000, required=True)
 @lightbulb.command('blackjack', 'Play a game of Blackjack.', aliases=['bj'], pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
@@ -1546,31 +1548,31 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     dealer = Dealer(deck)
     
     if player.hand.score() == 21:
-        embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet * 2}!', color=get_setting('embed_success_color'))
+        embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet * 2}!', color=get_setting('settings', 'embed_success_color'))
         embed.add_field(name="Dealer's Hand", value=f'{", ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
         embed.add_field(name="Your Hand", value=f'{", ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
         add_money(ctx.author.id, bet*2, True)
         await ctx.respond(embed)
         return
     elif dealer.hand.score() == 21:
-        embed = hikari.Embed(title=f'Blackjack! Dealer has won!', description=f"The dealer's hand was exactly 21. You lost 🪙 {bet}!", color=get_setting('embed_error_color'))
+        embed = hikari.Embed(title=f'Blackjack! Dealer has won!', description=f"The dealer's hand was exactly 21. You lost 🪙 {bet}!", color=get_setting('settings', 'embed_error_color'))
         embed.add_field(name="Dealer's Hand", value=f'{", ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
         embed.add_field(name="Your Hand", value=f'{", ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
         remove_money(ctx.author.id, bet, True)
         await ctx.respond(embed)
         return
     
-    embed = hikari.Embed(title=f'BlackJack!', description=f'Choose `Hit` or `Stand`!', color=get_setting('embed_color'))
+    embed = hikari.Embed(title=f'BlackJack!', description=f'Choose `Hit` or `Stand`!', color=get_setting('settings', 'embed_color'))
     embed.add_field(name="Dealer's Hand", value=f'{dealer.cards()[0]}, ?\nValue: ?', inline=True)
     embed.add_field(name="Your Hand", value=f'{", ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
     embed.set_footer(text='You have 1 minute to choose an action!')
     
     if verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     elif check_sufficient_amount(user.id, bet) == False:
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
@@ -1593,7 +1595,7 @@ def get_card_str(card):
     return string
 
 def check_sufficient_amount(userID: str, amount: int) -> bool:
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT balance FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1613,7 +1615,7 @@ def check_sufficient_amount(userID: str, amount: int) -> bool:
     return True
 
 def set_money(userID: str, amount: int) -> bool:
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     sql = ('UPDATE economy SET balance = ? WHERE user_id = ?')
@@ -1626,8 +1628,22 @@ def set_money(userID: str, amount: int) -> bool:
     
     return True
 
+def set_ticket(userID: str, amount: int) -> bool:
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+    cursor = db.cursor()
+    
+    sql = ('UPDATE economy SET tpass = ? WHERE user_id = ?')
+    val = (amount, userID)
+    
+    cursor.execute(sql, val) # executes the instructions
+    db.commit() # saves changes
+    cursor.close()
+    db.close()
+    
+    return True
+
 def add_money(userID: str, amount: int, updateGain: bool) -> bool:
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT balance, total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1651,7 +1667,7 @@ def add_money(userID: str, amount: int, updateGain: bool) -> bool:
     return True
 
 def add_ticket(userID: str, amount: int) -> bool:
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT tpass FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1673,7 +1689,7 @@ def add_ticket(userID: str, amount: int) -> bool:
     return True
 
 def remove_money(userID: str, amount: int, updateLoss: bool) -> bool:
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT balance, loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1700,7 +1716,7 @@ def remove_money(userID: str, amount: int, updateLoss: bool) -> bool:
     return True
 
 def remove_ticket(userID: str, amount: int) -> bool:
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT tpass FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1725,7 +1741,7 @@ def remove_ticket(userID: str, amount: int) -> bool:
     return True
 
 def add_gain(userID: str, amount: int):
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1747,7 +1763,7 @@ def add_gain(userID: str, amount: int):
     return True
 
 def remove_gain(userID: str, amount: int):
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1769,7 +1785,7 @@ def remove_gain(userID: str, amount: int):
     return True
 
 def add_loss(userID: str, amount: int):
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -1791,7 +1807,7 @@ def add_loss(userID: str, amount: int):
     return True
 
 def remove_loss(userID: str, amount: int):
-    db = sqlite3.connect(get_setting('database_data_dir'))
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database

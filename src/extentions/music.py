@@ -1,10 +1,8 @@
 import hikari
 import lightbulb
 import lavalink
-import time
 import re
 
-from lavalink import Equalizer
 from datetime import datetime
 from bot import get_setting
 
@@ -137,9 +135,9 @@ async def join(ctx: lightbulb.Context) -> None:
 
     channel_id = await _join(ctx)
     if not channel_id:
-        embed = hikari.Embed( description='Connect to a voice channel first!', color=(get_setting('embed_error_color')))
+        embed = hikari.Embed( description='Connect to a voice channel first!', color=(get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed)
-    embed = hikari.Embed(title='Connected', description=f'Connected to <#{channel_id}>', color=(get_setting('embed_color')), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title='Connected', description=f'Connected to <#{channel_id}>', color=(get_setting('settings', 'embed_color')), timestamp=datetime.now().astimezone())
     embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
     await ctx.respond(embed)
 
@@ -157,10 +155,10 @@ async def leave(ctx: lightbulb.Context) -> None:
     clientVoiceState = ctx.bot.cache.get_voice_state(ctx.guild_id, ctx.author)
     
     if not playerManager.player or not playerManager.player.is_connected:
-        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('embed_error_color')))
+        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed)
     elif clientVoiceState.channel_id != playerManager.player.channel_id:
-        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('embed_error_color')))
+        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed)
 
     await playerManager.player.set_pause(False) # turn off pause
@@ -172,14 +170,14 @@ async def leave(ctx: lightbulb.Context) -> None:
    
     await plugin.bot.update_voice_state(ctx.guild_id, None)
    
-    embed = hikari.Embed(title='Disconnected', description=f'Disconnected from <#{clientVoiceState.channel_id}>', color=(get_setting('embed_color')), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title='Disconnected', description=f'Disconnected from <#{clientVoiceState.channel_id}>', color=(get_setting('settings', 'embed_color')), timestamp=datetime.now().astimezone())
     embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
     await ctx.respond(embed)
 
 ## Play Command ##
 
 @song.child
-@lightbulb.option('query', 'Youtube URL, Twitch URL, or search query.', modifier=lightbulb.OptionModifier.CONSUME_REST, required=True)
+@lightbulb.option('query', 'Youtube URL, Twitch URL, SoundCloud URL, Bandcamp URL, Vimeo URL, or search query.', modifier=lightbulb.OptionModifier.CONSUME_REST, autocomplete=True, required=True)
 @lightbulb.command('play', 'Searches query on youtube, or adds the URL to the queue.', auto_defer = True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def play(ctx: lightbulb.Context) -> None:
@@ -192,16 +190,11 @@ async def play(ctx: lightbulb.Context) -> None:
     if not playerManager.player or not playerManager.player.is_connected:
         channel_id = await _join(ctx)
         if not channel_id:
-            embed = hikari.Embed(description='Connect to a voice channel first!', color=(get_setting('embed_error_color')))
+            embed = hikari.Embed(description='Connect to a voice channel first!', color=(get_setting('settings', 'embed_error_color')))
             return await ctx.respond(embed)
     
-    # get player again after having connected to voice channel
+    # Get player again after having connected to voice channel
     playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
-
-    # Check if the user input might be a URL. If it isn't, we can Lavalink do a YouTube search for it instead.
-    url_rx = re.compile(r'https?://(?:www\.)?.+')
-    if not url_rx.match(query):
-        query = f'ytsearch:{query}'
 
     # Get the results for the query from Lavalink.
     results = await playerManager.player.node.get_tracks(query)
@@ -209,15 +202,10 @@ async def play(ctx: lightbulb.Context) -> None:
     # Results could be None if Lavalink returns an invalid response (non-JSON/non-200 (OK)).
     # Alternatively, results.tracks could be an empty array if the query yielded no tracks.
     if not results or not results.tracks:
-        embed = hikari.Embed(description='Nothing found!', color=get_setting('embed_error_color'))
+        embed = hikari.Embed(description='Nothing found!', color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed)
 
-    # set equalizer
-    equalizer = Equalizer()
-    equalizer.update(bands=[(0, 0.2), (1, 0.3), (2, 0.17)])
-    await playerManager.player.set_filter(equalizer)
-
-    embed = hikari.Embed(color=get_setting('embed_success_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(color=get_setting('settings', 'embed_success_color'), timestamp=datetime.now().astimezone())
     embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
 
     if results.load_type == 'PLAYLIST_LOADED':
@@ -238,10 +226,60 @@ async def play(ctx: lightbulb.Context) -> None:
 
     await ctx.respond(embed)
 
-    # We don't want to call .play() if the player is playing as that will effectively skip
-    # the current track.
+    # We don't want to call .play() if the player is playing as that will effectively skip the current track.
     if not playerManager.player.is_playing:
         await playerManager.player.play()
+
+@play.autocomplete("query")
+async def search_autocomplete(opt: hikari.AutocompleteInteractionOption, inter: hikari.AutocompleteInteraction):
+    choices = []
+    query = opt.value.strip('<>')
+
+    # Check if the user input might be a URL. If it isn't, we can Lavalink do a YouTube search for it instead.
+    url_rx = re.compile(r'https?://(?:www\.)?.+')
+    if not url_rx.match(query):
+        ytquery = f'ytsearch:{query}'
+        scquery = f'scsearch:{query}'
+
+    # Get the results for the query from Lavalink.
+    if len(opt.value) > 0 and len(opt.value) <= 100:
+        try:
+            results = [await plugin.bot.d.lavalink.get_tracks(ytquery), await plugin.bot.d.lavalink.get_tracks(scquery)] 
+        except UnboundLocalError:
+            results = [await plugin.bot.d.lavalink.get_tracks(query)]
+    else:
+        return []
+
+    # Gets a list of tracks or playlists.
+    match results[0].load_type:
+        case 'PLAYLIST_LOADED':
+            playlist = results[0].playlist_info
+            name = f'{f"💿 {playlist.name}"[:100 - {3}]}... ({len(results[0].tracks)} Tracks)' if len(f'💿 {playlist.name} ({len(results[0].tracks)} Tracks)') > 100 else f'💿 {playlist.name} ({len(results[0].tracks)} Tracks)'
+            value = opt.value
+            option = hikari.impl.AutocompleteChoiceBuilder(name, value)
+            choices.append(option) 
+        case 'TRACK_LOADED':
+            track = results[0].tracks[0]
+            name = f'{f"🎶 {track.title}"[:100 - (3 + len(f" - {track.author}"))]}... - {track.author}' if len(f'🎶 {track.title} - {track.author}') > 100 else f'🎶 {track.title} - {track.author}'
+            value = track.uri
+            option = hikari.impl.AutocompleteChoiceBuilder(name, value)
+            choices.append(option)
+        case 'SEARCH_RESULT':
+            for track in results[0].tracks[:5]:
+                name = f'{f"YouTube: 🎶 {track.title}"[:100 - (3 + len(f" - {track.author}"))]}... - {track.author}' if len(f'Youtube: 🎶 {track.title} - {track.author}') > 100 else f'Youtube: 🎶 {track.title} - {track.author}'
+                value = track.uri
+                option = hikari.impl.AutocompleteChoiceBuilder(name, value)
+                choices.append(option)
+            for track in results[1].tracks[:5]:
+                name = f'{f"SoundCloud: 🎶 {track.title}"[:100 - (3 + len(f" - {track.author}"))]}... - {track.author}' if len(f'Soundcloud: 🎶 {track.title} - {track.author}') > 100 else f'Soundcloud: 🎶 {track.title} - {track.author}'
+                value = track.uri
+                if len(value) < 100:
+                    option = hikari.impl.AutocompleteChoiceBuilder(name, value)
+                    choices.append(option)
+        case _:
+            return []
+    
+    return choices
 
 ## Queue Command ##
 
@@ -251,7 +289,7 @@ async def play(ctx: lightbulb.Context) -> None:
 async def queue(ctx: lightbulb.Context) -> None:
     playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
     if not playerManager.player.is_playing:
-        embed = hikari.Embed(description='No track is playing!', color=(get_setting('embed_error_color')))
+        embed = hikari.Embed(description='No track is playing!', color=(get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed)
     
     queue = []
@@ -260,7 +298,7 @@ async def queue(ctx: lightbulb.Context) -> None:
     for index, item in enumerate(playerManager.player.queue[:10], start=1):
         queue.append(f"`{index}.` [{playerManager.truncate_string(item.title, 50)}]({item.uri}) `[{playerManager.milliseconds_to_youtube_timestamp(item.duration)}]`")
     
-    embed = hikari.Embed(title='Now Playing', description=f'{playerManager.get_current_track()}\n\n**Up next:**\n{f"{chr(10)}".join(queue)}' if len(queue) != 0 else f'{playerManager.get_current_track()}\n\n**Up next:**\n- No tracks in queue!', color=(get_setting('embed_color')), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title='Now Playing', description=f'{playerManager.get_current_track()}\n\n**Up next:**\n{f"{chr(10)}".join(queue)}' if len(queue) != 0 else f'{playerManager.get_current_track()}\n\n**Up next:**\n- No tracks in queue!', color=(get_setting('settings', 'embed_color')), timestamp=datetime.now().astimezone())
     embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
     embed.add_field(name='In queue', value=len(playerManager.player.queue), inline=True)
     embed.add_field(name='Total length', value=playerManager.queue_to_youtube_timestamp(playerManager.player.queue), inline=True)
@@ -279,26 +317,26 @@ async def controller(ctx: lightbulb.Context, option: str) -> None:
     playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
     clientVoiceState = ctx.bot.cache.get_voice_state(ctx.guild_id, ctx.author)
     if not playerManager.player or not playerManager.player.is_connected:
-        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('embed_error_color')))
+        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed)
     elif not playerManager.player.is_playing:
-        embed = hikari.Embed(description='No track is playing!', color=(get_setting('embed_error_color')))
+        embed = hikari.Embed(description='No track is playing!', color=(get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed)
     elif clientVoiceState.channel_id != playerManager.player.channel_id:
-        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('embed_error_color')))
+        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('settings', 'embed_error_color')))
         return await ctx.respond(embed)
     
     match option:
         case 'Pause':
             paused = not playerManager.player.paused
             await playerManager.player.set_pause(paused)
-            embed = hikari.Embed(title='Track Paused' if paused else 'Track Unpaused', description=playerManager.get_current_track(), color=(get_setting('embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Track Paused' if paused else 'Track Unpaused', description=playerManager.get_current_track(), color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
         case 'Skip':
             await playerManager.player.skip()
-            embed = hikari.Embed(title='Track Skipped: Now Playing', description=playerManager.get_current_track(), color=(get_setting('embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Track Skipped: Now Playing', description=playerManager.get_current_track(), color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
             try:
                 embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
             except AttributeError:
@@ -308,23 +346,23 @@ async def controller(ctx: lightbulb.Context, option: str) -> None:
         case 'Shuffle':
             shuffle = not playerManager.player.shuffle
             playerManager.player.set_shuffle(shuffle)
-            embed = hikari.Embed(title='Track Shuffled' if shuffle else 'Track Unshuffled', description='Shuffling entire queue...' if shuffle else 'Unshuffling entire queue...', color=(get_setting('embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Track Shuffled' if shuffle else 'Track Unshuffled', description='Shuffling entire queue...' if shuffle else 'Unshuffling entire queue...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
         case 'Loop':
             loop = (playerManager.player.loop + 1) % 3
             playerManager.player.set_loop(loop)
             if loop == 0:
-                embed = hikari.Embed(title='Looping Off', description='Setting looping to off...', color=(get_setting('embed_important_color')), timestamp=datetime.now().astimezone())
+                embed = hikari.Embed(title='Looping Off', description='Setting looping to off...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
             elif loop == 1:
-                embed = hikari.Embed(title='Looping Track', description='Currently looping single (current) track...', color=(get_setting('embed_important_color')), timestamp=datetime.now().astimezone())
+                embed = hikari.Embed(title='Looping Track', description='Currently looping single (current) track...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
             elif loop == 2:
-                embed = hikari.Embed(title='Looping Queue', description='Currently looping entire queue...', color=(get_setting('embed_important_color')), timestamp=datetime.now().astimezone())
+                embed = hikari.Embed(title='Looping Queue', description='Currently looping entire queue...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
         case 'Clear':
             playerManager.player.queue.clear()
-            embed = hikari.Embed(title='Queue Cleared', description='Clearing entire queue...', color=(get_setting('embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Queue Cleared', description='Clearing entire queue...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
 
@@ -340,7 +378,7 @@ async def _join(ctx: lightbulb.Context):
     
     channel_id = voice_state[0].channel_id  # channel user is connected to
     plugin.bot.d.lavalink.player_manager.create(guild_id=ctx.guild_id)
-
+    
     await plugin.bot.update_voice_state(ctx.guild_id, channel_id, self_deaf=True)
     
     return channel_id
@@ -349,30 +387,39 @@ async def _join(ctx: lightbulb.Context):
 
 class EventHandler:
     """Events from the Lavalink server"""
-
     @lavalink.listener(lavalink.TrackStartEvent)
     async def track_start(self, event: lavalink.TrackStartEvent):
+        await event.player.set_volume(10)
         # print('Track started on guild: %s', event.player.guild_id)
-        return
+    
+    # @lavalink.listener(lavalink.TrackEndEvent)
+    # async def track_end(self, event: lavalink.TrackEndEvent):
+        # voiceState = plugin.bot.cache.get_voice_states_view_for_channel(event.player.guild_id, event.player.channel_id)
+        # members = [vs.member for vs in voiceState.values()]
 
-    @lavalink.listener(lavalink.TrackEndEvent)
-    async def track_end(self, event: lavalink.TrackEndEvent):
+        # if len(members) < 2:
+        #     await event.player.set_pause(False)
+        #     event.player.set_shuffle(False)
+        #     event.player.set_loop(0) 
+        #     await event.player.stop()  # stop player
+        #     event.player.channel_id = None  # update the channel_id of the player to None
+        #     await plugin.bot.update_voice_state(event.player.guild_id, None)
+
         # print('Track finished on guild: %s', event.player.guild_id)
-        return
 
-    @lavalink.listener(lavalink.TrackExceptionEvent)
-    async def track_exception(self, event: lavalink.TrackExceptionEvent):
+    # @lavalink.listener(lavalink.TrackExceptionEvent)
+    # async def track_exception(self, event: lavalink.TrackExceptionEvent):
         # print('Track exception event happened on guild: %d', event.player.guild_id)
-        return
 
     @lavalink.listener(lavalink.QueueEndEvent)
     async def queue_finish(self, event: lavalink.QueueEndEvent):
-        await event.player.set_pause(False) # turn off pause
-        event.player.set_shuffle(False) # turn off shuffle
-        event.player.set_loop(0) # turn off loop
+        await event.player.set_pause(False)
+        event.player.set_shuffle(False) 
+        event.player.set_loop(0) 
         await event.player.stop()  # stop player
         event.player.channel_id = None  # update the channel_id of the player to None
         await plugin.bot.update_voice_state(event.player.guild_id, None)
+        
         # print('Queue finished on guild: %s', event.player.guild_id)
 
 ## Definitions ##
