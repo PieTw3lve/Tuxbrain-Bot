@@ -3,12 +3,13 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 
 ## Features
 
+- Profile Customization: `view`, `set`, `shop`!
 - Economy Integration: `leaderboard`, `balance`, `daily`, `pay`,  and **6** more!
 - Music Player: `play`, `controller`, `join`, and `leave`!
-- Pokémon Card Collecting and Trading: `shop`, `inventory`, `open`, `info`, and `trade`!
+- Pokémon Card Collecting and Trading: `packshop`, `packinventory`, `packopen`, `packinfo`, and `packtrade`!
 - Interactable Games: `russian-roulette`, `rps`, `connect4`, `blackjack`, and `Hangman`!
 - TuxBrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
-- Moderation: `announce`, `poll`, `purge`, `traslate` and **4** more!
+- Moderation: `announce`, `poll`, `purge`, `traslate` and **6** more!
 - Fun/Useless Commands: `random`, `fact`, `wotd`, and `bored`!
 
 ## Installation
@@ -31,5 +32,6 @@ pip install -r requirements.txt
 - Hikari: https://github.com/hikari-py/hikari
 - Lightbulb: https://github.com/tandemdude/hikari-lightbulb
 - Miru: https://github.com/HyperGH/hikari-miru
-- Google Translate: https://github.com/ssut/py-googletrans
 - Lavalink: https://github.com/Devoxin/Lavalink.py
+- Deep Translator: https://github.com/nidhaloff/deep-translator#chatgpt-translator
+- Lingua: https://github.com/pemistahl/lingua-py
