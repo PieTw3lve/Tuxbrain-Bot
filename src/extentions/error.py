@@ -24,7 +24,7 @@ class Error:
         embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('settings', 'embed_error_color')))
         await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         raise event.exception
-    
+
     def format_seconds(self, seconds):
         minutes, seconds = divmod(seconds, 60)
         hours, minutes = divmod(minutes, 60)

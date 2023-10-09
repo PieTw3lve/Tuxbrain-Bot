@@ -4,7 +4,7 @@ import miru
 import asyncio
 
 from datetime import datetime, timedelta
-from bot import DEFAULT_GUILD_ID, get_setting, verify_user
+from bot import DEFAULT_GUILD_ID, get_setting, verify_user, register_user
 from .economy import set_money, set_ticket, add_money, remove_money, add_loss, add_ticket, remove_ticket
 from .error import Error
 
@@ -186,10 +186,8 @@ class BettingView(miru.Modal):
         try:
             self.amount = int(self.amount.value)
             if verify_user(ctx.user) == None: # if user has never been register
-                embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-                await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
-                return self.stop()
-            elif self.amount < 1:
+                register_user(ctx.user)
+            if self.amount < 1:
                 embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 return self.stop()
@@ -273,9 +271,9 @@ async def set_balance(ctx: lightbulb.Context, user: hikari.User, currency: str, 
         embed = hikari.Embed(description='You are not allowed to set money to this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif currency == 'Coins':
+        register_user(ctx.user)
+
+    if currency == 'Coins':
         set_money(user.id, amount)
         embed = (hikari.Embed(description=f"You set {user.global_name}'s money to 🪙 {amount:,}.", color=get_setting('settings', 'embed_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -298,9 +296,9 @@ async def add_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, up
         embed = hikari.Embed(description='You are not allowed to add money to this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif add_money(user.id, amount, update):
+        register_user(ctx.user)
+    
+    if add_money(user.id, amount, update):
         embed = (hikari.Embed(description=f"You added 🪙 {amount:,} to {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     return
@@ -317,9 +315,9 @@ async def add_tpass(ctx: lightbulb.Context, user: hikari.User, amount: int):
         embed = hikari.Embed(description='You are not allowed to add tickets to this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif add_ticket(user.id, amount):
+        register_user(ctx.user)
+    
+    if add_ticket(user.id, amount):
         embed = (hikari.Embed(description=f"You added {amount:,} 🎟️ to {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     return
@@ -337,9 +335,9 @@ async def take_money(ctx: lightbulb.Context, user: hikari.User, amount: int, upd
         embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif remove_money(user.id, amount, update):
+        register_user(ctx.user)
+    
+    if remove_money(user.id, amount, update):
         embed = (hikari.Embed(description=f"You took 🪙 {amount:,} from {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
         await ctx.respond(embed)
     else:
@@ -359,9 +357,9 @@ async def take_ticket(ctx: lightbulb.Context, user: hikari.User, amount: int, up
         embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif remove_ticket(user.id, amount):
+        register_user(ctx.user)
+    
+    if remove_ticket(user.id, amount):
         embed = (hikari.Embed(description=f"You took {amount:,} 🎟️ from {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
         await ctx.respond(embed)
     else:

@@ -20,6 +20,7 @@ WORDNIK_API_KEY = startup.WORDNIK_API_KEY
 
 bot = lightbulb.BotApp(
     token=TOKEN,
+    default_enabled_guilds=DEFAULT_GUILD_ID,
     help_class=None,
     intents=hikari.Intents.ALL,
 )   
@@ -71,27 +72,6 @@ async def on_ready(event: hikari.StartedEvent) -> None:
         active INTEGER,
         PRIMARY KEY (user_id, type, name)
     )''')
-
-# Register user to database
-
-@bot.listen(hikari.MessageCreateEvent) 
-async def on_message(event: hikari.MessageCreateEvent):
-    if event.is_bot or not event.content: # if bot sent the message
-        return
-    
-    user = event.author
-    
-    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
-    cursor = db.cursor()
-    
-    if verify_user(user) == None: # if user has never been register
-        sql = ('INSERT INTO economy(user_id, balance, total, loss, tpass, streak, date, level, experience) VALUES (?,?,?,?,?,?,?,?,?)')
-        val = (user.id, get_setting('economy', 'starting_balance'), get_setting('economy', 'starting_balance'), 0, get_setting('economy', 'starting_tux_pass'), 0, None, 0, 0)
-        cursor.execute(sql, val) 
-    
-    db.commit() # saves changes
-    cursor.close()
-    db.close()
 
 ## Functions ##
 
@@ -194,6 +174,18 @@ def write_setting(section: str, option: str, value):
 
     with open('settings.json', 'w') as openfile:
         json.dump(data, openfile, indent=4)
+
+def register_user(user: hikari.User):
+    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+    cursor = db.cursor()
+    
+    sql = ('INSERT INTO economy(user_id, balance, total, loss, tpass, streak, date, level, experience) VALUES (?,?,?,?,?,?,?,?,?)')
+    val = (user.id, get_setting('economy', 'starting_balance'), get_setting('economy', 'starting_balance'), 0, get_setting('economy', 'starting_tux_pass'), 0, None, 0, 0)
+    cursor.execute(sql, val) 
+    
+    db.commit() # saves changes
+    cursor.close()
+    db.close()
 
 def verify_user(user: hikari.User):
     db = sqlite3.connect(get_setting('settings', 'database_data_dir'))

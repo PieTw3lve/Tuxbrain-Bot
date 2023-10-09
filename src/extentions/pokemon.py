@@ -8,7 +8,7 @@ import uuid
 import datetime
 import pytz
 
-from bot import get_setting, verify_user
+from bot import get_setting, verify_user, register_user
 from extentions.economy import add_money, remove_money, remove_ticket
 from miru.ext import nav
 from miru.context.view import ViewContext
@@ -271,10 +271,9 @@ class PackShop(miru.View):
     @miru.button(label='Standard Pack', emoji='<:standard_booster_pack:1073771426324156428>', style=hikari.ButtonStyle.PRIMARY, custom_id='standard_pack_button')
     async def standard(self, button: miru.Button, ctx: miru.Context) -> None:
         if verify_user(ctx.user) == None: # if user has never been register
-            embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-            return
-        elif remove_money(ctx.user.id, 200, True) == False: # checks if user has enough money
+            register_user(ctx.user)
+
+        if remove_money(ctx.user.id, 200, True) == False: # checks if user has enough money
             embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
@@ -285,8 +284,8 @@ class PackShop(miru.View):
     @miru.button(label='Premium Pack', emoji='<:premium_booster_pack:1073771425095237662>', style=hikari.ButtonStyle.PRIMARY, custom_id='premium_pack_button')
     async def premium(self, button: miru.Button, ctx: miru.Context) -> None:
         if verify_user(ctx.user) == None: # if user has never been register
-            embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-            return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+            register_user(ctx.user)
+        
         if remove_ticket(ctx.user.id, 1) == False: # checks if user has enough tickets
             embed = hikari.Embed(description='You do not have enough tickets!', color=get_setting('settings', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -532,7 +531,7 @@ async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> No
     
     inventory = Inventory(ctx, user)
     pages = inventory.show_inventory(10)
-    buttons = [nav.FirstButton(), nav.PrevButton(emoji='⬅️'), NavPageInfo(len(pages)), nav.NextButton(emoji='➡️'), nav.LastButton()]
+    buttons = [nav.FirstButton(row=1), nav.PrevButton(emoji='⬅️', row=1), NavPageInfo(len(pages), 1), nav.NextButton(emoji='➡️', row=1), nav.LastButton(row=1)]
     navigator = nav.NavigatorView(pages=pages, buttons=buttons, timeout=None)
 
     await navigator.send(ctx.interaction)

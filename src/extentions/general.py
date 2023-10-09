@@ -13,7 +13,7 @@ from miru.ext import nav
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageEnhance
 from miru.ext.nav.items import NavButton
 from miru.select.text import SelectOption
-from bot import VERSION, get_setting, get_commands, verify_user
+from bot import VERSION, get_setting, get_commands, verify_user, register_user
 from .economy import remove_money, remove_ticket
 from .pokemon import NavPageInfo
 
@@ -514,9 +514,9 @@ class ProfilConfirmView(miru.View):
         currency, name, price = [item for item in self.items if item[1] == self.selected][0]
         
         if verify_user(ctx.user) == None: # if user has never been register
-            embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-            return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        elif currency == 'coin' and remove_money(ctx.user.id, price, True) == False: # checks if user has enough money
+            register_user(ctx.user)
+
+        if currency == 'coin' and remove_money(ctx.user.id, price, True) == False: # checks if user has enough money
             embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         elif currency == 'tpass' and remove_ticket(ctx.user.id, price) == False: # checks if user has enough tickets

@@ -7,9 +7,10 @@ import random
 
 from lightbulb.ext import tasks
 from datetime import datetime, timedelta
+import pytz
 
 from miru.context.view import ViewContext
-from bot import get_setting, verify_user
+from bot import get_setting, verify_user, register_user
 
 plugin = lightbulb.Plugin('Economy')
 leaderboardEco = []
@@ -48,7 +49,7 @@ async def update_leaderboard():
         elif rank == 3:
             leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': '🥉'})
         else:
-            leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': f'{rank}.'})
+            leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': fr'\{rank}.'})
     
     db.commit()
     cursor.close()
@@ -137,39 +138,43 @@ class DailyManager:
     def __init__(self, user: hikari.User) -> None:
         self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
         self.cursor = self.db.cursor()
-        self.streak = int()
-        self.date = str()
-        self.update_streak(user)
+        self.user = user
+        self.streak, self.date, self.today, self.yesterday = self.get_daily_info()
 
-    def update_streak(self, user: hikari.User) -> None:
-        # Check if there's a record for yesterday
-        user = user
-        today = datetime.now().strftime('%Y-%m-%d')
-        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-        self.cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {user.id}')
-        self.streak, self.date = self.cursor.fetchone()
-
-        if self.date == yesterday or self.date == today:
+    def update_streak(self) -> None:
+        if self.date == self.yesterday:
             self.streak += 1 if self.streak < 20 else 0
         else:
             self.streak = 1
         
-        self.update_streak_sqlite(today, user)
+        self.update_streak_sqlite()
 
-    def update_streak_sqlite(self, date: str, user: hikari.User) -> None:
+    def update_streak_sqlite(self) -> None:
         db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
         cursor = db.cursor()
 
-        cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {user.id}')
+        cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {self.user.id}')
         val = cursor.fetchone() 
 
         sql = ('UPDATE economy SET streak = ?, date = ? WHERE user_id = ?')
-        val = (self.streak, date, user.id)
+        val = (self.streak, self.today, self.user.id)
         
         cursor.execute(sql, val)
         db.commit()
         cursor.close()
         db.close()
+    
+    def on_cooldown(self) -> None:
+        return self.date == self.today
+    
+    def get_daily_info(self):
+        timezone = pytz.timezone('America/New_York')
+        today = datetime.now(timezone).strftime('%Y-%m-%d')
+        yesterday = (datetime.now(timezone) - timedelta(days=1)).strftime('%Y-%m-%d')
+        self.cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {self.user.id}')
+        streak, date = self.cursor.fetchone()
+
+        return (streak, date, today, yesterday)
 
 class DailyChestsView(miru.View):
     def __init__(self, dailyManager: DailyManager, user: hikari.User) -> None:
@@ -206,7 +211,7 @@ class DailyChestsView(miru.View):
                 description = 'Tempted by the allure of immense wealth, you decide to open it. With a dramatic flourish, the chest reveals a dazzling array of coins. Yet, you sense the weight of responsibility that accompanies such wealth, a reminder that great riches come with equally great risks.'
                 img = 'assets/img/emotes/large_chest.png'
 
-        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT..', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         embed.set_thumbnail(img)
     
@@ -252,7 +257,7 @@ class DailyMysteryBoxView(miru.View):
             amount = round(self.options[1][0] * self.options[1][1])
             add_money(self.user.id, amount, True)
 
-            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
             embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
@@ -260,14 +265,13 @@ class DailyMysteryBoxView(miru.View):
             self.stop()
         else:
             if verify_user(user) == None: # if user has never been register
-                embed = hikari.Embed(description="This user doesn't have a balance!", color=get_setting('settings', 'embed_error_color'))
-                return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+                register_user(user)
             
             amount = self.options[0][0] * self.options[0][1]
             add_money(self.user.id, amount, True)
             add_money(user.id, amount, True)
             
-            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
             embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
@@ -327,7 +331,7 @@ class DailyFoxView(miru.View):
                 embed.description = f'As you extend your hand to gently pet the curious red fox, you initiate a unique connection with the wild.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.'
             case '1':
                 embed.title = "Respecting Nature's Rhythm"
-                embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.'
+                embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT.'
 
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         embed.set_thumbnail('assets/img/general/dailies/fox.png')
@@ -358,15 +362,19 @@ class DailyFoxView(miru.View):
 
 @plugin.command
 @lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.add_cooldown(length=72000.0, uses=1, bucket=lightbulb.UserBucket)
 @lightbulb.command('daily', 'Get your daily reward!')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def daily(ctx: lightbulb.Context) -> None:
     if verify_user(ctx.author) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        register_user(ctx.author)
     
     dailyManager = DailyManager(ctx.author)
+
+    if dailyManager.on_cooldown() == True:
+        embed = hikari.Embed(description='You already claimed your daily today!', color=get_setting('settings', 'embed_error_color'))
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+
+    dailyManager.update_streak()
     scenarioList = ([1, 2, 3], [80, 10, 5])
     scenario = random.choices(scenarioList[0], scenarioList[1])[0]
     
@@ -408,20 +416,16 @@ async def daily(ctx: lightbulb.Context) -> None:
 async def pay(ctx: lightbulb.SlashContext, user: hikari.User, number: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
         embed = hikari.Embed(description='You are not allowed to send money to this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     sender = ctx.author
 
-    if verify_user(sender) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
-    elif verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description='User does not have a balance! Let the user know to type in chat at least once!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
-    elif remove_money(sender.id, number, False) == False:
+    if verify_user(sender) == None: # if sender has never been register
+        register_user(sender)
+    if verify_user(user) == None: # if user has never been register
+        register_user(user)
+    
+    if remove_money(sender.id, number, False) == False:
         embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
@@ -569,9 +573,9 @@ async def draw(ctx: lightbulb.Context):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     if verify_user(ctx.user) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif remove_money(ctx.user.id, bet, False) == False: # if user has enough money
+        register_user(ctx.user)
+        
+    if remove_money(ctx.user.id, bet, False) == False: # if user has enough money
         embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
@@ -631,15 +635,14 @@ class RRLobbyView(miru.View):
     
     @miru.button(label='Join Game', style=hikari.ButtonStyle.PRIMARY, row=1)
     async def join(self, button: miru.Button, ctx: miru.Context) -> None:
+        if verify_user(ctx.user) == None: # if user has never been register
+            register_user(ctx.user)
+
         player = f'<@{ctx.user.id}>'
         playerInfo = {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
         
         if player in self.game['players']: # checks if user already joined
             embed = hikari.Embed(description='You already joined this game!', color=get_setting('settings', 'embed_error_color'))
-            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-            return
-        elif verify_user(ctx.user) == None: # if user has never been register
-            embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif remove_money(ctx.user.id, self.game['amount'], False) == False: # if user has enough money
@@ -1541,6 +1544,9 @@ class BlackJackView(miru.View):
 @lightbulb.command('blackjack', 'Play a game of Blackjack.', aliases=['bj'], pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
+    if verify_user(ctx.user) == None: # if user has never been register
+        register_user(ctx.user)
+
     user = ctx.user
     deck = Deck()
     deck.shuffle()
@@ -1567,11 +1573,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     embed.add_field(name="Your Hand", value=f'{", ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
     embed.set_footer(text='You have 1 minute to choose an action!')
     
-    if verify_user(user) == None: # if user has never been register
-        embed = hikari.Embed(description="You don't have a balance! Type in chat at least once!", color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
-    elif check_sufficient_amount(user.id, bet) == False:
+    if check_sufficient_amount(user.id, bet) == False:
         embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
