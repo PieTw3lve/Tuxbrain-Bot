@@ -6,7 +6,9 @@
 |---------------|--------------------|--------------|
 | help	|	Displays the help menu.	|	`help`	|
 | ping	|	Displays bot's latency.	|	`ping`	|
-| profile	|	Get info on a server member.	|	`profile [user]`	|
+| view	|	Get info on a server member.	|	`profile view [user]`	|
+| set	|	Customize your profile!	|	`profile set <banner> <base> <nametag>`	|
+| shop	|	Spend coins or tux passes on profile customization.	|	`profile shop`	|
 
 
 ## Economy
