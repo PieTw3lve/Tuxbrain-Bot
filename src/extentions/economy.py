@@ -49,7 +49,7 @@ async def update_leaderboard():
         elif rank == 3:
             leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': '🥉'})
         else:
-            leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': fr'\{rank}.'})
+            leaderboardEco.append({'user_id': user_id, 'balance': balance, 'tpass': tpass, 'rank': fr'{rank}\.'})
     
     db.commit()
     cursor.close()
