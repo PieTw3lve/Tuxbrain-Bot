@@ -1437,7 +1437,6 @@ class Dealer:
 class BlackJackView(miru.View):
     def __init__(self, embed: hikari.Embed, author: hikari.User, bet: int, deck: Deck, player: Player, dealer: Dealer) -> None:
         super().__init__(timeout=60.0)
-        remove_money(author.id, bet, False)
         self.embed = embed
         self.author = author
         self.bet = bet
@@ -1636,13 +1635,21 @@ class BlackJackView(miru.View):
 async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     if verify_user(ctx.user) == None: # if user has never been register
         register_user(ctx.user)
+    
+    if remove_money(ctx.author.id, bet, False) == False:
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
-    user = ctx.user
     deck = Deck()
     deck.shuffle()
     player = Player(deck)
     dealer = Dealer(deck)
     
+    embed = hikari.Embed(title=f'BlackJack!', description=f'Select from `Hit`, `Stand`, or `Double Down`.', color=get_setting('settings', 'embed_color'))
+    embed.add_field(name="Dealer's Hand", value=f'{dealer.cards()[0]} ?\nValue: ?', inline=True)
+    embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
+    embed.set_footer(text='You have 1 minute to choose an action!')
+
     if player.hand.score() == 21:
         embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet * 2}!', color=get_setting('settings', 'embed_success_color'))
         embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
@@ -1658,16 +1665,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
         await ctx.respond(embed)
         return
     
-    embed = hikari.Embed(title=f'BlackJack!', description=f'Choose `Hit`, `Stand`, or `Double Down`!', color=get_setting('settings', 'embed_color'))
-    embed.add_field(name="Dealer's Hand", value=f'{dealer.cards()[0]} ?\nValue: ?', inline=True)
-    embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
-    embed.set_footer(text='You have 1 minute to choose an action!')
-    
-    if check_sufficient_amount(user.id, bet) == False:
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
-        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    
-    view = BlackJackView(embed, user, bet, deck, player, dealer)
+    view = BlackJackView(embed, ctx.user, bet, deck, player, dealer)
     
     message = await ctx.respond(embed, components=view.build())
     await view.start(message)

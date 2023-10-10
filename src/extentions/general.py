@@ -87,8 +87,10 @@ class InfoView(miru.View):
             case 'About':
                 author = await ctx.bot.rest.fetch_user('291001658362560513')
                 embed.title = '💬 About'
-                embed.description = f'Tuxbrain Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use Discord bot written in [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API wrapper. It is programmed by <@{author.id}> to serve as the official Tuxbrain.org Discord bot. The bot is currently still in development, so there may be some bugs. Although it was designed for Tuxbrain.org servers, the bot can be hosted and used on any server.\n\nIf any bugs are encountered, please submit them on [Github](https://github.com/PieTw3lve/Tuxbrain-Bot/issues).'
+                embed.description = f'Tuxbrain Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use Discord bot written in [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API wrapper. It is programmed by <@{author.id}> to serve as the official Tuxbrain.org Discord bot. The bot is currently still in development, so there may be some bugs. Although it was designed for Tuxbrain.org servers, the bot can be hosted and used on any server.'
                 embed.set_thumbnail(author.avatar_url)
+                embed.add_field(name='Additional sources:', value='Profile and Rushsite designs - <@265992381780721675>\nRushsite data - <@353620712436531205>', inline=False)
+                embed.add_field(name='Find any bugs?', value='If any bugs are encountered, please submit them on [Github](https://github.com/PieTw3lve/Tuxbrain-Bot/issues).', inline=False)
                 return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             case 'Invite':
                 embed.title = '🤖 Invite Bot'
@@ -131,8 +133,8 @@ async def help(ctx: lightbulb.Context) -> None:
     
     embed = (hikari.Embed(title=f'Tuxbrain Bot  `v{VERSION}`', description='I am a simple and humble bot that can do really cool things!', color=get_setting('settings', 'embed_color'))
         .set_thumbnail(bot.avatar_url)
-        .add_field('I have various cool features:', '• Economy Integration\n• Customizable Music Player\n• Pokémon Gacha\n• Easier Moderation\n• Fun Interactive Games\n• And Many More!', inline=True)
-        .add_field('Want to learn more about Tuxbrain Bot?', 'Click on 💬 **About** to learn more about Tuxbrain Bot! \n\nSpecial thanks to **Ryan#3388** and **BoboTheChimp#6164** for helping!', inline=True)
+        .add_field('I have various cool features:', '• Profile Customization\n• Economy Integration\n• Music Player\n• Pokémon Card Gacha and Trading\n• Moderation\n• Fun Interactive Games\n• And Many More!', inline=True)
+        .add_field('Want to learn more about Tuxbrain Bot?', '\n\nClick on 💬 **About** to learn more about Tuxbrain Bot!\n\n**Want to learn more about commands?**\nAll commands are located in the dropdown menu.', inline=True)
         .set_footer('Use the select menu below for more info!')
     )
     
