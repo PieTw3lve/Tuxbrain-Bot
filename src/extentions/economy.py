@@ -211,7 +211,7 @@ class DailyChestsView(miru.View):
                 description = 'Tempted by the allure of immense wealth, you decide to open it. With a dramatic flourish, the chest reveals a dazzling array of coins. Yet, you sense the weight of responsibility that accompanies such wealth, a reminder that great riches come with equally great risks.'
                 img = 'assets/img/emotes/large_chest.png'
 
-        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT..', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         embed.set_thumbnail(img)
     
@@ -257,7 +257,7 @@ class DailyMysteryBoxView(miru.View):
             amount = round(self.options[1][0] * self.options[1][1])
             add_money(self.user.id, amount, True)
 
-            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
             embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
@@ -271,7 +271,7 @@ class DailyMysteryBoxView(miru.View):
             add_money(self.user.id, amount, True)
             add_money(user.id, amount, True)
             
-            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
             embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
@@ -328,10 +328,10 @@ class DailyFoxView(miru.View):
         match select.values[0]:
             case '0':
                 embed.title = 'A Touch of Fate'
-                embed.description = f'As you extend your hand to gently pet the curious red fox, you initiate a unique connection with the wild.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown for `20 hours`.'
+                embed.description = f'As you extend your hand to gently pet the curious red fox, you initiate a unique connection with the wild.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.'
             case '1':
                 embed.title = "Respecting Nature's Rhythm"
-                embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand is on cooldown until 12 AM EDT.'
+                embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.'
 
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         embed.set_thumbnail('assets/img/general/dailies/fox.png')
@@ -1370,7 +1370,9 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
 
 class Deck:
     def __init__(self):
-        self.cards = ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K'] * 4
+        ranks = ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K']
+        suits = [':hearts:', ':diamonds:', ':clubs:', ':spades:']
+        self.cards = [{'rank': rank, 'suit': suit} for rank in ranks for suit in suits]
         
     def shuffle(self):
         random.shuffle(self.cards)
@@ -1387,16 +1389,16 @@ class Hand:
         score = 0
         hasAce = False
         for card in self.cards:
-            if card in ['J', 'Q', 'K']:
+            rank = card['rank']
+            if rank in ['J', 'Q', 'K']:
                 score += 10
-            elif card == 'A':
+            elif rank == 'A':
                 score += 1
                 hasAce = True
             else:
-                score += card
-        if hasAce:
-            if hasAce and score <= 11:
-                score += 10
+                score += rank
+        if hasAce and score <= 11:
+            score += 10
         return score
     
     def hit(self):
@@ -1416,7 +1418,7 @@ class Player:
     def cards(self):
         deck = []
         for card in self.hand.cards:
-            deck.append(str(card))
+            deck.append(f'{card["rank"]}{card["suit"]}')
         return deck
         
 class Dealer:
@@ -1428,8 +1430,8 @@ class Dealer:
     
     def cards(self):
         deck = []
-        for c in self.hand.cards:
-            deck.append(str(c))
+        for card in self.hand.cards:
+            deck.append(f'{card["rank"]}{card["suit"]}')
         return deck
 
 class BlackJackView(miru.View):
@@ -1446,13 +1448,14 @@ class BlackJackView(miru.View):
     @miru.button(label='Hit', style=hikari.ButtonStyle.SUCCESS)
     async def hit(self, button: miru.Button, ctx: miru.Context) -> None:
         self.player.hand.hit()
+        self.children[2].disabled = True
         
         if self.player.hand.is_busted():
             self.embed.title = 'You Busted!' # Your hand went over 21
             self.embed.description = f"Your hand went over 21 `Bust!`. You lost 🪙 {self.bet}!"
             self.embed.color = get_setting('settings', 'embed_error_color')
-            self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             await ctx.edit_response(self.embed, components=[])
             add_loss(self.author.id, self.bet)
@@ -1461,28 +1464,28 @@ class BlackJackView(miru.View):
             self.embed.title = 'Blackjack! You have won!' # Your hand value is exactly 21
             self.embed.description = f"Your hand was exactly 21. You won 🪙 {self.bet * 2}!"
             self.embed.color = get_setting('settings', 'embed_success_color')
-            self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             await ctx.edit_response(self.embed, components=[])
             add_money(ctx.author.id, self.bet*2, True)
             self.stop()
         else:
-            self.embed.edit_field(0, "Dealer's Hand", f'{self.dealer.cards()[0]}, ?\nValue: ?')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
-            await ctx.edit_response(self.embed)
+            self.embed.edit_field(0, "Dealer's Hand", f'{self.dealer.cards()[0]} ?\nValue: ?')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            await ctx.edit_response(self.embed, components=self)
     
     @miru.button(label='Stand', style=hikari.ButtonStyle.PRIMARY)
     async def stand(self, button: miru.Button, ctx: miru.Context) -> None:
-        while self.dealer.hand.score() < 17 or self.dealer.hand.score() < self.player.hand.score():
+        while self.dealer.hand.score() < 17 and self.dealer.hand.score() < self.player.hand.score():
             self.dealer.hand.hit()
         
         if self.dealer.is_busted():
             self.embed.title = 'Dealer Bust!' # Dealer hand went over 21
             self.embed.description = f"The dealer's hand went over 21, `Bust!`. You won 🪙 {self.bet * 2}!"
             self.embed.color = get_setting('settings', 'embed_success_color')
-            self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             add_money(ctx.author.id, self.bet*2, True)
             self.stop()
@@ -1490,8 +1493,8 @@ class BlackJackView(miru.View):
             self.embed.title = 'Blackjack! Dealer has won!' # Dealer hand value is exactly 21
             self.embed.description = f"The dealer's hand was exactly 21. You lost 🪙 {self.bet}!"
             self.embed.color = get_setting('settings', 'embed_error_color')
-            self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             add_loss(self.author.id, self.bet)
             self.stop()
@@ -1499,8 +1502,8 @@ class BlackJackView(miru.View):
             self.embed.title = 'You have won!' # Dealer has less value than you
             self.embed.description = f"The dealer's hand had less value in their cards than your hand. You won 🪙 {self.bet * 2}!"
             self.embed.color = get_setting('settings', 'embed_success_color')
-            self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             add_money(ctx.author.id, self.bet*2, True)
             self.stop()
@@ -1508,8 +1511,8 @@ class BlackJackView(miru.View):
             self.embed.title = 'Push (Draw)' # Tie
             self.embed.description = f"You and the dealer's hand had the same value of cards."
             self.embed.color = '#FFFF00'
-            self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             add_money(ctx.author.id, self.bet, False)
             self.stop()
@@ -1517,20 +1520,107 @@ class BlackJackView(miru.View):
             self.embed.title = 'Dealer has won!' # Dealer has more value than you
             self.embed.description = f"The dealer's hand had more value in their cards than your hand. You lost 🪙 {self.bet}!"
             self.embed.color = get_setting('settings', 'embed_error_color')
-            self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-            self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             add_loss(self.author.id, self.bet)
             self.stop()
 
         await ctx.edit_response(self.embed, components=[])
-    
+
+    @miru.button(label='Double Down', style=hikari.ButtonStyle.DANGER)
+    async def double(self, button: miru.Button, ctx: miru.Context) -> None:
+        if remove_money(self.author.id, self.bet, False) == False:
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+            return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        
+        self.bet = self.bet * 2
+        self.player.hand.hit()
+
+        if self.player.hand.is_busted():
+            self.embed.title = 'You Busted!' # Your hand went over 21
+            self.embed.description = f"Your hand went over 21 `Bust!`. You lost 🪙 {self.bet}!"
+            self.embed.color = get_setting('settings', 'embed_error_color')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.set_footer(None)
+            await ctx.edit_response(self.embed, components=[])
+            add_loss(self.author.id, self.bet)
+            self.stop()
+            return
+        elif self.player.hand.score() == 21:
+            self.embed.title = 'Blackjack! You have won!' # Your hand value is exactly 21
+            self.embed.description = f"Your hand was exactly 21. You won 🪙 {self.bet * 2}!"
+            self.embed.color = get_setting('settings', 'embed_success_color')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.set_footer(None)
+            await ctx.edit_response(self.embed, components=[])
+            add_money(ctx.author.id, self.bet*2, True)
+            self.stop()
+            return
+        else:
+            self.embed.edit_field(0, "Dealer's Hand", f'{self.dealer.cards()[0]} ?\nValue: ?')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            await ctx.edit_response(self.embed)   
+
+        while self.dealer.hand.score() < 17 and self.dealer.hand.score() < self.player.hand.score():
+            self.dealer.hand.hit()
+        
+        if self.dealer.is_busted():
+            self.embed.title = 'Dealer Bust!' # Dealer hand went over 21
+            self.embed.description = f"The dealer's hand went over 21, `Bust!`. You won 🪙 {self.bet * 2}!"
+            self.embed.color = get_setting('settings', 'embed_success_color')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.set_footer(None)
+            add_money(ctx.author.id, self.bet*2, True)
+            self.stop()
+        elif self.dealer.hand.score() == 21:
+            self.embed.title = 'Blackjack! Dealer has won!' # Dealer hand value is exactly 21
+            self.embed.description = f"The dealer's hand was exactly 21. You lost 🪙 {self.bet}!"
+            self.embed.color = get_setting('settings', 'embed_error_color')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.set_footer(None)
+            add_loss(self.author.id, self.bet)
+            self.stop()
+        elif self.player.hand.score() > self.dealer.hand.score():
+            self.embed.title = 'You have won!' # Dealer has less value than you
+            self.embed.description = f"The dealer's hand had less value in their cards than your hand. You won 🪙 {self.bet * 2}!"
+            self.embed.color = get_setting('settings', 'embed_success_color')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.set_footer(None)
+            add_money(ctx.author.id, self.bet*2, True)
+            self.stop()
+        elif self.player.hand.score() == self.dealer.hand.score():
+            self.embed.title = 'Push (Draw)' # Tie
+            self.embed.description = f"You and the dealer's hand had the same value of cards."
+            self.embed.color = '#FFFF00'
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.set_footer(None)
+            add_money(ctx.author.id, self.bet, False)
+            self.stop()
+        else:
+            self.embed.title = 'Dealer has won!' # Dealer has more value than you
+            self.embed.description = f"The dealer's hand had more value in their cards than your hand. You lost 🪙 {self.bet}!"
+            self.embed.color = get_setting('settings', 'embed_error_color')
+            self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+            self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+            self.embed.set_footer(None)
+            add_loss(self.author.id, self.bet)
+            self.stop()
+
+        await ctx.edit_response(self.embed, components=[])
+        
     async def on_timeout(self) -> None:
         self.embed.title = 'Dealer has won!' # Game has timed out
         self.embed.description = f"The game has timed out! You lost 🪙 {self.bet}!"
         self.embed.color = get_setting('settings', 'embed_error_color')
-        self.embed.edit_field(0, "Dealer's Hand", f'{", ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
-        self.embed.edit_field(1, "Your Hand", f'{", ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
+        self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
+        self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
         self.embed.set_footer(None)
         await self.message.edit(self.embed, components=[])
         add_loss(self.author.id, self.bet)
@@ -1555,28 +1645,27 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     
     if player.hand.score() == 21:
         embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet * 2}!', color=get_setting('settings', 'embed_success_color'))
-        embed.add_field(name="Dealer's Hand", value=f'{", ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
-        embed.add_field(name="Your Hand", value=f'{", ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
+        embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
+        embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
         add_money(ctx.author.id, bet*2, True)
         await ctx.respond(embed)
         return
     elif dealer.hand.score() == 21:
         embed = hikari.Embed(title=f'Blackjack! Dealer has won!', description=f"The dealer's hand was exactly 21. You lost 🪙 {bet}!", color=get_setting('settings', 'embed_error_color'))
-        embed.add_field(name="Dealer's Hand", value=f'{", ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
-        embed.add_field(name="Your Hand", value=f'{", ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
+        embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
+        embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
         remove_money(ctx.author.id, bet, True)
         await ctx.respond(embed)
         return
     
-    embed = hikari.Embed(title=f'BlackJack!', description=f'Choose `Hit` or `Stand`!', color=get_setting('settings', 'embed_color'))
-    embed.add_field(name="Dealer's Hand", value=f'{dealer.cards()[0]}, ?\nValue: ?', inline=True)
-    embed.add_field(name="Your Hand", value=f'{", ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
+    embed = hikari.Embed(title=f'BlackJack!', description=f'Choose `Hit`, `Stand`, or `Double Down`!', color=get_setting('settings', 'embed_color'))
+    embed.add_field(name="Dealer's Hand", value=f'{dealer.cards()[0]} ?\nValue: ?', inline=True)
+    embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
     embed.set_footer(text='You have 1 minute to choose an action!')
     
     if check_sufficient_amount(user.id, bet) == False:
         embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     view = BlackJackView(embed, user, bet, deck, player, dealer)
     
