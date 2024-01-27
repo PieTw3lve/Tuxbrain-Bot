@@ -13,14 +13,14 @@ from lightbulb.ext import tasks
 
 VERSION = startup.VERSION
 TOKEN = startup.TOKEN
-DEFAULT_GUILD_ID = startup.DEFAULT_GUILD_ID
+ADMIN_GUILD_ID = startup.ADMIN_GUILD_ID
 WORDNIK_API_KEY = startup.WORDNIK_API_KEY
 
 # Create a bot instance
 
 bot = lightbulb.BotApp(
     token=TOKEN,
-    default_enabled_guilds=DEFAULT_GUILD_ID,
+    default_enabled_guilds=ADMIN_GUILD_ID,
     help_class=None,
     intents=hikari.Intents.ALL,
 )   
@@ -90,16 +90,6 @@ def get_setting_json():
         'auto_translate_conf': 0.80,
         'auto_translate_min_relative_distance': 0.90
     }
-    roles = {
-        'owner_role_id': 1000000000000000000,
-        'admin_role_id': 1000000000000000000,
-        'staff_role_id': 1000000000000000000,
-        'rushsite_s1_id': 1000000000000000000,
-        'rushsite_s2_id': 1000000000000000000,
-        'rushsite_s3_id': 1000000000000000000,
-        'rushsite_s4_id': 1000000000000000000,
-        'rushsite_s5_id': 1000000000000000000,
-    }
     economy = {
         'starting_balance': 1000,
         'starting_tux_pass': 0,
@@ -142,7 +132,6 @@ def get_setting_json():
     
     json = {
         'settings': settings,
-        'roles': roles,
         'economy': economy,
         'profile': profile,
         'pokemon': pokemon,
@@ -222,7 +211,7 @@ if __name__ == '__main__':
     # Release the bot!
     miru.install(bot)
     tasks.load(bot)
-    bot.load_extensions_from('./extentions')
+    bot.load_extensions_from('./extensions', recursive=True)
     bot.run(
         status=hikari.Status.DO_NOT_DISTURB, 
         activity=hikari.Activity(name='Rushsite Season 4', type=hikari.ActivityType.STREAMING, url='https://www.twitch.tv/ryqb')
