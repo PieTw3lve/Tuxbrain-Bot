@@ -9,7 +9,7 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 - Pokémon Card Collecting and Trading: `pokeshop`, `pokeinv`, `pokeopen`, `pokeinfo`, and `poketrade`!
 - Interactable Games: `russian-roulette`, `rps`, `connect4`, `blackjack`, and `hangman`!
 - Tuxbrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
-- Moderation: `broadcast`, `poll`, `purge`, `traslate` and **6** more!
+- Moderation: `broadcast`, `poll`, `purge`, `translator` and **6** more!
 - Fun/Useless Commands: `random`, `fact`, `wotd`, and `bored`!
 
 ## Installation
