@@ -4,7 +4,7 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 ## Features
 
 - Profile Customization: `profile`, `set`, `shop`!
-- Economy Integration: `leaderboard`, `balance`, `daily`, `pay`,  and **6** more!
+- Economy Integration: `leaderboard`, `daily`, `pay`,  and **6** more!
 - Music Player: `play`, `controller`, `join`, and `leave`!
 - Pokémon Card Collecting and Trading: `pokeshop`, `pokeinv`, `pokeopen`, `pokeinfo`, and `poketrade`!
 - Interactable Games: `russian-roulette`, `rps`, `connect4`, `blackjack`, and `hangman`!
