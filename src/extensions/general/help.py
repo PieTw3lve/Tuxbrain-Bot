@@ -68,10 +68,10 @@ class InfoView(miru.View):
 @lightbulb.command('help', 'Access additional information and commands.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def help(ctx: lightbulb.Context) -> None:
-    bot = await ctx.bot.rest.fetch_user('1045533498481577984')
+    bot = ctx.app.get_me()
     view = InfoView(get_commands(plugin.bot))
     
-    embed = (hikari.Embed(title=f'Tuxbrain Bot  `v{VERSION}`', description='I am a simple and humble bot that can do really cool things!', color=get_setting('settings', 'embed_color'))
+    embed = (hikari.Embed(title=f'{bot.username}  `v{VERSION}`', description='I am a simple and humble bot that can do really cool things!', color=get_setting('settings', 'embed_color'))
         .set_thumbnail(bot.avatar_url)
         .add_field('I have various cool features:', '• Profile Customization\n• Economy Integration\n• Music Player\n• Pokémon Card Gacha and Trading\n• Moderation\n• Fun Interactive Games\n• And Many More!', inline=True)
         .add_field('Want to learn more about Tuxbrain Bot?', '\n\nClick on 💬 **About** to learn more about Tuxbrain Bot!\n\n**Want to learn more about commands?**\nAll commands are located in the dropdown menu.', inline=True)

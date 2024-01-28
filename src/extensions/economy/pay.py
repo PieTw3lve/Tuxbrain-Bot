@@ -27,8 +27,7 @@ async def pay(ctx: lightbulb.SlashContext, user: hikari.User, number: int) -> No
     
     if economy.remove_money(sender.id, number, False) == False:
         embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     economy.add_money(user.id, number, False)
     

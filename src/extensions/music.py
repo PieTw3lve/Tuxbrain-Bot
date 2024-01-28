@@ -383,6 +383,30 @@ async def _join(ctx: lightbulb.Context):
     
     return channel_id
 
+## Stop Queue Event ##
+
+@plugin.listener(hikari.VoiceStateUpdateEvent) # Bot will leave VC if there is no one present
+async def quit(event: hikari.VoiceStateUpdateEvent):
+    if plugin.bot.cache.get_voice_state(event.guild_id, plugin.bot.get_me()): 
+        voiceState = plugin.bot.cache.get_voice_states_view_for_channel(event.state.guild_id, event.state.channel_id) if event.state.channel_id else plugin.bot.cache.get_voice_states_view_for_channel(event.state.guild_id, event.old_state.channel_id)
+        members = [vs.member for vs in voiceState.values()]
+        
+        if len(members) > 1:
+            return
+        
+        await plugin.bot.update_voice_state(event.guild_id, None)
+
+@plugin.listener(hikari.VoiceStateUpdateEvent) # Reset queue when Bot leaves VC
+async def quit2(event: hikari.VoiceStateUpdateEvent): 
+    if event.state.member.id == plugin.bot.get_me().id and event.old_state == event.state:
+        playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(event.guild_id))
+        await playerManager.player.set_pause(False) 
+        playerManager.player.set_shuffle(False) 
+        playerManager.player.set_loop(0)  
+        playerManager.player.queue.clear()
+        await playerManager.player.stop() 
+        playerManager.player.channel_id = None
+    
 ## Event Handler ##
 
 class EventHandler:
@@ -390,34 +414,14 @@ class EventHandler:
     @lavalink.listener(lavalink.TrackStartEvent)
     async def track_start(self, event: lavalink.TrackStartEvent):
         await event.player.set_volume(10)
-        # print('Track started on guild: %s', event.player.guild_id)
-    
-    # @lavalink.listener(lavalink.TrackEndEvent)
-    # async def track_end(self, event: lavalink.TrackEndEvent):
-        # voiceState = plugin.bot.cache.get_voice_states_view_for_channel(event.player.guild_id, event.player.channel_id)
-        # members = [vs.member for vs in voiceState.values()]
-
-        # if len(members) < 2:
-        #     await event.player.set_pause(False)
-        #     event.player.set_shuffle(False)
-        #     event.player.set_loop(0) 
-        #     await event.player.stop()  # stop player
-        #     event.player.channel_id = None  # update the channel_id of the player to None
-        #     await plugin.bot.update_voice_state(event.player.guild_id, None)
-
-        # print('Track finished on guild: %s', event.player.guild_id)
-
-    # @lavalink.listener(lavalink.TrackExceptionEvent)
-    # async def track_exception(self, event: lavalink.TrackExceptionEvent):
-        # print('Track exception event happened on guild: %d', event.player.guild_id)
 
     @lavalink.listener(lavalink.QueueEndEvent)
     async def queue_finish(self, event: lavalink.QueueEndEvent):
         await event.player.set_pause(False)
         event.player.set_shuffle(False) 
         event.player.set_loop(0) 
-        await event.player.stop()  # stop player
-        event.player.channel_id = None  # update the channel_id of the player to None
+        await event.player.stop()
+        event.player.channel_id = None
         await plugin.bot.update_voice_state(event.player.guild_id, None)
         
         # print('Queue finished on guild: %s', event.player.guild_id)

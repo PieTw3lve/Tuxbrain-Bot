@@ -9,7 +9,7 @@ plugin = lightbulb.Plugin('Fact')
 
 @plugin.command
 @lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.command('fact', 'Discover the daily trivia.')
+@lightbulb.command('fact', 'Retrieve the useless fact of the day.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def today_fact(ctx: lightbulb.Context) -> None:
     url = 'https://uselessfacts.jsph.pl/today.json?language=en'

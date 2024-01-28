@@ -86,7 +86,6 @@ def get_setting_json():
         'embed_important_color': 'b03f58',
         'embed_success_color': '#32CD32',
         'embed_error_color': '#FF0000',
-        'auto_translate': True,
         'auto_translate_conf': 0.80,
         'auto_translate_min_relative_distance': 0.90
     }
