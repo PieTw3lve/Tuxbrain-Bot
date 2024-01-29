@@ -32,7 +32,7 @@ async def print_translation(event: hikari.MessageCreateEvent) -> None:
         language = detector.detect_language_of(text)
         confidence = detector.compute_language_confidence(text, language)
 
-        if language != None and language != Language.ENGLISH and confidence > get_setting('settings', 'auto_translate_conf'):
+        if language != Language.ENGLISH and confidence > get_setting('settings', 'auto_translate_conf') and get_lang(language.name) != 'Language not found':
             translation = GoogleTranslator(source=get_lang(language.name), target='en').translate(text)
             translator = await event.app.rest.create_webhook(channel=event.channel_id, name='Translating')
             await event.app.rest.execute_webhook(webhook=translator, token=translator.token, content=translation, username=f'{event.message.member.display_name} ({language.name.lower()})', avatar_url=event.message.member.avatar_url if event.message.member.avatar_url else event.message.member.default_avatar_url)
