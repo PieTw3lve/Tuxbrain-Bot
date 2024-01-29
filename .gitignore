@@ -1,3 +1,14 @@
-# Ignore These Files
+# Root
 
 .env/
+Lavalink/Lavalink.jar
+
+# Sources
+
+src/startup.py
+src/settings.json
+src/database/database.sqlite
+
+# Other
+
+__pycache__/
