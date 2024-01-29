@@ -5,7 +5,7 @@ import asyncio
 
 from datetime import datetime, timedelta
 from bot import get_setting, verify_user, register_user
-from extensions.error import Error
+from extensions.general.error import Error
 from utils.economy.manager import EconomyManager
 
 plugin = lightbulb.Plugin('Bet')
