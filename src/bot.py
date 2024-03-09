@@ -97,7 +97,7 @@ def get_setting_json():
         'coin': {
             'gray-banner': 200,
             'float-nametag': 200,
-            'seperator-nametag': 200,
+            'separator-nametag': 200,
             'tuxedo-nametag': 200,
             'apple-base': 500,
             'burgundy-base': 500,
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     # Release the bot!
     miru.install(bot)
     tasks.load(bot)
-    bot.load_extensions_from('./extensions', recursive=True)
+    bot.load_extensions_from('extensions', recursive=True)
     bot.run(
         status=hikari.Status.DO_NOT_DISTURB, 
         activity=hikari.Activity(name='Rushsite Season 4', type=hikari.ActivityType.STREAMING, url='https://www.twitch.tv/ryqb')

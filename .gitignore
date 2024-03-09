@@ -1,6 +1,7 @@
 # Root
 
 .env/
+.vscode/
 Lavalink/Lavalink.jar
 
 # Sources
