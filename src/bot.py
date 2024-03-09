@@ -52,8 +52,6 @@ async def on_ready(event: hikari.StartedEvent) -> None:
         tpass INTEGER,
         streak INTEGER,
         date TEXT,
-        level INTEGER,
-        experience INTEGER
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS pokemon (
         id TEXT PRIMARY KEY, 
