@@ -88,7 +88,7 @@ class StrikeViewPools(miru.View):
     
     def update_strike_text(self, map: str) -> None:
         self.embed.title = f'Turn {self.round}: {self.user2.global_name if self.round % 2 == 0 else self.user1.global_name} choose a stage to eliminate!'
-        self.embed.description = f'**{map.capitalize()}** was elminated!'
+        self.embed.description = f'**{map.capitalize()}** was eliminated!'
         return
 
 class StrikeViewPlayoffs(miru.View):
@@ -163,14 +163,14 @@ class StrikeViewPlayoffs(miru.View):
         if self.turns[self.round - 1] == 'Ban':
             try:
                 self.embed.title = f'Turn {self.round}: {self.user2.global_name if self.round % 2 == 0 else self.user1.global_name} choose a stage to eliminate!'
-                self.embed.description = f'**{map.capitalize()}** was elminated!' if self.turns[self.round - 2] == 'Ban' else f'**{map.capitalize()}** was chosen!'
+                self.embed.description = f'**{map.capitalize()}** was eliminated!' if self.turns[self.round - 2] == 'Ban' else f'**{map.capitalize()}** was chosen!'
             except IndexError:
                 self.embed.title = f'Turn {self.round}: {self.user2.global_name if self.round % 2 == 0 else self.user1.global_name} choose a stage to eliminate!'
-                self.embed.description = f'**{map.capitalize()}** was elminated!'
+                self.embed.description = f'**{map.capitalize()}** was eliminated!'
         else:
             try:
                 self.embed.title = f'Turn {self.round}: {self.user2.global_name if self.round % 2 == 0 else self.user1.global_name} choose a stage for Map {len(self.mapPicks) + 1}!'
-                self.embed.description = f'**{map.capitalize()}** was chosen!' if self.turns[self.round - 2] == 'Pick' else f'**{map.capitalize()}** was elminated!'
+                self.embed.description = f'**{map.capitalize()}** was chosen!' if self.turns[self.round - 2] == 'Pick' else f'**{map.capitalize()}** was eliminated!'
             except IndexError:
                 self.embed.title = f'Turn {self.round}: {self.user2.global_name if self.round % 2 == 0 else self.user1.global_name} choose a stage for Map {len(self.mapPicks) + 1}!'
                 self.embed.description = f'**{map.capitalize()}** was chosen!'
@@ -181,7 +181,7 @@ class StrikeViewPlayoffs(miru.View):
 @lightbulb.option('user2', 'The user that will strike second.', type=hikari.User, required=True)
 @lightbulb.option('user1', 'The user that will strike first.', type=hikari.User, required=True)
 @lightbulb.option('maps', 'Provide a list by entering them separated with commas.', type=str, required=True)
-@lightbulb.command('strike', 'Choose a map by taking turns elimitated maps one by one.', pass_options=True)
+@lightbulb.command('strike', 'Choose a map by taking turns eliminated maps one by one.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def strike(ctx: lightbulb.Context, maps: str, user1: hikari.User, user2: hikari.User, mode: str) -> None:
     if user1.is_bot or user2.is_bot:

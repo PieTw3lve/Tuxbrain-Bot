@@ -83,7 +83,7 @@ class SellButton(miru.Button):
                 price = price * 2
 
         if favorite:
-            embed = hikari.Embed(description=f'You cannot sell favorited cards!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description=f'You cannot sell favorite cards!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
             return
 
@@ -110,7 +110,7 @@ class SellButton(miru.Button):
                 print("Error deleting item from the database:", e)
             await ctx.edit_response(hikari.Embed(description=f'You sold {name} for 🪙 {price}!', color=get_setting('settings', 'embed_success_color')), components=[], flags=hikari.MessageFlag.EPHEMERAL)
         else:
-            await ctx.edit_response(hikari.Embed(description=f'Selling proccess has been cancelled.', color=get_setting('settings', 'embed_error_color')), components=[], flags=hikari.MessageFlag.EPHEMERAL)
+            await ctx.edit_response(hikari.Embed(description=f'Selling process has been cancelled.', color=get_setting('settings', 'embed_error_color')), components=[], flags=hikari.MessageFlag.EPHEMERAL)
     
     def __del__(self):
         self.db.close()

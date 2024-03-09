@@ -59,7 +59,7 @@ class NavShopSelectView(nav.NavTextSelect):
             image = await profile.draw_card(bg, card, nametag)
             embed.set_image(image)
             embed.set_footer(text='This action cannot be undone.')
-            view = ProfilConfirmView(self.inventory, image, self.items, selected)
+            view = ProfileConfirmView(self.inventory, image, self.items, selected)
             message = await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
             await view.start(message)
         else:
@@ -82,7 +82,7 @@ class NavShopSelectView(nav.NavTextSelect):
             pages.append(page)
         return pages[index]
 
-class ProfilConfirmView(miru.View):
+class ProfileConfirmView(miru.View):
     def __init__(self, inventory: Inventory, image: bytes, items: list, selected: str) -> None:
         super().__init__(timeout=None, autodefer=True)
         self.inventory = inventory

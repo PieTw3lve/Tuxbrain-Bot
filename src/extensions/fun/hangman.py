@@ -157,7 +157,7 @@ class HangmanGameView(miru.View):
         ],
         row=1
     )
-    async def select_leter_1(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_letter_1(self, select: miru.TextSelect, ctx: miru.Context):
         letter = select.values[0]
         
         if letter in self.guesses: # if player guessed that letter already
@@ -239,7 +239,7 @@ class HangmanGameView(miru.View):
         ],
         row=2
     )
-    async def select_leter_2(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_letter_2(self, select: miru.TextSelect, ctx: miru.Context):
         letter = select.values[0]
         
         if letter in self.guesses: # if player guessed that letter already

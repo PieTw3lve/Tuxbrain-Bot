@@ -56,7 +56,7 @@ async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> No
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def sell(ctx: lightbulb.Context) -> None:
     inventory = Inventory(ctx, ctx.author)
-    embed = hikari.Embed(title='Sell Menu', description='Favorited cards will **not** be accounted for in the algorithm. \nIn the future, additional selling options may become available. \n\n> Normal = 🪙 20 \n> Shiny = 🪙 40 \n‍', color=get_setting('settings', 'embed_error_color'))
+    embed = hikari.Embed(title='Sell Menu', description='Favorite cards will **not** be accounted for in the algorithm. \nIn the future, additional selling options may become available. \n\n> Normal = 🪙 20 \n> Shiny = 🪙 40 \n‍', color=get_setting('settings', 'embed_error_color'))
     embed.set_thumbnail('assets/img/pokemon/convert_icon.png')
     embed.set_footer(text='Once you sell cards, the action cannot be undone.')
     view = SellView(embed, inventory)

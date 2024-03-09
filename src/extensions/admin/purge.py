@@ -67,7 +67,7 @@ async def purge_messages(ctx: lightbulb.Context, amount: int, channel: hikari.Sn
     if iterator:
         async for messages in iterator.chunk(100):
             await ctx.bot.rest.delete_messages(channel, messages)
-        await ctx.edit_last_response(hikari.Embed(title='Success', description=f'Messages has been sucessfully deleted.', color=get_setting('settings', 'embed_success_color')), components=[])
+        await ctx.edit_last_response(hikari.Embed(title='Success', description=f'Messages has been successfully deleted.', color=get_setting('settings', 'embed_success_color')), components=[])
     else:
         await ctx.edit_last_response(title='Error', description=f'Could not find any messages younger than 14 days!', color=get_setting('settings', 'embed_error_color'), components=[])
 

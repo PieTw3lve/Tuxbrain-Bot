@@ -47,7 +47,7 @@ async def update_rushsite_data():
             for team in db:
                 teamName = team[0]
                 teamAddLabels = ['Wins', 'Draws', 'Losses', 'Maps_Played']
-                # Update addative team statistics
+                # Update additive team statistics
                 for index, stat in enumerate(team[1:5], start=1):
                     teamStats[teamName][teamAddLabels[index-1]] += stat if stat is not None else 0
                 # Update the mean team statistics

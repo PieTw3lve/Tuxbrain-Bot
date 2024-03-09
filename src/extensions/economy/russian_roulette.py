@@ -156,7 +156,7 @@ class RRGameView(miru.View):
         if len(self.chamber) == 0:
             return
         elif self.chamber[0]:
-            embed = hikari.Embed(title=f"Oh no! {self.player['name']} shot themself!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title=f"Oh no! {self.player['name']} shot themselves!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('settings', 'embed_color'))
             embed.set_image('assets/img/fun/revolver.png')
             embed.set_thumbnail(self.player['url'])
             

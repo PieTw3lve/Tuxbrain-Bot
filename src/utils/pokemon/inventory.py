@@ -95,7 +95,7 @@ class Inventory:
     def get_dupe_cards(self, s: bool, all: bool):
         cards = self.get_inventory()[1]
         
-        # Removes all unique cards that are favorited
+        # Removes all unique cards that are favorite
         if not all:
             uniqueCards = {}
         
@@ -121,7 +121,7 @@ class Inventory:
             for card in list(uniqueCards.values()):
                 cards.remove(card)
 
-        # Removes all cards that are favorited
+        # Removes all cards that are favorite
         cards = [card for card in cards if card[-1] == 0]
 
         # Removes all cards that are shiny
@@ -141,7 +141,7 @@ class Inventory:
             shiny = card[6]
             favorite = card[7]
             if favorite or not self.get_item(cardID):
-                embed = hikari.Embed(title='Sell Error', description='At least one card is favorited or does not exist.', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(title='Sell Error', description='At least one card is favorite or does not exist.', color=get_setting('settings', 'embed_error_color'))
                 embed.set_thumbnail('assets/img/pokemon/convert_icon.png')
                 await self.ctx.edit_last_response(embed, components=[])
                 return
@@ -205,7 +205,7 @@ class SellView(miru.View):
         if view.answer:
             await self.inventory.sell(cards)
         else:
-            self.embed.title = 'Selling proccess has been cancelled.'
+            self.embed.title = 'Selling process has been cancelled.'
             self.embed.description = 'No cards has been sold.'
             self.embed.set_footer(None)
             await ctx.edit_response(self.embed, components=[], flags=hikari.MessageFlag.EPHEMERAL)
