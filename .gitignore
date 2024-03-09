@@ -2,6 +2,7 @@
 
 .env/
 .vscode/
+Lavalink/logs/
 Lavalink/Lavalink.jar
 
 # Sources
