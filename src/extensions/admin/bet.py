@@ -4,23 +4,12 @@ import miru
 import asyncio
 
 from datetime import datetime, timedelta
-from bot import DEFAULT_GUILD_ID, get_setting, verify_user, register_user
-from .economy import set_money, set_ticket, add_money, remove_money, add_loss, add_ticket, remove_ticket
-from .error import Error
+from bot import get_setting, verify_user, register_user
+from extensions.general.error import Error
+from utils.economy.manager import EconomyManager
 
-plugin = lightbulb.Plugin('Guild', default_enabled_guilds=DEFAULT_GUILD_ID)
-
-
-## Admin Economy Subcommands ##
-
-@plugin.command
-@lightbulb.app_command_permissions(perms=hikari.Permissions.ADMINISTRATOR, dm_enabled=False)
-@lightbulb.command('admin-eco', 'Manage player economy.')
-@lightbulb.implements(lightbulb.SlashCommandGroup)
-async def admin_eco(ctx: lightbulb.Context) -> None:
-    return
-
-## Bet Command ##
+plugin = lightbulb.Plugin('Bet')
+economy = EconomyManager()
 
 betViewEvents = {}
 
@@ -137,9 +126,7 @@ class ResultView(miru.View):
         match option:
             case 'blue':
                 for userID in self.betView.blueTeam.keys():
-                    add_money(userID, round(self.betView.blueTeam[userID] * self.betView.bPayout), True)
-                for userID in self.betView.greenTeam.keys():
-                    add_loss(userID, self.betView.greenTeam[userID])
+                    economy.add_money(userID, round(self.betView.blueTeam[userID] * self.betView.bPayout), False)
                 if len(self.betView.blueTeam) > 0:
                     user = await ctx.app.rest.fetch_user(self.betView.bHighID)
                     embed = (hikari.Embed(title=f'{self.betView.blueName} Won!', description=f'🪙 {(self.betView.bHighBet * self.betView.bPayout):,.0f} go to <@{self.betView.bHighID}> and {(self.betView.bParticipants) - 1:,} others.\n{self.betView.get_blue_overview(10)}\n‍',  color=get_setting('settings', 'embed_color')))
@@ -148,9 +135,7 @@ class ResultView(miru.View):
                     embed = (hikari.Embed(title=f'{self.betView.blueName} Won!', description=f'Unfortunately, no one will get paid out...',  color=get_setting('settings', 'embed_color')))
             case 'green':
                 for userID in self.betView.greenTeam.keys():
-                    add_money(userID, round(self.betView.greenTeam[userID] * self.betView.gPayout), True)
-                for userID in self.betView.blueTeam.keys():
-                    add_loss(userID, self.betView.blueTeam[userID])
+                    economy.add_money(userID, round(self.betView.greenTeam[userID] * self.betView.gPayout), False)
                 if len(self.betView.greenTeam) > 0:
                     user = await ctx.app.rest.fetch_user(self.betView.gHighID)
                     embed = (hikari.Embed(title=f'{self.betView.greenName} Won!', description=f'🪙 {(self.betView.gHighBet * self.betView.gPayout):,.0f} go to <@{self.betView.gHighID}> and {(self.betView.gParticipants - 1):,} others.\n{self.betView.get_green_overview(10)}\n‍',  color=get_setting('settings', 'embed_color')))
@@ -159,9 +144,9 @@ class ResultView(miru.View):
                     embed = (hikari.Embed(title=f'{self.betView.greenName} Won!', description=f'Unfortunately, no one will get paid out...',  color=get_setting('settings', 'embed_color')))
             case 'refund':
                 for userID in self.betView.blueTeam.keys():
-                    add_money(userID, self.betView.blueTeam[userID], False)
+                    economy.add_money(userID, self.betView.blueTeam[userID], False)
                 for userID in self.betView.greenTeam.keys():
-                    add_money(userID, self.betView.greenTeam[userID], False)
+                    economy.add_money(userID, self.betView.greenTeam[userID], False)
                 embed = hikari.Embed(title='Bets has been canceled!', description='All bets has been refunded.', color=get_setting('settings', 'embed_color'))
         
         embed.set_footer(text="The players' balances have been updated")
@@ -191,7 +176,7 @@ class BettingView(miru.Modal):
                 embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 return self.stop()
-            elif remove_money(userID, self.amount, False) == False:
+            elif economy.remove_money(userID, self.amount, False) == False:
                 embed = hikari.Embed(title='Bet Error', description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 return self.stop()
@@ -213,13 +198,14 @@ class BettingView(miru.Modal):
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
             return self.stop()
 
-@admin_eco.child
+@plugin.command
+@lightbulb.app_command_permissions(perms=hikari.Permissions.MANAGE_CHANNELS, dm_enabled=False)
 @lightbulb.option('timer', 'How long users have to bet on the outcome (in seconds).', type=int, min_value=5, required=True)
 @lightbulb.option('green', 'Outcome 2, like "No"', type=str, required=True)
 @lightbulb.option('blue', 'Outcome 1, like "Yes"', type=str, required=True)
 @lightbulb.option('name', 'What users will bet, like "Will I win five games in a row?"', type=str, required=True)
-@lightbulb.command('bet', 'Start a live interactive bet!', pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
+@lightbulb.command('start-prediction', 'Initiate a live interactive bet for users to participate in.', pass_options=True)
+@lightbulb.implements(lightbulb.SlashCommand)
 async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: int) -> None:
     embed = hikari.Embed(title=f'{name} (Open)', description=f'Submissions will close in {Error().format_seconds(timer)}.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
     embed.add_field(name=f'{blue} (Blue) 50%', value='Total Coins: 🪙 0\nPayout: 💸 0.00\nParticipants: 👥 0\nHighest Bet: 🪙 0 (<@None>)', inline=True)
@@ -257,117 +243,6 @@ async def cancel_sleep(event: asyncio.Event, timer: int) -> None:
         event.set()  # Set the event when the timer expires
     except asyncio.CancelledError:
         event.set()  # Set the event when the sleep is canceled
-
-## Set Balance Command ##
-
-@admin_eco.child
-@lightbulb.option('amount', 'The amount that will be set to.', type=int, min_value=0, max_value=None, required=True)
-@lightbulb.option('currency', 'The currency type that will be set to.', type=str, choices=['Coins', 'Tickets'], required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('set', "Set a server member's wallet to a specific amount.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def set_balance(ctx: lightbulb.Context, user: hikari.User, currency: str, amount: int):
-    if user.is_bot: # checks if the user is a bot
-        embed = hikari.Embed(description='You are not allowed to set money to this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None: # if user has never been register
-        register_user(ctx.user)
-
-    if currency == 'Coins':
-        set_money(user.id, amount)
-        embed = (hikari.Embed(description=f"You set {user.global_name}'s money to 🪙 {amount:,}.", color=get_setting('settings', 'embed_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif currency == 'Tickets':
-        set_ticket(user.id, amount)
-        embed = (hikari.Embed(description=f"You set {user.global_name}'s ticket amount to 🎟️ {amount:,}.", color=get_setting('settings', 'embed_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
-
-## Add Balance Command ##
-
-@admin_eco.child
-@lightbulb.option('update', 'This will update net gain.', type=bool, required=True)
-@lightbulb.option('amount', 'The amount that will be added to.', type=int, min_value=1, max_value=None, required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('add-money', "Add coins to a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def add_balance(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
-    if user.is_bot: # checks if the user is a bot
-        embed = hikari.Embed(description='You are not allowed to add money to this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None: # if user has never been register
-        register_user(ctx.user)
-    
-    if add_money(user.id, amount, update):
-        embed = (hikari.Embed(description=f"You added 🪙 {amount:,} to {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
-
-## Add Ticket Command ##
-
-@admin_eco.child
-@lightbulb.option('amount', 'The amount that will be added to.', type=int, min_value=1, max_value=None, required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('add-ticket', "Add tickets to a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def add_tpass(ctx: lightbulb.Context, user: hikari.User, amount: int):
-    if user.is_bot: # checks if the user is a bot
-        embed = hikari.Embed(description='You are not allowed to add tickets to this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None: # if user has never been register
-        register_user(ctx.user)
-    
-    if add_ticket(user.id, amount):
-        embed = (hikari.Embed(description=f"You added {amount:,} 🎟️ to {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
-
-## Take Balance Command ##
-
-@admin_eco.child
-@lightbulb.option('update', 'This will update net loss.', type=bool, required=True)
-@lightbulb.option('amount', 'The amount that will be removed from.', type=int, min_value=1, max_value=None, required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('take-money', "Remove coins from a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def take_money(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
-    if user.is_bot: # checks if the user is a bot
-        embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None: # if user has never been register
-        register_user(ctx.user)
-    
-    if remove_money(user.id, amount, update):
-        embed = (hikari.Embed(description=f"You took 🪙 {amount:,} from {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
-        await ctx.respond(embed)
-    else:
-        embed = (hikari.Embed(description=f"That amount exceeds {user.global_name}'s wallet!", color=get_setting('settings', 'embed_error_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
-
-## Take Ticket Command ##
-
-@admin_eco.child
-@lightbulb.option('amount', 'The amount that will be removed from.', type=int, min_value=1, max_value=None, required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('take-ticket', "Remove tickets from a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def take_ticket(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
-    if user.is_bot: # checks if the user is a bot
-        embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None: # if user has never been register
-        register_user(ctx.user)
-    
-    if remove_ticket(user.id, amount):
-        embed = (hikari.Embed(description=f"You took {amount:,} 🎟️ from {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
-        await ctx.respond(embed)
-    else:
-        embed = (hikari.Embed(description=f"That amount exceeds {user.global_name}'s wallet!", color=get_setting('settings', 'embed_error_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
-
-## Add as a plugin ##
 
 def load(bot):
     bot.add_plugin(plugin)

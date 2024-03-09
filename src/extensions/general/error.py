@@ -5,8 +5,6 @@ from bot import get_setting
 
 plugin = lightbulb.Plugin('Error')
 
-## Error Handler ##
-
 class Error:
     @plugin.listener(lightbulb.CommandErrorEvent)
     async def on_command_error(event: lightbulb.CommandErrorEvent) -> None:
@@ -45,8 +43,6 @@ class Error:
             time.append(f"{seconds} second{'s' if seconds > 1 else ''}")
 
         return " and ".join(time)
-
-## Definitions ##
 
 def load(bot):
     bot.add_plugin(plugin)

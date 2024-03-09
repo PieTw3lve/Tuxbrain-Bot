@@ -1,143 +1,11 @@
 import hikari
 import lightbulb
 import miru
-import requests
-import json
 import re
 
-from bot import WORDNIK_API_KEY, get_setting
+from bot import get_setting
 
-plugin = lightbulb.Plugin('Fun')
-
-## Random Animals ##
-
-@plugin.command
-@lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.command('random', 'Get something random!')
-@lightbulb.implements(lightbulb.SlashCommandGroup)
-async def rand(ctx: lightbulb.Context) -> None:
-    pass
-
-@rand.child
-@lightbulb.command('fox', 'Get a random picture of a fox!')
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def today_fact(ctx: lightbulb.Context) -> None:
-    url = 'https://apilist.fun/out/randomfox'
-    request = dict(json.loads(requests.get(url).text))
-    
-    await ctx.respond(request.get('image'))
-
-@rand.child
-@lightbulb.command('cat', 'Get a random picture of a cat!')
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def today_fact(ctx: lightbulb.Context) -> None:
-    url = 'https://api.thecatapi.com/v1/images/search'
-    request = list(json.loads(requests.get(url).text))
-    
-    await ctx.respond(request[0].get('url'))
-
-@rand.child
-@lightbulb.command('dog', 'Get a random picture of a dog!')
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def today_fact(ctx: lightbulb.Context) -> None:
-    url = 'https://apilist.fun/out/randomdog'
-    request = dict(json.loads(requests.get(url).text))
-    
-    await ctx.respond(request.get('url'))
-
-## Random Joke Command ##
-
-@rand.child
-@lightbulb.command('joke', 'Get a random unfunny joke!')
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def joke(ctx: lightbulb.Context) -> None:
-    url = 'https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit&type=twopart'
-    request = dict(json.loads(requests.get(url).text))
-    
-    embed = hikari.Embed(title=request.get('setup'), description=f"||{request.get('delivery')}||", color=get_setting('settings', 'embed_color'))
-    await ctx.respond(embed)
-
-## Random Riddle Command ##
-
-@rand.child
-@lightbulb.command('riddle', 'Get a random riddle!')
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def riddle(ctx: lightbulb.Context) -> None:
-    url = 'https://riddles-api.vercel.app/random'
-    request = dict(json.loads(requests.get(url).text))
-    
-    embed = hikari.Embed(title=request.get('riddle'), description=f"||{request.get('answer')}||", color=get_setting('settings', 'embed_color'))
-    await ctx.respond(embed)
-
-## Random Useless Fact Command ##
-
-@rand.child
-@lightbulb.command('fact', 'Get a random useless fact.')
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def rand_fact(ctx: lightbulb.Context) -> None:
-    url = 'https://uselessfacts.jsph.pl/random.json?language=en'
-    request = dict(json.loads(requests.get(url).text))
-    
-    embed = hikari.Embed(title='Random Useless Fact', description=request.get('text'), color=get_setting('settings', 'embed_color'))
-    await ctx.respond(embed)
-
-## Useless Fact of the Day Command ##
-
-@plugin.command
-@lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.command('fact', 'Get the useless fact of the day.')
-@lightbulb.implements(lightbulb.SlashCommand)
-async def today_fact(ctx: lightbulb.Context) -> None:
-    url = 'https://uselessfacts.jsph.pl/today.json?language=en'
-    request = dict(json.loads(requests.get(url).text))
-    
-    embed = hikari.Embed(title='Useless Fact of the Day!', description=request.get('text'), color=get_setting('settings', 'embed_color'))
-    await ctx.respond(embed)
-
-## Word of the Day Command ##
-
-@plugin.command
-@lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.command('wotd', 'Get the word of the day.')
-@lightbulb.implements(lightbulb.SlashCommand)
-async def today_word(ctx: lightbulb.Context) -> None:
-    wordOfTheDayUrl = f"http://api.wordnik.com/v4/words.json/wordOfTheDay?api_key={WORDNIK_API_KEY}"
-    response = requests.get(wordOfTheDayUrl)
-    if response.status_code == 200:
-        embed = hikari.Embed(color=get_setting('settings', 'embed_color'))
-        word = response.json()
-        wordText = word['word'].capitalize()
-        note = word['note']
-        definitions = word['definitions']
-        examples = word['examples']
-        embed.title = f'Word of the day: {wordText}'
-        embed.description = f'{note}\n\n**Definitions:**'
-        for definition in definitions:
-            embed.description = f'{embed.description}\n{definition["partOfSpeech"].capitalize()}: {definition["text"]}'
-        embed.description = f'{embed.description}\n\n**Examples:**'
-        for example in examples:
-            embed.description = f'{embed.description}\n- {example["text"]}'
-    else:
-        embed = hikari.Embed(title='Failed to get the word of the day', description='Did you fill in your Wordnik api key?', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        return
-    
-    await ctx.respond(embed)
-
-## Bored Command ##
-
-@plugin.command
-@lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.command('bored', 'Get an activity suggestion from the bot.')
-@lightbulb.implements(lightbulb.SlashCommand)
-async def bored(ctx: lightbulb.Context) -> None:
-    url = 'https://www.boredapi.com/api/activity'
-    request = dict(json.loads(requests.get(url).text))
-    
-    embed = hikari.Embed(title=f"{request.get('activity')}.", description=f"Type: {request.get('type').capitalize()}\nParticipants: {request.get('participants')}\n Price: 🪙 {request.get('price'):,}\nAccessibility: {request.get('accessibility')}", color=get_setting('settings', 'embed_color'))
-    await ctx.respond(embed)
-
-## Hangman Command ##
+plugin = lightbulb.Plugin('Hangman')
 
 def contains_special_characters(input_string):
     pattern = r'[!@#$%^&*(),.?":{}|<>]'
@@ -147,7 +15,7 @@ def contains_special_characters(input_string):
 @lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.option('theme', 'The theme of the word!', type=str, required=True)
 @lightbulb.option('word', 'The word players will have to guess!', type=str, required=True)
-@lightbulb.command('hangman', 'Play a game of Hangman.', pass_options=True)
+@lightbulb.command('hangman', 'Engage in a competitive game of Hangman with fellow Discord members.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
     if contains_special_characters(word):
@@ -289,7 +157,7 @@ class HangmanGameView(miru.View):
         ],
         row=1
     )
-    async def select_leter_1(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_letter_1(self, select: miru.TextSelect, ctx: miru.Context):
         letter = select.values[0]
         
         if letter in self.guesses: # if player guessed that letter already
@@ -371,7 +239,7 @@ class HangmanGameView(miru.View):
         ],
         row=2
     )
-    async def select_leter_2(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_letter_2(self, select: miru.TextSelect, ctx: miru.Context):
         letter = select.values[0]
         
         if letter in self.guesses: # if player guessed that letter already
@@ -514,8 +382,6 @@ class HangmanGameView(miru.View):
     
     async def view_check(self, ctx: miru.Context) -> bool:
         return ctx.user.id == self.guesser['id']
-    
-## Definitions ##
 
 def load(bot):
     bot.add_plugin(plugin)
