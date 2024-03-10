@@ -5,11 +5,11 @@
 	<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-green.svg" alt="License: GPL v3"></a>
 </p>
 
-## Description
+### Description
 
 Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a new static-typed Python API wrapper. The bot is currently still in development, so there may be some bugs. Although it was designed for Tuxbrain.org servers, the bot can be hosted and used on any server.
 
-## Features
+### Features
 
 - Profile Customization: `profile`, `set`, `shop`!
 - Economy Integration: `leaderboard`, `daily`, `pay`, and **6** more!
@@ -20,7 +20,7 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 - Moderation: `broadcast`, `poll`, `purge`, `translator` and **6** more!
 - Fun/Useless Commands: `random`, `fact`, `wotd`, and `bored`!
 
-## Installation
+### Installation
 
 1. Ensure that you have Python 3.11.0 or later installed.
 2. Use the requirements.txt file included to install the dependencies with one command (see below).
@@ -31,13 +31,13 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 pip install -r requirements.txt
 ```
 
-## How to run the Bot
+### How to run the Bot
 
 1. Modify the startup.py file, if you haven't already.
 2. Enable all intents through the [Discord Developer Portal](https://discord.com/developers/applications).
 3. Run the bot.py file through the console.
 
-## Further readings
+### Further readings
 
 - Hikari: https://github.com/hikari-py/hikari
 - Lightbulb: https://github.com/tandemdude/hikari-lightbulb
