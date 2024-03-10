@@ -182,7 +182,7 @@ async def leave(ctx: lightbulb.Context) -> None:
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def play(ctx: lightbulb.Context) -> None:
     """Searches the query on youtube, or adds the URL to the queue."""
-
+    
     playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
     # Remove leading and trailing <>. <> may be used to suppress embedding links in Discord.
     query = ctx.options.query.strip('<>')
@@ -232,7 +232,7 @@ async def play(ctx: lightbulb.Context) -> None:
 
 @play.autocomplete("query")
 async def search_autocomplete(opt: hikari.AutocompleteInteractionOption, inter: hikari.AutocompleteInteraction):
-    choices = []
+    resultList = []
     query = opt.value.strip('<>')
 
     # Check if the user input might be a URL. If it isn't, we can Lavalink do a YouTube search for it instead.
@@ -252,34 +252,34 @@ async def search_autocomplete(opt: hikari.AutocompleteInteractionOption, inter: 
 
     # Gets a list of tracks or playlists.
     match results[0].load_type:
-        case 'PLAYLIST_LOADED':
+        case 'PLAYLIST':
             playlist = results[0].playlist_info
             name = f'{f"💿 {playlist.name}"[:100 - {3}]}... ({len(results[0].tracks)} Tracks)' if len(f'💿 {playlist.name} ({len(results[0].tracks)} Tracks)') > 100 else f'💿 {playlist.name} ({len(results[0].tracks)} Tracks)'
             value = opt.value
             option = hikari.impl.AutocompleteChoiceBuilder(name, value)
-            choices.append(option) 
-        case 'TRACK_LOADED':
+            resultList.append(option) 
+        case 'TRACK':
             track = results[0].tracks[0]
             name = f'{f"🎶 {track.title}"[:100 - (3 + len(f" - {track.author}"))]}... - {track.author}' if len(f'🎶 {track.title} - {track.author}') > 100 else f'🎶 {track.title} - {track.author}'
             value = track.uri
             option = hikari.impl.AutocompleteChoiceBuilder(name, value)
-            choices.append(option)
-        case 'SEARCH_RESULT':
+            resultList.append(option)
+        case 'SEARCH':
             for track in results[0].tracks[:5]:
                 name = f'{f"YouTube: 🎶 {track.title}"[:100 - (3 + len(f" - {track.author}"))]}... - {track.author}' if len(f'Youtube: 🎶 {track.title} - {track.author}') > 100 else f'Youtube: 🎶 {track.title} - {track.author}'
                 value = track.uri
                 option = hikari.impl.AutocompleteChoiceBuilder(name, value)
-                choices.append(option)
+                resultList.append(option)
             for track in results[1].tracks[:5]:
                 name = f'{f"SoundCloud: 🎶 {track.title}"[:100 - (3 + len(f" - {track.author}"))]}... - {track.author}' if len(f'Soundcloud: 🎶 {track.title} - {track.author}') > 100 else f'Soundcloud: 🎶 {track.title} - {track.author}'
                 value = track.uri
                 if len(value) < 100:
                     option = hikari.impl.AutocompleteChoiceBuilder(name, value)
-                    choices.append(option)
+                    resultList.append(option)
         case _:
             return []
     
-    return choices
+    return resultList
 
 ## Queue Command ##
 
