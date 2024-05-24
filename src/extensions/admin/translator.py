@@ -16,14 +16,15 @@ async def remove_webhooks(event: hikari.GuildLeaveEvent) -> None:
     for channel in channels:
         if channel.type == 0:
             webhooks = await event.app.rest.fetch_channel_webhooks(channel.id)
-            translator = get_translator(webhooks)
-            if translator:
+            translators = get_translators(webhooks)
+            if len(translators) > 0:
+                translator = translators[0]
                 await event.app.rest.delete_webhook(translator)
         
 @plugin.listener(hikari.MessageCreateEvent)
 async def print_translation(event: hikari.MessageCreateEvent) -> None:
-    translator = get_translator(await event.app.rest.fetch_channel_webhooks(event.channel_id))
-    if translator:
+    translator = get_translators(await event.app.rest.fetch_channel_webhooks(event.channel_id))
+    if len(translator) > 0:
         if event.is_bot or not event.content:
             return
         
@@ -47,12 +48,24 @@ async def autotranslation(ctx: lightbulb.Context) -> None:
     return
 
 @autotranslation.child
+@lightbulb.command('info', 'Get information about the automatic text translation settings.')
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def info(ctx: lightbulb.Context) -> None:
+    webhooks = await ctx.bot.rest.fetch_guild_webhooks(ctx.guild_id)
+    translators = get_translators(webhooks)
+    embed = hikari.Embed(title='Translator Settings', color=get_setting('settings', 'embed_color'))
+    embed.add_field(name='Confidence Threshold', value=f'- Default: 0.8\n- Current: {get_setting("settings", "auto_translate_conf")}', inline=True)
+    embed.add_field(name='Minimum Relative Distance', value=f'- Default: 0.9\n- Current: {get_setting("settings", "auto_translate_min_relative_distance")}', inline=True)
+    embed.add_field(name='Active Channels', value=', '.join([f'<#{translator.channel_id}>' for translator in translators]) if translators else 'No active channels.', inline=False)
+    await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+
+@autotranslation.child
 @lightbulb.command('enable', 'Activate automated translation for this channel.')
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def enable(ctx: lightbulb.Context) -> None:
     webhooks = await ctx.bot.rest.fetch_channel_webhooks(ctx.channel_id)
-    translator = get_translator(webhooks)
-    if translator:
+    translators = get_translators(webhooks)
+    if len(translators) > 0:
         embed = hikari.Embed(description=f'Automated translation is currently active in <#{ctx.channel_id}> channel.', color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     embed = hikari.Embed(description=f'Automated translation has been activated for <#{ctx.channel_id}> channel.', color=get_setting('settings', 'embed_color'))
@@ -64,8 +77,9 @@ async def enable(ctx: lightbulb.Context) -> None:
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def disable(ctx: lightbulb.Context) -> None:
     webhooks = await ctx.bot.rest.fetch_channel_webhooks(ctx.channel_id)
-    translator = get_translator(webhooks)
-    if translator:
+    translators = get_translators(webhooks)
+    if len(translators) > 0:
+        translator = translators[0]
         embed = hikari.Embed(description=f'Automated translation has been successfully deactivated in <#{ctx.channel_id}> channel.', color=get_setting('settings', 'embed_color'))
         await ctx.bot.rest.delete_webhook(translator)
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -116,11 +130,12 @@ def get_lang(lang: str):
                 return item[0]
         return 'Language not found'
 
-def get_translator(webhooks: Sequence[hikari.PartialWebhook]) -> hikari.PartialWebhook:
+def get_translators(webhooks: Sequence[hikari.PartialWebhook]) -> Sequence[hikari.PartialWebhook]:
+    translators = []
     for webhook in webhooks:
         if webhook.name == 'Translator':
-            return webhook
-    return None
+            translators.append(webhook)
+    return translators
 
 def load(bot):
     bot.add_plugin(plugin)
