@@ -133,7 +133,7 @@ class DuelView(miru.View):
             color=get_setting('settings', 'embed_color')
         )
         embed.set_thumbnail(self.author.avatar_url)
-        embed.add_field(name='__Game Info__', value=f'Win Condition: Best of One!\nBet: 🪙 {self.bet}')
+        embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{self.wins}`!\nBet: 🪙 {self.bet}')
         
         await self.message.edit(embed, components=[])
     
