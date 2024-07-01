@@ -1,5 +1,4 @@
 import hikari
-import lightbulb
 import sqlite3
 
 from datetime import datetime
@@ -9,9 +8,10 @@ from PIL import Image, ImageChops, ImageDraw, ImageFont
 from bot import get_setting
 
 class Card():
-    def __init__(self, user: hikari.Member) -> None:
+    def __init__(self, user: hikari.Member, app: hikari.Application) -> None:
         self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
         self.user = user
+        self.app = app
 
     async def draw_card(self, bg: Image, card: Image, nametag: Image, font: ImageFont = ImageFont.truetype('assets/font/UDDIGIKYOKASHON-B.TTC', size=92), subfont: ImageFont = ImageFont.truetype('assets/font/NTAILUB.TTF', size=48)):
         name = self.user.display_name[:14] if len(self.user.display_name) > 14 else self.user.display_name
@@ -44,7 +44,7 @@ class Card():
         card.paste(bg, (0, 0), bg) # Background
         card.paste(nametag, (0, 0), nametag) # Nametag
         
-        if (lightbulb.has_role_permissions(hikari.Permissions.MANAGE_CHANNELS)):
+        if self.user.id == self.app.owner.id:
             badge = Image.open('assets/img/general/profile/admin_badge/badge.png')
             card.paste(badge, (0, 0), badge) # Admin Badge
 

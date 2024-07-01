@@ -23,7 +23,7 @@ async def profile(ctx: lightbulb.Context, user: Optional[hikari.Member] = None) 
         return
     
     inventory = Inventory(user)
-    profile = Card(user)
+    profile = Card(user, ctx.bot.application)
 
     bg, card, nametag = inventory.get_active_customs()
     bg = Image.open(f'assets/img/general/profile/banner/{bg}.png').convert('RGBA')
