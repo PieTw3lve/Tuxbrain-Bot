@@ -110,7 +110,7 @@ async def confidence(ctx: lightbulb.Context, value: float) -> None:
 @lightbulb.command('minimum-relative-distance', 'Set a distance for accurate language detection based on probability differences and text length.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def relative_distance(ctx: lightbulb.Context, value: bool) -> None:
-    if ctx.author.id not in ctx.bot.owner_ids:
+    if ctx.author.id != ctx.bot.application.owner.id:
         embed = hikari.Embed(description='You do not have permission to use this command!', color=get_setting('settings', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
