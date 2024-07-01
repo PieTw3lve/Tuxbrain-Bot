@@ -117,7 +117,7 @@ class BlackJackView(miru.View):
     
     @miru.button(label='Stand', style=hikari.ButtonStyle.PRIMARY)
     async def stand(self, button: miru.Button, ctx: miru.Context) -> None:
-        while self.dealer.hand.score() < 17 and self.dealer.hand.score() < self.player.hand.score():
+        while self.dealer.hand.score() < 17:
             self.dealer.hand.hit()
         
         if self.dealer.is_busted():
