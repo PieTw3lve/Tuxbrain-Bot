@@ -88,7 +88,7 @@ def get_setting_json():
         'auto_translate_min_relative_distance': 0.90
     }
     economy = {
-        'starting_balance': 1000,
+        'starting_balance': 300,
         'starting_tux_pass': 0,
     }
     profile = {
