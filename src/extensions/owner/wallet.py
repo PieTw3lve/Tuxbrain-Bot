@@ -1,16 +1,18 @@
 import hikari
 import lightbulb
+import startup
 
 from bot import get_setting, verify_user, register_user
 from utils.economy.manager import EconomyManager
+
+ADMIN_GUILD_ID = startup.ADMIN_GUILD_ID
 
 plugin = lightbulb.Plugin('Wallet')
 economy = EconomyManager()
 
 @plugin.command
-@lightbulb.add_checks(lightbulb.owner_only)
 @lightbulb.app_command_permissions(perms=hikari.Permissions.ADMINISTRATOR, dm_enabled=False)
-@lightbulb.command('wallet', "Administer and manage user's coins.")
+@lightbulb.command('wallet', "Administer and manage user's coins.", guilds=ADMIN_GUILD_ID)
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def wallet(ctx: lightbulb.Context) -> None:
     return
@@ -23,14 +25,13 @@ async def wallet(ctx: lightbulb.Context) -> None:
 async def set_wallet(ctx: lightbulb.Context, user: hikari.User, currency: str, amount: int):
     if user.is_bot: # checks if the user is a bot
         embed = hikari.Embed(description='You are not allowed to set money to this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
         register_user(ctx.user)
 
     economy.set_money(user.id, amount)
     embed = (hikari.Embed(description=f"You set {user.global_name}'s money to 🪙 {amount:,}.", color=get_setting('settings', 'embed_color')))
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
 
 @wallet.child
 @lightbulb.option('update', 'This will update net gain.', type=bool, required=True)
@@ -41,14 +42,13 @@ async def set_wallet(ctx: lightbulb.Context, user: hikari.User, currency: str, a
 async def add(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
     if user.is_bot: # checks if the user is a bot
         embed = hikari.Embed(description='You are not allowed to add money to this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
         register_user(ctx.user)
     
     if economy.add_money(user.id, amount, update):
         embed = (hikari.Embed(description=f"You added 🪙 {amount:,} to {user.global_name}'s wallet!", color=get_setting('settings', 'embed_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 @wallet.child
 @lightbulb.option('update', 'This will update net loss.', type=bool, required=True)
@@ -59,7 +59,7 @@ async def add(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bo
 async def remove(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
     if user.is_bot: # checks if the user is a bot
         embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('settings', 'embed_error_color'))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None: # if user has never been register
         register_user(ctx.user)
     
@@ -69,7 +69,6 @@ async def remove(ctx: lightbulb.Context, user: hikari.User, amount: int, update:
     else:
         embed = (hikari.Embed(description=f"That amount exceeds {user.global_name}'s wallet!", color=get_setting('settings', 'embed_error_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    return
 
 def load(bot):
     bot.add_plugin(plugin)
