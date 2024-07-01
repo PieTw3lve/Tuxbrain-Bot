@@ -291,20 +291,24 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
     embed.set_footer(text='You have 1 minute to choose an action!')
 
-    if player.hand.score() == 21:
+    if player.hand.score() == 21 and dealer.hand.score() == 21:
+        embed = hikari.Embed(title=f'Blackjack! Push (Draw)!', description=f'Both hands were exactly 21. You got your bet back.', color='#FFFF00')
+        embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
+        embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
+        economy.add_money(ctx.author.id, bet, False)
+        return await ctx.respond(embed)
+    elif player.hand.score() == 21:
         embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet * 2}!', color=get_setting('settings', 'embed_success_color'))
         embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
         embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
         economy.add_money(ctx.author.id, bet*2, True)
-        await ctx.respond(embed)
-        return
+        return await ctx.respond(embed)
     elif dealer.hand.score() == 21:
         embed = hikari.Embed(title=f'Blackjack! Dealer has won!', description=f"The dealer's hand was exactly 21. You lost 🪙 {bet}!", color=get_setting('settings', 'embed_error_color'))
         embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
         embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
         economy.remove_money(ctx.author.id, bet, True)
-        await ctx.respond(embed)
-        return
+        return await ctx.respond(embed)
     
     view = BlackJackView(embed, ctx.user, bet, deck, player, dealer)
     
