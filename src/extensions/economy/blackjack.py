@@ -204,7 +204,7 @@ class BlackJackView(miru.View):
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             await ctx.edit_response(self.embed)   
 
-        while self.dealer.hand.score() < 17 and self.dealer.hand.score() < self.player.hand.score():
+        while self.dealer.hand.score() < 17:
             self.dealer.hand.hit()
         
         if self.dealer.is_busted():
