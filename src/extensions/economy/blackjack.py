@@ -298,7 +298,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
         economy.add_money(ctx.author.id, bet, False)
         return await ctx.respond(embed)
     elif player.hand.score() == 21:
-        embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet * 2}!', color=get_setting('settings', 'embed_success_color'))
+        embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet}!', color=get_setting('settings', 'embed_success_color'))
         embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
         embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
         economy.add_money(ctx.author.id, bet*2, True)
