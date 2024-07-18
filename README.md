@@ -22,24 +22,34 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 
 ### Installation
 
+1. Clone the repository to your local machine.
 
-> [!IMPORTANT]  
-> Tuxbrain Bot requires Python 3.11.0 or later to run.
+```
+git clone https://github.com/PieTw3lve/Tuxbrain-Bot.git
+```
 
-1. Use the requirements.txt file included to install the dependencies with one command (see below).
-2. If the above method doesn't work, install each dependency individually.
-3. Set up and operate a [Lavalink](https://github.com/lavalink-devs/Lavalink) server to enable music playback.
+2. Install the required dependencies.
 
 ```
 pip install -r requirements.txt
 ```
 
+3. Set up and operate a [Lavalink](https://github.com/lavalink-devs/Lavalink) server to enable music playback.
+
 ### How to run the Bot
 
+> [!IMPORTANT]  
+> Tuxbrain Bot requires Python 3.11.0 or later to run.
+
+1. Change directory to the src folder.
 1. Generate settings.json by running the bot.py file once.
 2. Fill in the settings.json file with your bot token, guild ids, and other necessary information.
 3. Enable all intents through the [Discord Developer Portal](https://discord.com/developers/applications).
 4. Run the bot.py file again to start the bot.
+
+```
+python3.11 -O bot.py
+```
 
 ### Further readings
 
