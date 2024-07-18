@@ -11,11 +11,12 @@ class DailyManager:
         self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
         self.cursor = self.db.cursor()
         self.user = user
+        self.max = get_setting('economy', 'daily_max_streak')
         self.streak, self.date, self.today, self.yesterday = self.get_daily_info()
 
     def update_streak(self) -> None:
         if self.date == self.yesterday:
-            self.streak += 1 if self.streak < 20 else 0
+            self.streak += 1 if self.streak < self.max else self.max - self.streak
         else:
             self.streak = 1
         

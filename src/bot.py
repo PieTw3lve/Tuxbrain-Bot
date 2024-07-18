@@ -37,6 +37,7 @@ def get_setting_json():
     economy = {
         'starting_balance': 300,
         'starting_tux_pass': 0,
+        'daily_max_streak': 30,
     }
     profile = {
         'coin': {
@@ -83,6 +84,22 @@ def get_setting_json():
     }
         
     return json
+
+def update_settings():
+    settings = get_setting_json()
+    with open('settings.json', 'r') as openfile:
+        data = json.load(openfile)
+    
+    for section in settings:
+        if section not in data:
+            data[section] = settings[section]
+        else:
+            for option in settings[section]:
+                if option not in data[section]:
+                    data[section][option] = settings[section][option]
+
+    with open('settings.json', 'w') as openfile:
+        json.dump(data, openfile, indent=4)
 
 def get_setting(section: str, option: str = None):
     with open('settings.json', 'r') as openfile:
@@ -161,6 +178,7 @@ if __name__ == '__main__':
         version = get_setting('bot', 'version')
         if version != VERSION:
             write_setting('bot', 'version', VERSION)
+            update_settings()
 
     # Check if bot token is set
     token = get_setting('bot', 'token')
