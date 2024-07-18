@@ -4,10 +4,8 @@
 	<img alt="GitHub Release" src="https://img.shields.io/github/v/release/PieTw3lve/Tuxbrain-Bot?display_name=tag&style=for-the-badge&label=Release">
 	<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/PieTw3lve/Tuxbrain-Bot/python-app.yml?style=for-the-badge&logo=GitHub"> 
 	<img alt="Discord" src="https://img.shields.io/discord/800088413373333544?style=for-the-badge&logo=Discord&color=%237289da">
-	<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-yellow.svg?style=for-the-badge" alt="License: GPL v3">
+	<img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-yellow.svg?style=for-the-badge" href="https://www.gnu.org/licenses/gpl-3.0">
 </p>
-
-### Description
 
 Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a new static-typed Python API wrapper. The bot is currently still in development, so there may be some bugs. Although it was designed for Tuxbrain.org servers, the bot can be hosted and used on any server.
 
