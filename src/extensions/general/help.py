@@ -3,8 +3,10 @@ import lightbulb
 import miru
 
 from miru.ext import nav
-from bot import VERSION, get_setting, get_commands
+from bot import get_setting, get_commands
 from utils.pokemon.inventory import NavPageInfo
+
+VERSION = get_setting('bot', 'version')
 
 plugin = lightbulb.Plugin('Help')
 

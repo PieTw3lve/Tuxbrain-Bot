@@ -2,7 +2,9 @@ import hikari
 import lightbulb
 import requests
 
-from bot import WORDNIK_API_KEY, get_setting
+from bot import get_setting
+
+WORDNIK_API_KEY = get_setting('bot', 'wordnik_api_key')
 
 plugin = lightbulb.Plugin('WOTD')
 

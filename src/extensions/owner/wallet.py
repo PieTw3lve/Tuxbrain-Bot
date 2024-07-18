@@ -1,11 +1,10 @@
 import hikari
 import lightbulb
-import startup
 
 from bot import get_setting, verify_user, register_user
 from utils.economy.manager import EconomyManager
 
-ADMIN_GUILD_ID = startup.ADMIN_GUILD_ID
+ADMIN_GUILD_ID = get_setting('bot', 'admin_guild_id')
 
 plugin = lightbulb.Plugin('Wallet')
 economy = EconomyManager()

@@ -7,69 +7,8 @@ import hikari
 import lightbulb
 import miru
 import sqlite3
-import startup
 
 from lightbulb.ext import tasks
-
-VERSION = startup.VERSION
-TOKEN = startup.TOKEN
-ADMIN_GUILD_ID = startup.ADMIN_GUILD_ID
-WORDNIK_API_KEY = startup.WORDNIK_API_KEY
-
-# Create a bot instance
-
-bot = lightbulb.BotApp(
-    token=TOKEN,
-    default_enabled_guilds=ADMIN_GUILD_ID,
-    help_class=None,
-    intents=hikari.Intents.ALL,
-)   
-
-# Create a database
-
-@bot.listen()
-async def on_ready(event: hikari.StartedEvent) -> None:
-    # Generate database directory if not found
-    if not os.path.exists('database'):
-        os.makedirs('database')
-    
-    # Generate settings.json if not found
-    if not os.path.isfile('settings.json') or not os.access('settings.json', os.R_OK): # checks if file exists
-        print ('Either file is missing or is not readable, creating file...')
-
-        dictionary = get_setting_json()
-        
-        with io.open(os.path.join('', 'settings.json'), 'w') as openfile:
-            openfile.write(json.dumps(dictionary, indent=4))
-
-    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
-    cursor = db.cursor() # checks if db exists
-    cursor.execute('''CREATE TABLE IF NOT EXISTS economy (
-        user_id INTEGER, 
-        balance INTEGER,
-        total INTEGER,
-        loss INTEGER,
-        tpass INTEGER,
-        streak INTEGER,
-        date TEXT
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS pokemon (
-        id TEXT PRIMARY KEY, 
-        user_id TEXT,
-        date TEXT, 
-        name TEXT, 
-        pokemon_id INTEGER, 
-        rarity INTEGER, 
-        shiny INTEGER,
-        favorite INTEGER
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS profile (
-        user_id TEXT,
-        name TEXT, 
-        type TEXT,
-        active INTEGER,
-        PRIMARY KEY (user_id, type, name)
-    )''')
 
 ## Functions ##
 
@@ -77,6 +16,12 @@ def install(package):
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
 
 def get_setting_json():
+    bot = {
+        'version': '1.3.0', # DO NOT CHANGE
+        'token': '', # BOT TOKEN (REQUIRED)
+        'admin_guild_id': [000000000000000000], # ADMIN COMMAND ENABLED GUILDS (OPTIONAL)
+        'wordnik_api_key': '', # WORDNIK API KEY (OPTIONAL)
+    }
     settings = {
         'database_data_dir': 'database/database.sqlite',
         'command_cooldown': 5,
@@ -85,7 +30,7 @@ def get_setting_json():
         'embed_success_color': '#32CD32',
         'embed_error_color': '#FF0000',
         'auto_translate_conf': 0.80,
-        'auto_translate_min_relative_distance': 0.90
+        'auto_translate_min_relative_distance': 0.90,
     }
     economy = {
         'starting_balance': 300,
@@ -116,18 +61,19 @@ def get_setting_json():
             'charged_rose-banner': 5000,
             'rushsite_s3-banner': 7000,
             'france-banner': 10000,
-            'usa-banner': 10000
+            'usa-banner': 10000,
             },
             'tpass': {
-                'nippuwu-banner': 1
+                'nippuwu-banner': 1,
             }
         }
     pokemon = {
         'pokemon_pack_amount': 7,
         'pokemon_max_capacity': 2000,
     }
-    
+
     json = {
+        'bot': bot,
         'settings': settings,
         'economy': economy,
         'profile': profile,
@@ -199,6 +145,68 @@ def get_commands(bot: lightbulb.BotApp) -> dict:
 ## Script ##
 
 if __name__ == '__main__':
+
+    # Generate settings.json if not found
+    if not os.path.isfile('settings.json') or not os.access('settings.json', os.R_OK): # checks if file exists
+        dictionary = get_setting_json()
+        
+        with io.open(os.path.join('', 'settings.json'), 'w') as openfile:
+            openfile.write(json.dumps(dictionary, indent=4))
+        
+        print('Please add your bot information to settings.json')
+        sys.exit(0)
+
+    # Check if bot token is set
+    token = get_setting('bot', 'token')
+    admin_guild_id = get_setting('bot', 'admin_guild_id')
+    if not token:
+        print('Please add your bot token to settings.json')
+        sys.exit(0)
+
+    # Create a bot instance
+    bot = lightbulb.BotApp(
+        token=token,
+        default_enabled_guilds=admin_guild_id,
+        help_class=None,
+        intents=hikari.Intents.ALL,
+    )
+
+    # Create a database
+    @bot.listen(hikari.StartedEvent)
+    async def on_started(event):
+        # Generate database directory if not found
+        if not os.path.exists('database'):
+            os.makedirs('database')
+
+        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        cursor = db.cursor() # checks if db exists
+        cursor.execute('''CREATE TABLE IF NOT EXISTS economy (
+            user_id INTEGER, 
+            balance INTEGER,
+            total INTEGER,
+            loss INTEGER,
+            tpass INTEGER,
+            streak INTEGER,
+            date TEXT
+        )''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS pokemon (
+            id TEXT PRIMARY KEY, 
+            user_id TEXT,
+            date TEXT, 
+            name TEXT, 
+            pokemon_id INTEGER, 
+            rarity INTEGER, 
+            shiny INTEGER,
+            favorite INTEGER
+        )''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS profile (
+            user_id TEXT,
+            name TEXT, 
+            type TEXT,
+            active INTEGER,
+            PRIMARY KEY (user_id, type, name)
+        )''')
+
     # Install uvloop for Linux users
     if os.name != 'nt':
         install('uvloop')
@@ -213,4 +221,3 @@ if __name__ == '__main__':
         status=hikari.Status.DO_NOT_DISTURB, 
         activity=hikari.Activity(name='Rushsite Season 4', type=hikari.ActivityType.STREAMING, url='https://www.twitch.tv/ryqb')
     )
-    
