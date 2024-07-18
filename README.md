@@ -2,6 +2,8 @@
 
 <p align="center">
 	<img src="https://img.shields.io/github/v/release/PieTw3lve/Tuxbrain-Bot" alt="GitHub release (latest by date)">
+	<img src="https://github.com/PieTw3lve/Tuxbrain-Bot/actions/workflows/python-app.yml/badge.svg" alt="Build and Publish"></a>
+	<a href="https://discord.gg/KdgecRyHMM"><img height="20" alt="Discord invite" src="https://discord.com/api/guilds/800088413373333544/widget.png?style=shield"></a>
 	<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-green.svg" alt="License: GPL v3"></a>
 </p>
 
