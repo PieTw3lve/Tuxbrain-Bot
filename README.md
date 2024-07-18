@@ -1,10 +1,10 @@
 <h1 align="center">Tuxbrain Bot</h1>
 
 <p align="center">
-	<img src="https://img.shields.io/github/v/release/PieTw3lve/Tuxbrain-Bot" alt="GitHub release (latest by date)">
-	<img src="https://github.com/PieTw3lve/Tuxbrain-Bot/actions/workflows/python-app.yml/badge.svg" alt="Build and Publish"></a>
-	<a href="https://discord.gg/KdgecRyHMM"><img height="20" alt="Discord invite" src="https://discord.com/api/guilds/800088413373333544/widget.png?style=shield"></a>
-	<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-green.svg" alt="License: GPL v3"></a>
+	<img alt="GitHub Release" src="https://img.shields.io/github/v/release/PieTw3lve/Tuxbrain-Bot?display_name=tag&style=for-the-badge&label=Release">
+	<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/PieTw3lve/Tuxbrain-Bot/python-app.yml?style=for-the-badge&logo=GitHub"> 
+	<img alt="Discord" src="https://img.shields.io/discord/800088413373333544?style=for-the-badge&logo=Discord&color=%237289da">
+	<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-yellow.svg?style=for-the-badge" alt="License: GPL v3">
 </p>
 
 ### Description
