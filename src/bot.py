@@ -10,6 +10,8 @@ import sqlite3
 
 from lightbulb.ext import tasks
 
+VERSION = '1.3.0'
+
 ## Functions ##
 
 def install(package):
@@ -155,6 +157,10 @@ if __name__ == '__main__':
         
         print('Please add your bot information to settings.json')
         sys.exit(0)
+    else:
+        version = get_setting('bot', 'version')
+        if version != VERSION:
+            write_setting('bot', 'version', VERSION)
 
     # Check if bot token is set
     token = get_setting('bot', 'token')
