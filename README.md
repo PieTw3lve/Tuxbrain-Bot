@@ -31,7 +31,7 @@ git clone https://github.com/PieTw3lve/Tuxbrain-Bot.git
 2. Install the required dependencies.
 
 ```
-pip install -r requirements.txt
+pip install -r requirements.txt --no-dependencies
 ```
 
 3. Set up and operate a [Lavalink](https://github.com/lavalink-devs/Lavalink) server to enable music playback.
