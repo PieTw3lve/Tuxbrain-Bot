@@ -10,7 +10,7 @@ import sqlite3
 
 from lightbulb.ext import tasks
 
-VERSION = '1.3.1'
+VERSION = '1.3.2'
 
 ## Functions ##
 
@@ -19,7 +19,7 @@ def install(package):
 
 def get_setting_json():
     bot = {
-        'version': '1.3.0', # DO NOT CHANGE
+        'version': VERSION, # DO NOT CHANGE
         'token': '', # BOT TOKEN (REQUIRED)
         'admin_guild_id': [000000000000000000], # ADMIN COMMAND ENABLED GUILDS (OPTIONAL)
         'wordnik_api_key': '', # WORDNIK API KEY (OPTIONAL)
@@ -90,6 +90,7 @@ def update_settings():
     with open('settings.json', 'r') as openfile:
         data = json.load(openfile)
     
+    # Add or update settings
     for section in settings:
         if section not in data:
             data[section] = settings[section]
@@ -97,6 +98,16 @@ def update_settings():
             for option in settings[section]:
                 if option not in data[section]:
                     data[section][option] = settings[section][option]
+
+    # Remove settings not present in get_setting_json()
+    sections_to_remove = [section for section in data if section not in settings]
+    for section in sections_to_remove:
+        del data[section]
+    
+    for section in data:
+        options_to_remove = [option for option in data[section] if option not in settings[section]]
+        for option in options_to_remove:
+            del data[section][option]
 
     with open('settings.json', 'w') as openfile:
         json.dump(data, openfile, indent=4)
@@ -164,27 +175,25 @@ def get_commands(bot: lightbulb.BotApp) -> dict:
 ## Script ##
 
 if __name__ == '__main__':
-
     # Generate settings.json if not found
-    if not os.path.isfile('settings.json') or not os.access('settings.json', os.R_OK): # checks if file exists
-        dictionary = get_setting_json()
-        
-        with io.open(os.path.join('', 'settings.json'), 'w') as openfile:
-            openfile.write(json.dumps(dictionary, indent=4))
-        
+    settings = 'settings.json'
+    if not os.path.isfile(settings) or not os.access(settings, os.R_OK):
+        settings = get_setting_json()
+        with io.open(settings, 'w') as file:
+            file.write(json.dumps(settings, indent=4))
         print('Please add your bot information to settings.json')
         sys.exit(0)
-    else:
-        version = get_setting('bot', 'version')
-        if version != VERSION:
-            write_setting('bot', 'version', VERSION)
-            update_settings()
+    
+    version = get_setting('bot', 'version')
+    if version != VERSION:
+        write_setting('bot', 'version', VERSION)
+        update_settings()
 
     # Check if bot token is set
     token = get_setting('bot', 'token')
     admin_guild_id = get_setting('bot', 'admin_guild_id')
     if not token:
-        print('Please add your bot token to settings.json')
+        print('Please add your bot information to settings.json')
         sys.exit(0)
 
     # Create a bot instance
@@ -201,9 +210,9 @@ if __name__ == '__main__':
         # Generate database directory if not found
         if not os.path.exists('database'):
             os.makedirs('database')
-
+        
         db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
-        cursor = db.cursor() # checks if db exists
+        cursor = db.cursor()
         cursor.execute('''CREATE TABLE IF NOT EXISTS economy (
             user_id INTEGER, 
             balance INTEGER,
@@ -244,5 +253,9 @@ if __name__ == '__main__':
     bot.load_extensions_from('extensions', recursive=True)
     bot.run(
         status=hikari.Status.DO_NOT_DISTURB, 
-        activity=hikari.Activity(name='Rushsite Season 4', type=hikari.ActivityType.STREAMING, url='https://www.twitch.tv/ryqb')
+        activity=hikari.Activity(
+            name='Rushsite Season 4', 
+            type=hikari.ActivityType.STREAMING, 
+            url='https://www.twitch.tv/ryqb'
+        )
     )
