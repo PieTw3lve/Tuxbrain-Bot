@@ -55,7 +55,7 @@ class NavShopSelectView(nav.NavTextSelect):
                 case 'nametag':
                     nametag = Image.open(f'assets/img/general/profile/nametag/{selected}.png').convert('RGBA')
             
-            embed = hikari.Embed(title=f'Do you want to purchase {name[0]} ({name[1]})?', description="This little maneuver's gonna cost you 51 years.", color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title=f'Do you want to purchase {name[0]} ({name[1]})?', description="This little maneuver's gonna cost you 51 years.", color=get_setting('general', 'embed_color'))
             image = await profile.draw_card(bg, card, nametag)
             embed.set_image(image)
             embed.set_footer(text='This action cannot be undone.')
@@ -63,7 +63,7 @@ class NavShopSelectView(nav.NavTextSelect):
             message = await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
             await view.start(message)
         else:
-            embed = hikari.Embed(description='You already own this item!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You already own this item!', color=get_setting('general', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
     async def before_page_change(self) -> None:
@@ -98,15 +98,15 @@ class ProfileConfirmView(miru.View):
             register_user(ctx.user)
 
         if currency == 'coin' and economy.remove_money(ctx.user.id, price, True) == False: # checks if user has enough money
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         elif currency == 'tpass' and economy.remove_ticket(ctx.user.id, price) == False: # checks if user has enough tickets
-            embed = hikari.Embed(description='You do not have enough tickets!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough tickets!', color=get_setting('general', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         
         self.inventory.add_item((ctx.user.id, name.split("-")[0], name.split("-")[1], 0))
 
-        embed = hikari.Embed(title='Thank you for your purchase!', color=get_setting('settings', 'embed_success_color'))
+        embed = hikari.Embed(title='Thank you for your purchase!', color=get_setting('general', 'embed_success_color'))
         embed.set_image(self.image)
         await ctx.respond(embed)
     

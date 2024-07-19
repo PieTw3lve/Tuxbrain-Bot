@@ -17,19 +17,19 @@ async def open(ctx: lightbulb.Context, uuid: str) -> None:
     result = inventory.get_item(uuid)
 
     if not result:
-        embed = hikari.Embed(description='You do not own this pack!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You do not own this pack!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     else:
         name, item = result
 
     if name == 'Card':
-        embed = hikari.Embed(description='You cannot open a card!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You cannot open a card!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
     packID, user, date, name = item
     
     if inventory.get_inventory_capacity() + get_setting('pokemon', 'pokemon_pack_amount') > inventory.max:
-        embed = hikari.Embed(description='You do not have enough inventory space!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough inventory space!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif name == 'Standard':
         pack = StandardPokemonCardPack(ctx.user, ctx)

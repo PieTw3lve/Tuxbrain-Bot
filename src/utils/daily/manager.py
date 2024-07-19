@@ -8,7 +8,7 @@ from bot import get_setting
 
 class DailyManager:
     def __init__(self, user: hikari.User) -> None:
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         self.user = user
         self.max = get_setting('economy', 'daily_max_streak')
@@ -23,7 +23,7 @@ class DailyManager:
         self.update_streak_sqlite()
 
     def update_streak_sqlite(self) -> None:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
 
         cursor.execute(f'SELECT streak, date FROM economy WHERE user_id = {self.user.id}')

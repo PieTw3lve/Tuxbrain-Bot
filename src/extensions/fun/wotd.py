@@ -16,7 +16,7 @@ async def today_word(ctx: lightbulb.Context) -> None:
     wordOfTheDayUrl = f"http://api.wordnik.com/v4/words.json/wordOfTheDay?api_key={WORDNIK_API_KEY}"
     response = requests.get(wordOfTheDayUrl)
     if response.status_code == 200:
-        embed = hikari.Embed(color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(color=get_setting('general', 'embed_color'))
         word = response.json()
         wordText = word['word'].capitalize()
         note = word['note']
@@ -30,7 +30,7 @@ async def today_word(ctx: lightbulb.Context) -> None:
         for example in examples:
             embed.description = f'{embed.description}\n- {example["text"]}'
     else:
-        embed = hikari.Embed(title='Failed to get the word of the day', description='Did you fill in your Wordnik api key?', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(title='Failed to get the word of the day', description='Did you fill in your Wordnik api key?', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     

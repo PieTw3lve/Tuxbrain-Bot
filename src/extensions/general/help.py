@@ -30,7 +30,7 @@ class InfoView(miru.View):
           
         match option:
             case 'About':
-                embed = hikari.Embed(color=get_setting('settings', 'embed_color')) 
+                embed = hikari.Embed(color=get_setting('general', 'embed_color')) 
                 author = await ctx.client.rest.fetch_user(291001658362560513)
                 embed.title = '💬 About'
                 embed.description = 'Tuxbrain Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use Discord bot written in [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API wrapper. ' \
@@ -41,7 +41,7 @@ class InfoView(miru.View):
                 embed.add_field(name='Find any bugs?', value='If any bugs are encountered, please submit them on [Github](https://github.com/PieTw3lve/Tuxbrain-Bot/issues).', inline=False)
                 return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             case 'Invite':
-                embed = hikari.Embed(color=get_setting('settings', 'embed_color')) 
+                embed = hikari.Embed(color=get_setting('general', 'embed_color')) 
                 embed.title = '🤖 Invite Bot'
                 embed.description = 'Tuxbrain Bot is not currently available for direct invite to personal servers, but can be hosted locally by downloading from [Github](https://github.com/PieTw3lve/Tux_Bot). Instructions for hosting Tuxbrain Bot can be found on the GitHub repository.'
                 return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -55,7 +55,7 @@ class InfoView(miru.View):
                 await builder.create_initial_response(ctx.interaction)
                 return ctx.client.start_view(navigator)
             case 'News':
-                embed = hikari.Embed(color=get_setting('settings', 'embed_color')) 
+                embed = hikari.Embed(color=get_setting('general', 'embed_color')) 
                 embed.title = "📰 What's New"
                 embed.description = 'Check out the latest changes and bug fixes [here](https://github.com/PieTw3lve/Tuxbrain-Bot/releases/tag/v1.2.0).'
                 return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -63,7 +63,7 @@ class InfoView(miru.View):
     def generate_pages(self, commands: list[lightbulb.SlashCommand | None], items_per_page: int) -> list:
         pages = []
         for i in range(0, len(commands), items_per_page):
-            embed = hikari.Embed(title='📝 List of Commands', description='Certain commands may not be **selectable** due to the presence of **subcommands**.\n', color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title='📝 List of Commands', description='Certain commands may not be **selectable** due to the presence of **subcommands**.\n', color=get_setting('general', 'embed_color'))
             embed.set_footer('Select a command by clicking on it to execute.')
             end = i + items_per_page
             for command in commands[i:end]:
@@ -83,7 +83,7 @@ async def help(ctx: lightbulb.Context) -> None:
     bot = ctx.app.cache.get_member(ctx.guild_id, ctx.app.get_me())
     view = InfoView(get_commands(plugin.bot))
     
-    embed = (hikari.Embed(title=f'{bot.display_name}  `v{VERSION}`', description='I am a simple and humble bot that can do really cool things!', color=get_setting('settings', 'embed_color'))
+    embed = (hikari.Embed(title=f'{bot.display_name}  `v{VERSION}`', description='I am a simple and humble bot that can do really cool things!', color=get_setting('general', 'embed_color'))
         .set_thumbnail(bot.avatar_url if bot.avatar_url else bot.default_avatar_url)
         .add_field('I have various cool features:', '• Profile Customization\n• Economy Integration\n• Music Player\n• Pokémon Card Gacha and Trading\n• Moderation\n• Fun Interactive Games\n• And Many More!', inline=True)
         .add_field('Want to learn more about Tuxbrain Bot?', '\n\nClick on 💬 **About** to learn more about Tuxbrain Bot!\n\n**Want to learn more about commands?**\nAll commands are located in the dropdown menu.', inline=True)

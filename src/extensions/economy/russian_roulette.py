@@ -20,12 +20,12 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
         register_user(ctx.user)
         
     if economy.remove_money(ctx.user.id, bet, False) == False: # if user has enough money
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
     players = {f'<@{ctx.user.id}>': {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}}
     
-    embed = hikari.Embed(title=f'{ctx.user.global_name} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title=f'{ctx.user.global_name} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('general', 'embed_color'))
     embed.set_image('assets/img/fun/revolver.png')
     embed.add_field(name='__Game info__', value=f'Initial Bet: 🪙 {bet:,}\nBet Pool: 🪙 {bet:,}\nChamber Capacity: `{capacity:,}`', inline=True)
     embed.add_field(name='__Player List__', value=f'{", ".join(players)}', inline=True)
@@ -42,7 +42,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     if not view.gameStart: # if lobby timed out
         return
     
-    embed = hikari.Embed(title=f"It's {ctx.user.global_name} Turn!", description=f'Players: {", ".join(view.game["players"])}\nBet Pool: 🪙 {view.game["pool"]:,}\nBullets Remaining: `{view.game["capacity"]}`', color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title=f"It's {ctx.user.global_name} Turn!", description=f'Players: {", ".join(view.game["players"])}\nBet Pool: 🪙 {view.game["pool"]:,}\nBullets Remaining: `{view.game["capacity"]}`', color=get_setting('general', 'embed_color'))
     embed.set_image('assets/img/fun/revolver.png')
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.set_footer(text=f'You have {15.0} seconds to choose an action!')
@@ -62,15 +62,15 @@ class RRLobbyView(miru.View):
     @miru.button(label='Start', style=hikari.ButtonStyle.SUCCESS, row=1)
     async def start_game(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if self.game.get('author').id != ctx.user.id: # checks if user is host
-            embed = hikari.Embed(description='You are not the host!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You are not the host!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif len(self.game['players']) == 1:
-            embed = hikari.Embed(description='You do not have enough players!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough players!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif self.game['pool'] % (len(self.game['players']) - 1) != 0:
-            embed = hikari.Embed(description="Loser's bet cannot be distributed equally with the current amount of players!", color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description="Loser's bet cannot be distributed equally with the current amount of players!", color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
@@ -86,18 +86,18 @@ class RRLobbyView(miru.View):
         playerInfo = {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
         
         if player in self.game['players']: # checks if user already joined
-            embed = hikari.Embed(description='You already joined this game!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You already joined this game!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         elif economy.remove_money(ctx.user.id, self.game['amount'], False) == False: # if user has enough money
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
 
         self.game['players'][player] = playerInfo
         self.game['pool'] = self.game['pool'] + self.game['amount']
         
-        embed = hikari.Embed(title=f'{self.game["author"]} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f'{self.game["author"]} has started a Russian Roulette game!', description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('general', 'embed_color'))
         embed.set_image('assets/img/fun/revolver.png')
         embed.add_field(name='__Game info__', value=f"Initial Bet: 🪙 {self.game['amount']:,}\nBet Pool: 🪙 {self.game['pool']:,}\nChamber Capacity: `{self.game['capacity']:,}`", inline=True)
         embed.add_field(name='__Player List__', value=f'{", ".join(self.game["players"])}', inline=True)
@@ -108,14 +108,14 @@ class RRLobbyView(miru.View):
     @miru.button(label='Refund', style=hikari.ButtonStyle.DANGER, row=1)
     async def refund(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if self.game['author'].id != ctx.user.id: # checks if user is host
-            embed = hikari.Embed(description='You are not the host!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You are not the host!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
         for player in self.game['players'].values():
             economy.add_money(player['id'], self.game['amount'], False)
         
-        embed = hikari.Embed(title=f"{self.game.get('author')} has refunded all bets!", description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f"{self.game.get('author')} has refunded all bets!", description='`DO NOT WORRY! YOU WILL NOT DIE IN REAL LIFE!\nYOU WILL ONLY HURT YOUR SELF ESTEEM!`', color=get_setting('general', 'embed_color'))
         embed.set_image('assets/img/fun/revolver.png')
         embed.add_field(name='__Game info__', value=f"Initial Bet: 🪙 {self.game['amount']:,}\nBet Pool: 🪙 {self.game['pool']:,}\nChamber Capacity: `{self.game['capacity']:,}`", inline=True)
         embed.add_field(name='__Player List__', value=f'{", ".join(self.game["players"])}', inline=True)
@@ -126,7 +126,7 @@ class RRLobbyView(miru.View):
         for player in self.game['players'].values():
             economy.add_money(player['id'], self.game['amount'], False)
         
-        embed = hikari.Embed(title=f"Game has timed out! All bets have been refunded!", color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f"Game has timed out! All bets have been refunded!", color=get_setting('general', 'embed_color'))
         embed.set_image('assets/img/fun/revolver.png')
         embed.add_field(name='__Game info__', value=f"Initial Bet: 🪙 {self.game['amount']:,}\nBet Pool: 🪙 {self.game['pool']:,}\nChamber Capacity: `{self.game['capacity']:,}`", inline=True)
         embed.add_field(name='__Player List__', value=f'`{", ".join(self.game["players"])}`', inline=True)
@@ -156,7 +156,7 @@ class RRGameView(miru.View):
         if len(self.chamber) == 0:
             return
         elif self.chamber[0]:
-            embed = hikari.Embed(title=f"Oh no! {self.player['name']} shot themselves!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title=f"Oh no! {self.player['name']} shot themselves!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('general', 'embed_color'))
             embed.set_image('assets/img/fun/revolver.png')
             embed.set_thumbnail(self.player['url'])
             
@@ -172,7 +172,7 @@ class RRGameView(miru.View):
         
         self.chamber.pop(0) # removes bullet
         
-        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'`{self.gameMessages[random.randint(0, len(self.gameMessages) - 1)]}`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'`{self.gameMessages[random.randint(0, len(self.gameMessages) - 1)]}`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('general', 'embed_color'))
         embed.set_image('assets/img/fun/revolver.png')
         embed.set_thumbnail(self.player['url'])
         embed.set_footer(text=f'You have {self.timeout} seconds to choose an action!')
@@ -189,11 +189,11 @@ class RRGameView(miru.View):
                 self.playerIter = iter(self.game['players'].items())
                 self.player = next(self.playerIter)[1]
         else:
-            embed = hikari.Embed(description='You need to fire at least one shot!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You need to fire at least one shot!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
         
-        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'Players: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f"It's {self.player['name']} Turn!", description=f'Players: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber)}`', color=get_setting('general', 'embed_color'))
         embed.set_image('assets/img/fun/revolver.png')
         embed.set_thumbnail(self.player['url'])
         embed.set_footer(text=f'You have {self.timeout} seconds to choose an action!')
@@ -202,7 +202,7 @@ class RRGameView(miru.View):
         await ctx.edit_response(embed, components=self.build())
     
     async def on_timeout(self) -> None:
-        embed = hikari.Embed(title=f"Oh no! {self.player['name']} took too long and the gun exploded!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f"Oh no! {self.player['name']} took too long and the gun exploded!", description=f'`{self.player["name"]} bet has been distributed among the winners!`\n\nPlayers: {", ".join(self.game["players"])}\nBet Pool: 🪙 {self.game["pool"]:,}\nBullets Remaining: `{len(self.chamber) - 1}`', color=get_setting('general', 'embed_color'))
         embed.set_image('assets/img/fun/revolver.png')
         embed.set_thumbnail(self.player['url'])
         

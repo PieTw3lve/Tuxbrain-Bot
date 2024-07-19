@@ -16,7 +16,7 @@ plugin = lightbulb.Plugin('Customize')
 class ProfileCustomizeView(miru.View):
     def __init__(self, inventory: Inventory, profile: Card, newPreset: list) -> None:
         super().__init__(timeout=None, autodefer=True)
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         self.inventory = inventory
         self.profile = profile
@@ -30,7 +30,7 @@ class ProfileCustomizeView(miru.View):
             self.cursor.execute('UPDATE profile SET active = 1 WHERE user_id = ? AND name = ? AND type = ?', (ctx.user.id, name, type))
         self.db.commit()
 
-        embed = hikari.Embed(description='Profile has been saved!', color=get_setting('settings', 'embed_success_color'))
+        embed = hikari.Embed(description='Profile has been saved!', color=get_setting('general', 'embed_success_color'))
         await ctx.edit_response(components=[])
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         self.stop()
@@ -46,7 +46,7 @@ class ProfileCustomizeView(miru.View):
         card = Image.open(f'assets/img/general/profile/base/{self.newPreset[1]}.png').convert('RGBA')
         nametag = Image.open(f'assets/img/general/profile/nametag/{self.newPreset[2]}.png').convert('RGBA')
         
-        embed = hikari.Embed(title=f'Customization Preview', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f'Customization Preview', color=get_setting('general', 'embed_color'))
         embed.set_image(await self.profile.draw_card(bg, card, nametag))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
@@ -71,16 +71,16 @@ async def customize(ctx: lightbulb.Context, banner: str, base: str, nametag: str
     for item in activePreset:
         strItem = item.split('-')
         if len(strItem) != 2:
-            embed = hikari.Embed(description=f'This is not a valid item!', color=(get_setting('settings', 'embed_error_color')))
+            embed = hikari.Embed(description=f'This is not a valid item!', color=(get_setting('general', 'embed_error_color')))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         elif strItem[0] != 'default' and inventory.get_profile_item(strItem) == False:
-            embed = hikari.Embed(description=f'You do not own this {strItem[1]}!', color=(get_setting('settings', 'embed_error_color')))
+            embed = hikari.Embed(description=f'You do not own this {strItem[1]}!', color=(get_setting('general', 'embed_error_color')))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     oldPreset = [f'- {item.title().replace("_", " ").split("-")[0]} ({item.split("-")[1]})' for i, item in enumerate(oldPreset)]
     activePreset = [f'- {item.title().replace("_", " ").split("-")[0]} ({item.split("-")[1]})' for i, item in enumerate(activePreset)]
     
-    embed = (hikari.Embed(title='Are you sure you want to make changes?', color=get_setting('settings', 'embed_color'))
+    embed = (hikari.Embed(title='Are you sure you want to make changes?', color=get_setting('general', 'embed_color'))
         .add_field('Old Profile', '\n'.join(oldPreset), inline=True)
         .add_field('New Profile', '\n'.join(activePreset), inline=True)
         .set_footer(text='This action cannot be undone.')

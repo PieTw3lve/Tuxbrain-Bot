@@ -17,18 +17,18 @@ economy = EconomyManager()
 @lightbulb.implements(lightbulb.SlashCommand)
 async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
-        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     elif economy.remove_money(ctx.author.id, bet, False) == False:
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     embed = hikari.Embed(
         title=f'A wild duel request appeared!',
         description=f'**{ctx.author}** has challenged **{user}** to a RPS duel!',
-        color=get_setting('settings', 'embed_color')
+        color=get_setting('general', 'embed_color')
     )
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{wins}`!\nBet: 🪙 {bet}')
@@ -48,7 +48,7 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     embed = hikari.Embed(
         title=f"It's Time to D-D-D-D-D-D DUEL!",
         description=f'Winner will receive 🪙 {bet*2}!',
-        color=get_setting('settings', 'embed_color')
+        color=get_setting('general', 'embed_color')
     )
     embed.set_thumbnail('assets/img/fun/rps.png')
     embed.add_field(name=f'{ctx.author} [0]', value='❔', inline=False)
@@ -103,7 +103,7 @@ class DuelView(miru.View):
     @miru.button(label='Accept', style=hikari.ButtonStyle.SUCCESS, row=1)
     async def accept(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if economy.remove_money(self.opponent.id, self.bet, False) == False:
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
     
@@ -117,7 +117,7 @@ class DuelView(miru.View):
         embed = hikari.Embed(
             title=f'{self.opponent} has declined the duel request!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a RPS duel!',
-            color=get_setting('settings', 'embed_color')
+            color=get_setting('general', 'embed_color')
         )
         embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{self.wins}`!\nBet: 🪙 {self.bet}')
@@ -132,7 +132,7 @@ class DuelView(miru.View):
         embed = hikari.Embed(
             title=f'The duel request timed out!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a RPS duel!',
-            color=get_setting('settings', 'embed_color')
+            color=get_setting('general', 'embed_color')
         )
         embed.set_thumbnail(self.author.avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{self.wins}`!\nBet: 🪙 {self.bet}')
@@ -165,7 +165,7 @@ class RPSGameView(miru.View):
                 self.player1['ready'] = True
                 self.player1['actions'].append('🪨')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         elif ctx.user.id == self.opponent.id:
@@ -176,7 +176,7 @@ class RPSGameView(miru.View):
                 self.player2['ready'] = True
                 self.player2['actions'].append('🪨')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         
@@ -226,7 +226,7 @@ class RPSGameView(miru.View):
                 self.player1['ready'] = True
                 self.player1['actions'].append('📄')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         elif ctx.user.id == self.opponent.id:
@@ -237,7 +237,7 @@ class RPSGameView(miru.View):
                 self.player2['ready'] = True
                 self.player2['actions'].append('📄')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         
@@ -287,7 +287,7 @@ class RPSGameView(miru.View):
                 self.player1['ready'] = True
                 self.player1['actions'].append('✂️')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         elif ctx.user.id == self.opponent.id:
@@ -298,7 +298,7 @@ class RPSGameView(miru.View):
                 self.player2['ready'] = True
                 self.player2['actions'].append('✂️')
             else:
-                embed = hikari.Embed(description='You already chose an action!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description='You already chose an action!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
                 return
         

@@ -15,7 +15,7 @@ async def bored(ctx: lightbulb.Context) -> None:
     url = 'https://www.boredapi.com/api/activity'
     request = dict(json.loads(requests.get(url).text))
     
-    embed = hikari.Embed(title=f"{request.get('activity')}.", description=f"Type: {request.get('type').capitalize()}\nParticipants: {request.get('participants')}\n Price: 🪙 {request.get('price'):,}\nAccessibility: {request.get('accessibility')}", color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title=f"{request.get('activity')}.", description=f"Type: {request.get('type').capitalize()}\nParticipants: {request.get('participants')}\n Price: 🪙 {request.get('price'):,}\nAccessibility: {request.get('accessibility')}", color=get_setting('general', 'embed_color'))
     await ctx.respond(embed)
 
 def load(bot):

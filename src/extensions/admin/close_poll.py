@@ -17,10 +17,10 @@ async def close_poll(ctx: lightbulb.Context, channel: hikari.TextableChannel, me
     try:
         await ctx.bot.rest.edit_message(channel=channel.id, message=message_id, components=[])
         embed.description = 'Successfully closed poll!'
-        embed.color = get_setting('settings', 'embed_success_color')
+        embed.color = get_setting('general', 'embed_success_color')
     except:
         embed.description = 'Could not located message!'
-        embed.color = get_setting('settings', 'embed_error_color')
+        embed.color = get_setting('general', 'embed_error_color')
     
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 

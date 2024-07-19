@@ -10,7 +10,7 @@ plugin = lightbulb.Plugin('Ping')
 @lightbulb.command('ping', "Check the bot's latency.")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def ping(ctx: lightbulb.Context) -> None:
-    embed = (hikari.Embed(title='Pong!', description=f'{round(ctx.bot.heartbeat_latency * 1000)}ms 📶', color=get_setting('settings', 'embed_color')))
+    embed = (hikari.Embed(title='Pong!', description=f'{round(ctx.bot.heartbeat_latency * 1000)}ms 📶', color=get_setting('general', 'embed_color')))
     await ctx.respond(embed)
 
 def load(bot):

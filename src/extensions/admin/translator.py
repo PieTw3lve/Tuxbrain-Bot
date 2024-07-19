@@ -29,11 +29,11 @@ async def print_translation(event: hikari.MessageCreateEvent) -> None:
             return
         
         text = event.content
-        detector = LanguageDetectorBuilder.from_all_languages().with_minimum_relative_distance(get_setting('settings', 'auto_translate_min_relative_distance')).build()
+        detector = LanguageDetectorBuilder.from_all_languages().with_minimum_relative_distance(get_setting('general', 'auto_translate_min_relative_distance')).build()
         language = detector.detect_language_of(text)
         confidence = detector.compute_language_confidence(text, language)
 
-        if language != Language.ENGLISH and confidence > get_setting('settings', 'auto_translate_conf') and get_lang(language.name) != 'Language not found':
+        if language != Language.ENGLISH and confidence > get_setting('general', 'auto_translate_conf') and get_lang(language.name) != 'Language not found':
             translation = GoogleTranslator(source=get_lang(language.name), target='en').translate(text)
             translator = await event.app.rest.create_webhook(channel=event.channel_id, name='Translating')
             await event.app.rest.execute_webhook(webhook=translator, token=translator.token, content=translation, username=f'{event.message.member.display_name} ({language.name.lower()})', avatar_url=event.message.member.avatar_url if event.message.member.avatar_url else event.message.member.default_avatar_url)
@@ -53,7 +53,7 @@ async def autotranslation(ctx: lightbulb.Context) -> None:
 async def info(ctx: lightbulb.Context) -> None:
     webhooks = await ctx.bot.rest.fetch_guild_webhooks(ctx.guild_id)
     translators = get_translators(webhooks)
-    embed = hikari.Embed(title='Translator Settings', color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title='Translator Settings', color=get_setting('general', 'embed_color'))
     embed.add_field(name='Confidence Threshold', value=f'- Default: 0.8\n- Current: {get_setting("settings", "auto_translate_conf")}', inline=True)
     embed.add_field(name='Minimum Relative Distance', value=f'- Default: 0.9\n- Current: {get_setting("settings", "auto_translate_min_relative_distance")}', inline=True)
     embed.add_field(name='Active Channels', value=', '.join([f'<#{translator.channel_id}>' for translator in translators]) if translators else 'No active channels.', inline=False)
@@ -66,9 +66,9 @@ async def enable(ctx: lightbulb.Context) -> None:
     webhooks = await ctx.bot.rest.fetch_channel_webhooks(ctx.channel_id)
     translators = get_translators(webhooks)
     if len(translators) > 0:
-        embed = hikari.Embed(description=f'Automated translation is currently active in <#{ctx.channel_id}> channel.', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description=f'Automated translation is currently active in <#{ctx.channel_id}> channel.', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = hikari.Embed(description=f'Automated translation has been activated for <#{ctx.channel_id}> channel.', color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(description=f'Automated translation has been activated for <#{ctx.channel_id}> channel.', color=get_setting('general', 'embed_color'))
     await ctx.bot.rest.create_webhook(channel=ctx.channel_id, name='Translator', avatar=ctx.app.get_me().display_avatar_url)
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
@@ -80,10 +80,10 @@ async def disable(ctx: lightbulb.Context) -> None:
     translators = get_translators(webhooks)
     if len(translators) > 0:
         translator = translators[0]
-        embed = hikari.Embed(description=f'Automated translation has been successfully deactivated in <#{ctx.channel_id}> channel.', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(description=f'Automated translation has been successfully deactivated in <#{ctx.channel_id}> channel.', color=get_setting('general', 'embed_color'))
         await ctx.bot.rest.delete_webhook(translator)
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    embed = hikari.Embed(description=f'Automated translation is currently inactive for the <#{ctx.channel_id}> channel.', color=get_setting('settings', 'embed_error_color'))
+    embed = hikari.Embed(description=f'Automated translation is currently inactive for the <#{ctx.channel_id}> channel.', color=get_setting('general', 'embed_error_color'))
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 
@@ -93,14 +93,14 @@ async def disable(ctx: lightbulb.Context) -> None:
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def confidence(ctx: lightbulb.Context, value: float) -> None:
     if ctx.author.id != ctx.bot.application.owner.id:
-        embed = hikari.Embed(description='You do not have permission to use this command!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You do not have permission to use this command!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     try:
         write_setting('settings', 'auto_translate_conf', round(value, 2))
-        embed = hikari.Embed(description=f'Automatic text translation confidence has been set to {round(value, 2)}.', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(description=f'Automatic text translation confidence has been set to {round(value, 2)}.', color=get_setting('general', 'embed_color'))
     except:
-        embed = hikari.Embed(description=f'Failed to set automatic text confidence!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description=f'Failed to set automatic text confidence!', color=get_setting('general', 'embed_error_color'))
     
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         
@@ -111,14 +111,14 @@ async def confidence(ctx: lightbulb.Context, value: float) -> None:
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def relative_distance(ctx: lightbulb.Context, value: bool) -> None:
     if ctx.author.id != ctx.bot.application.owner.id:
-        embed = hikari.Embed(description='You do not have permission to use this command!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You do not have permission to use this command!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     try:
         write_setting('settings', 'auto_translate_min_relative_distance', round(value, 2))
-        embed = hikari.Embed(description=f'Automatic text translation minimum relative distance has been set to {round(value, 2)}.', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(description=f'Automatic text translation minimum relative distance has been set to {round(value, 2)}.', color=get_setting('general', 'embed_color'))
     except:
-        embed = hikari.Embed(description=f'Failed to set automatic text translation minimum relative distance!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description=f'Failed to set automatic text translation minimum relative distance!', color=get_setting('general', 'embed_error_color'))
     
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 

@@ -26,11 +26,11 @@ async def inventory(ctx: lightbulb.Context) -> None:
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> None:
     if not (guild := ctx.get_guild()):
-        embed = hikari.Embed(description='This command may only be used in servers.', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='This command may only be used in servers.', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed)
         return
     elif user != None and user.is_bot: # checks if the user is a bot
-        embed = hikari.Embed(description="You are not allowed to view this user's inventory!", color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description="You are not allowed to view this user's inventory!", color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
 
@@ -38,7 +38,7 @@ async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> No
     user = ctx.bot.cache.get_member(guild, user)
     
     if not user:
-        embed = hikari.Embed(description='That user is not in the server.', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='That user is not in the server.', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed)
         return
     
@@ -58,7 +58,7 @@ async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> No
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def sell(ctx: lightbulb.Context) -> None:
     inventory = Inventory(ctx, ctx.author)
-    embed = hikari.Embed(title='Sell Menu', description='Favorite cards will **not** be accounted for in the algorithm. \nIn the future, additional selling options may become available. \n\n> Normal = 🪙 20 \n> Shiny = 🪙 40 \n‍', color=get_setting('settings', 'embed_error_color'))
+    embed = hikari.Embed(title='Sell Menu', description='Favorite cards will **not** be accounted for in the algorithm. \nIn the future, additional selling options may become available. \n\n> Normal = 🪙 20 \n> Shiny = 🪙 40 \n‍', color=get_setting('general', 'embed_error_color'))
     embed.set_thumbnail('assets/img/pokemon/convert_icon.png')
     embed.set_footer(text='Once you sell cards, the action cannot be undone.')
     view = SellView(embed, inventory)

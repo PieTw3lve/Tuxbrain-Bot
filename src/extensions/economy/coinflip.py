@@ -27,7 +27,7 @@ async def coinflip(ctx: lightbulb.SlashContext, number: int) -> None:
 
     result = (' '.join(result))
 
-    embed = (hikari.Embed(title='Coinflip Result:' if number == 1 else 'Coinflip Results:', description=result, color=get_setting('settings', 'embed_color')))
+    embed = (hikari.Embed(title='Coinflip Result:' if number == 1 else 'Coinflip Results:', description=result, color=get_setting('general', 'embed_color')))
     embed.add_field('Summary:', f'Heads: {heads} Tails: {tails}')
     await ctx.respond(embed)
 

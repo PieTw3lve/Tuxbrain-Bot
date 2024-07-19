@@ -129,25 +129,25 @@ class ResultView(miru.View):
                     economy.add_money(userID, round(self.betView.blueTeam[userID] * self.betView.bPayout), False)
                 if len(self.betView.blueTeam) > 0:
                     user = await ctx.client.rest.fetch_user(self.betView.bHighID)
-                    embed = (hikari.Embed(title=f'{self.betView.blueName} Won!', description=f'🪙 {(self.betView.bHighBet * self.betView.bPayout):,.0f} go to <@{self.betView.bHighID}> and {(self.betView.bParticipants) - 1:,} others.\n{self.betView.get_blue_overview(10)}\n‍',  color=get_setting('settings', 'embed_color')))
+                    embed = (hikari.Embed(title=f'{self.betView.blueName} Won!', description=f'🪙 {(self.betView.bHighBet * self.betView.bPayout):,.0f} go to <@{self.betView.bHighID}> and {(self.betView.bParticipants) - 1:,} others.\n{self.betView.get_blue_overview(10)}\n‍',  color=get_setting('general', 'embed_color')))
                     embed.set_thumbnail(user.avatar_url)
                 else:
-                    embed = (hikari.Embed(title=f'{self.betView.blueName} Won!', description=f'Unfortunately, no one will get paid out...',  color=get_setting('settings', 'embed_color')))
+                    embed = (hikari.Embed(title=f'{self.betView.blueName} Won!', description=f'Unfortunately, no one will get paid out...',  color=get_setting('general', 'embed_color')))
             case 'green':
                 for userID in self.betView.greenTeam.keys():
                     economy.add_money(userID, round(self.betView.greenTeam[userID] * self.betView.gPayout), False)
                 if len(self.betView.greenTeam) > 0:
                     user = await ctx.client.rest.fetch_user(self.betView.gHighID)
-                    embed = (hikari.Embed(title=f'{self.betView.greenName} Won!', description=f'🪙 {(self.betView.gHighBet * self.betView.gPayout):,.0f} go to <@{self.betView.gHighID}> and {(self.betView.gParticipants - 1):,} others.\n{self.betView.get_green_overview(10)}\n‍',  color=get_setting('settings', 'embed_color')))
+                    embed = (hikari.Embed(title=f'{self.betView.greenName} Won!', description=f'🪙 {(self.betView.gHighBet * self.betView.gPayout):,.0f} go to <@{self.betView.gHighID}> and {(self.betView.gParticipants - 1):,} others.\n{self.betView.get_green_overview(10)}\n‍',  color=get_setting('general', 'embed_color')))
                     embed.set_thumbnail(user.avatar_url) 
                 else:
-                    embed = (hikari.Embed(title=f'{self.betView.greenName} Won!', description=f'Unfortunately, no one will get paid out...',  color=get_setting('settings', 'embed_color')))
+                    embed = (hikari.Embed(title=f'{self.betView.greenName} Won!', description=f'Unfortunately, no one will get paid out...',  color=get_setting('general', 'embed_color')))
             case 'refund':
                 for userID in self.betView.blueTeam.keys():
                     economy.add_money(userID, self.betView.blueTeam[userID], False)
                 for userID in self.betView.greenTeam.keys():
                     economy.add_money(userID, self.betView.greenTeam[userID], False)
-                embed = hikari.Embed(title='Bets has been canceled!', description='All bets has been refunded.', color=get_setting('settings', 'embed_color'))
+                embed = hikari.Embed(title='Bets has been canceled!', description='All bets has been refunded.', color=get_setting('general', 'embed_color'))
         
         embed.set_footer(text="The players' balances have been updated")
         await self.message.respond(embed, reply=True)
@@ -173,28 +173,28 @@ class BettingView(miru.Modal):
             if verify_user(ctx.user) == None: # if user has never been register
                 register_user(ctx.user)
             if self.amount < 1:
-                embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 return self.stop()
             elif economy.remove_money(userID, self.amount, False) == False:
-                embed = hikari.Embed(title='Bet Error', description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(title='Bet Error', description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 return self.stop()
             elif userID in self.greenTeam.keys() and not self.team:
-                embed = hikari.Embed(description="You can only bet on one team!", color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description="You can only bet on one team!", color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 return self.stop()
             elif userID in self.blueTeam.keys() and self.team:
-                embed = hikari.Embed(description="You can only bet on one team!", color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(description="You can only bet on one team!", color=get_setting('general', 'embed_error_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 return self.stop()
             else:
-                embed = hikari.Embed(title='Success', description=f'You added 🪙 {self.amount:,} to {"Blue" if not self.team else "Green"} for a total of 🪙 {entry + self.amount if entry is not None else self.amount:,}!', color=get_setting('settings', 'embed_success_color'))
+                embed = hikari.Embed(title='Success', description=f'You added 🪙 {self.amount:,} to {"Blue" if not self.team else "Green"} for a total of 🪙 {entry + self.amount if entry is not None else self.amount:,}!', color=get_setting('general', 'embed_success_color'))
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=30)
                 self.valid = True
                 return self.stop()
         except:
-            embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(title='Bet Error', description='Amount is not a valid number!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
             return self.stop()
 
@@ -207,7 +207,7 @@ class BettingView(miru.Modal):
 @lightbulb.command('start-prediction', 'Initiate a live interactive bet for users to participate in.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: int) -> None:
-    embed = hikari.Embed(title=f'{name} (Open)', description=f'Submissions will close in {Error().format_seconds(timer)}.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title=f'{name} (Open)', description=f'Submissions will close in {Error().format_seconds(timer)}.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
     embed.add_field(name=f'{blue} (Blue) 50%', value='Total Coins: 🪙 0\nPayout: 💸 0.00\nParticipants: 👥 0\nHighest Bet: 🪙 0 (<@None>)', inline=True)
     embed.add_field(name=f'{green} (Green) 50%', value='Total Coins: 🪙 0\nPayout: 💸 0.00\nParticipants: 👥 0\nHighest Bet: 🪙 0 (<@None>)', inline=True)
     embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)

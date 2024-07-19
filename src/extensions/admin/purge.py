@@ -44,7 +44,7 @@ async def purge(ctx: lightbulb.Context, amount: int) -> None:
     view.add_item(ConfirmButton())
     view.add_item(CancelButton())
     
-    embed = hikari.Embed(title='Are you sure you want to continue the purge operation?', description='**__WARNING:__** This Action is irreversible!', color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title='Are you sure you want to continue the purge operation?', description='**__WARNING:__** This Action is irreversible!', color=get_setting('general', 'embed_color'))
     await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
     
     client = ctx.bot.d.get('client')
@@ -55,9 +55,9 @@ async def purge(ctx: lightbulb.Context, amount: int) -> None:
         if view.accepted is True:
             await purge_messages(ctx, amount, channel)
         elif view.accepted is False:
-            await ctx.edit_last_response(hikari.Embed(title='Cancelled', description=f'Purge operation has been cancelled.', color=get_setting('settings', 'embed_error_color')), components=[])
+            await ctx.edit_last_response(hikari.Embed(title='Cancelled', description=f'Purge operation has been cancelled.', color=get_setting('general', 'embed_error_color')), components=[])
     else:
-        await ctx.edit_last_response(hikari.Embed(title='Timed out', description=f'Purge operation has been cancelled due to inactivity...', color=get_setting('settings', 'embed_error_color')), components=[])
+        await ctx.edit_last_response(hikari.Embed(title='Timed out', description=f'Purge operation has been cancelled due to inactivity...', color=get_setting('general', 'embed_error_color')), components=[])
 
 async def purge_messages(ctx: lightbulb.Context, amount: int, channel: hikari.Snowflakeish) -> None:
     iterator = (
@@ -68,9 +68,9 @@ async def purge_messages(ctx: lightbulb.Context, amount: int, channel: hikari.Sn
     if iterator:
         async for messages in iterator.chunk(100):
             await ctx.bot.rest.delete_messages(channel, messages)
-        await ctx.edit_last_response(hikari.Embed(title='Success', description=f'Messages has been successfully deleted.', color=get_setting('settings', 'embed_success_color')), components=[])
+        await ctx.edit_last_response(hikari.Embed(title='Success', description=f'Messages has been successfully deleted.', color=get_setting('general', 'embed_success_color')), components=[])
     else:
-        await ctx.edit_last_response(title='Error', description=f'Could not find any messages younger than 14 days!', color=get_setting('settings', 'embed_error_color'), components=[])
+        await ctx.edit_last_response(title='Error', description=f'Could not find any messages younger than 14 days!', color=get_setting('general', 'embed_error_color'), components=[])
 
 def load(bot):
     bot.add_plugin(plugin)

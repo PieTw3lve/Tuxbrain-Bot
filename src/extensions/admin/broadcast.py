@@ -18,12 +18,12 @@ class SayModal(miru.Modal):
         self.image = image
 
     async def callback(self, ctx: miru.ModalContext) -> None:
-        embed = hikari.Embed(title=self.header.value, description=self.message.value, color=get_setting('settings', 'embed_important_color'))
+        embed = hikari.Embed(title=self.header.value, description=self.message.value, color=get_setting('general', 'embed_important_color'))
         embed.set_image(self.image)
         
         await ctx.bot.rest.create_message(content=self.ping.mention, channel=self.channel.id, embed=embed, role_mentions=True)
         
-        embed = hikari.Embed(title='Success!', description=f'Announcement posted to <#{self.channel.id}>!', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title='Success!', description=f'Announcement posted to <#{self.channel.id}>!', color=get_setting('general', 'embed_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 @plugin.command

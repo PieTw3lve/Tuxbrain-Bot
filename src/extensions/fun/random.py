@@ -48,7 +48,7 @@ async def joke(ctx: lightbulb.Context) -> None:
     url = 'https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit&type=twopart'
     request = dict(json.loads(requests.get(url).text))
     
-    embed = hikari.Embed(title=request.get('setup'), description=f"||{request.get('delivery')}||", color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title=request.get('setup'), description=f"||{request.get('delivery')}||", color=get_setting('general', 'embed_color'))
     await ctx.respond(embed)
 
 @rand.child
@@ -58,7 +58,7 @@ async def riddle(ctx: lightbulb.Context) -> None:
     url = 'https://riddles-api.vercel.app/random'
     request = dict(json.loads(requests.get(url).text))
     
-    embed = hikari.Embed(title=request.get('riddle'), description=f"||{request.get('answer')}||", color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title=request.get('riddle'), description=f"||{request.get('answer')}||", color=get_setting('general', 'embed_color'))
     await ctx.respond(embed)
 
 @rand.child
@@ -68,7 +68,7 @@ async def rand_fact(ctx: lightbulb.Context) -> None:
     url = 'https://uselessfacts.jsph.pl/random.json?language=en'
     request = dict(json.loads(requests.get(url).text))
     
-    embed = hikari.Embed(title='Random Useless Fact', description=request.get('text'), color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title='Random Useless Fact', description=request.get('text'), color=get_setting('general', 'embed_color'))
     await ctx.respond(embed)
 
 def load(bot):

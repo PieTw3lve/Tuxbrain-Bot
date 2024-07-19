@@ -31,7 +31,7 @@ class DailyFoxView(miru.View):
         amount = self.options[int(select.values[0])][0] * self.options[int(select.values[0])][1]
         economy.add_money(self.user.id, amount, True)
 
-        embed = hikari.Embed(color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+        embed = hikari.Embed(color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
         match select.values[0]:
             case '0':
                 embed.title = 'A Touch of Fate'

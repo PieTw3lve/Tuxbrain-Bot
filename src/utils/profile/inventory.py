@@ -5,7 +5,7 @@ from bot import get_setting
 
 class Inventory():
     def __init__(self, user: hikari.Member) -> None:
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         self.user = user
     
@@ -49,7 +49,7 @@ class Inventory():
     def get_pages(self, items: list, maxItems: int):
         pages = []
         for i in range(0, len(items), maxItems):
-            embed = hikari.Embed(title="Profile Customization Shop", description='Welcome to our Profile Customization Shop, where you can transform your online presence and make a lasting impression. Our extensive menu offers a wide range of options to personalize and enhance your profile to truly reflect your unique style and personality.', color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title="Profile Customization Shop", description='Welcome to our Profile Customization Shop, where you can transform your online presence and make a lasting impression. Our extensive menu offers a wide range of options to personalize and enhance your profile to truly reflect your unique style and personality.', color=get_setting('general', 'embed_color'))
             end = i + maxItems
             for option in items[i:end]:
                 currency, name, price = option

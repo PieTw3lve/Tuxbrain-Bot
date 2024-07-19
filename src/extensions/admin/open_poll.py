@@ -36,7 +36,7 @@ class PollButton(miru.Button):
             
             return
         
-        embed = hikari.Embed(description='You already voted!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You already voted!', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 @plugin.command
@@ -55,7 +55,7 @@ async def poll(ctx: lightbulb.Context, title: str, description: str, image: hika
     embed = hikari.Embed(
         title=title,
         description=description,
-        color=get_setting('settings', 'embed_color'),
+        color=get_setting('general', 'embed_color'),
         timestamp=datetime.now().astimezone()
     )
     embed.set_image(image)

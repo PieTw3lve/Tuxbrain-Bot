@@ -18,7 +18,7 @@ class PokemonCard:
         else:
             rarity_symbol = '⭐'
         
-        embed = hikari.Embed(title=f'{self.name} Card' if not self.shiny else f'Shiny {self.name} Card', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f'{self.name} Card' if not self.shiny else f'Shiny {self.name} Card', color=get_setting('general', 'embed_color'))
         embed.set_image(f'https://img.pokemondb.net/sprites/home/normal/{self.name.lower()}.png' if not self.shiny else f'https://img.pokemondb.net/sprites/home/shiny/{self.name.lower()}.png')
         # embed.set_image(f'https://raw.githubusercontent.com/harshit23897/Pokemon-Sprites/master/assets/imagesHQ/{"{:03d}".format(pokemon_id)}.png') # If you want 2d sprites. This does not support shiny sprites.
         embed.add_field(name='Pokémon Name', value=self.name, inline=True)

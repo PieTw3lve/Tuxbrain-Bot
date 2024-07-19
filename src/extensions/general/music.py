@@ -135,9 +135,9 @@ async def join(ctx: lightbulb.Context) -> None:
 
     channel_id = await _join(ctx)
     if not channel_id:
-        embed = hikari.Embed( description='Connect to a voice channel first!', color=(get_setting('settings', 'embed_error_color')))
+        embed = hikari.Embed( description='Connect to a voice channel first!', color=(get_setting('general', 'embed_error_color')))
         return await ctx.respond(embed)
-    embed = hikari.Embed(title='Connected', description=f'Connected to <#{channel_id}>', color=(get_setting('settings', 'embed_color')), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title='Connected', description=f'Connected to <#{channel_id}>', color=(get_setting('general', 'embed_color')), timestamp=datetime.now().astimezone())
     embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
     await ctx.respond(embed)
 
@@ -155,10 +155,10 @@ async def leave(ctx: lightbulb.Context) -> None:
     clientVoiceState = ctx.bot.cache.get_voice_state(ctx.guild_id, ctx.author)
     
     if not playerManager.player or not playerManager.player.is_connected:
-        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('settings', 'embed_error_color')))
+        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('general', 'embed_error_color')))
         return await ctx.respond(embed)
     elif clientVoiceState.channel_id != playerManager.player.channel_id:
-        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('settings', 'embed_error_color')))
+        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('general', 'embed_error_color')))
         return await ctx.respond(embed)
 
     await playerManager.player.set_pause(False) # turn off pause
@@ -170,7 +170,7 @@ async def leave(ctx: lightbulb.Context) -> None:
    
     await plugin.bot.update_voice_state(ctx.guild_id, None)
    
-    embed = hikari.Embed(title='Disconnected', description=f'Disconnected from <#{clientVoiceState.channel_id}>', color=(get_setting('settings', 'embed_color')), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title='Disconnected', description=f'Disconnected from <#{clientVoiceState.channel_id}>', color=(get_setting('general', 'embed_color')), timestamp=datetime.now().astimezone())
     embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
     await ctx.respond(embed)
 
@@ -190,7 +190,7 @@ async def play(ctx: lightbulb.Context) -> None:
     if not playerManager.player or not playerManager.player.is_connected:
         channel_id = await _join(ctx)
         if not channel_id:
-            embed = hikari.Embed(description='Connect to a voice channel first!', color=(get_setting('settings', 'embed_error_color')))
+            embed = hikari.Embed(description='Connect to a voice channel first!', color=(get_setting('general', 'embed_error_color')))
             return await ctx.respond(embed)
     
     # Get player again after having connected to voice channel
@@ -202,10 +202,10 @@ async def play(ctx: lightbulb.Context) -> None:
     # Results could be None if Lavalink returns an invalid response (non-JSON/non-200 (OK)).
     # Alternatively, results.tracks could be an empty array if the query yielded no tracks.
     if not results or not results.tracks:
-        embed = hikari.Embed(description='Nothing found!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='Nothing found!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed)
 
-    embed = hikari.Embed(color=get_setting('settings', 'embed_success_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(color=get_setting('general', 'embed_success_color'), timestamp=datetime.now().astimezone())
     embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
 
     if results.load_type == 'PLAYLIST_LOADED':
@@ -289,7 +289,7 @@ async def search_autocomplete(opt: hikari.AutocompleteInteractionOption, inter: 
 async def queue(ctx: lightbulb.Context) -> None:
     playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
     if not playerManager.player.is_playing:
-        embed = hikari.Embed(description='No track is playing!', color=(get_setting('settings', 'embed_error_color')))
+        embed = hikari.Embed(description='No track is playing!', color=(get_setting('general', 'embed_error_color')))
         return await ctx.respond(embed)
     
     queue = []
@@ -298,7 +298,7 @@ async def queue(ctx: lightbulb.Context) -> None:
     for index, item in enumerate(playerManager.player.queue[:10], start=1):
         queue.append(f"`{index}.` [{playerManager.truncate_string(item.title, 50)}]({item.uri}) `[{playerManager.milliseconds_to_youtube_timestamp(item.duration)}]`")
     
-    embed = hikari.Embed(title='Now Playing', description=f'{playerManager.get_current_track()}\n\n**Up next:**\n{f"{chr(10)}".join(queue)}' if len(queue) != 0 else f'{playerManager.get_current_track()}\n\n**Up next:**\n- No tracks in queue!', color=(get_setting('settings', 'embed_color')), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title='Now Playing', description=f'{playerManager.get_current_track()}\n\n**Up next:**\n{f"{chr(10)}".join(queue)}' if len(queue) != 0 else f'{playerManager.get_current_track()}\n\n**Up next:**\n- No tracks in queue!', color=(get_setting('general', 'embed_color')), timestamp=datetime.now().astimezone())
     embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
     embed.add_field(name='In queue', value=len(playerManager.player.queue), inline=True)
     embed.add_field(name='Total length', value=playerManager.queue_to_youtube_timestamp(playerManager.player.queue), inline=True)
@@ -317,26 +317,26 @@ async def controller(ctx: lightbulb.Context, option: str) -> None:
     playerManager = PlayerManager(plugin.bot.d.lavalink.player_manager.get(ctx.guild_id))
     clientVoiceState = ctx.bot.cache.get_voice_state(ctx.guild_id, ctx.author)
     if not playerManager.player or not playerManager.player.is_connected:
-        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('settings', 'embed_error_color')))
+        embed = hikari.Embed(description='Not currently in any voice channel!', color=(get_setting('general', 'embed_error_color')))
         return await ctx.respond(embed)
     elif not playerManager.player.is_playing:
-        embed = hikari.Embed(description='No track is playing!', color=(get_setting('settings', 'embed_error_color')))
+        embed = hikari.Embed(description='No track is playing!', color=(get_setting('general', 'embed_error_color')))
         return await ctx.respond(embed)
     elif clientVoiceState.channel_id != playerManager.player.channel_id:
-        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('settings', 'embed_error_color')))
+        embed = hikari.Embed(description='Not currently in same voice channel!', color=(get_setting('general', 'embed_error_color')))
         return await ctx.respond(embed)
     
     match option:
         case 'Pause':
             paused = not playerManager.player.paused
             await playerManager.player.set_pause(paused)
-            embed = hikari.Embed(title='Track Paused' if paused else 'Track Unpaused', description=playerManager.get_current_track(), color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Track Paused' if paused else 'Track Unpaused', description=playerManager.get_current_track(), color=(get_setting('general', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
         case 'Skip':
             await playerManager.player.skip()
-            embed = hikari.Embed(title='Track Skipped: Now Playing', description=playerManager.get_current_track(), color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Track Skipped: Now Playing', description=playerManager.get_current_track(), color=(get_setting('general', 'embed_important_color')), timestamp=datetime.now().astimezone())
             try:
                 embed.set_thumbnail(f'https://img.youtube.com/vi/{playerManager.player.current.identifier}/maxresdefault.jpg')
             except AttributeError:
@@ -346,23 +346,23 @@ async def controller(ctx: lightbulb.Context, option: str) -> None:
         case 'Shuffle':
             shuffle = not playerManager.player.shuffle
             playerManager.player.set_shuffle(shuffle)
-            embed = hikari.Embed(title='Track Shuffled' if shuffle else 'Track Unshuffled', description='Shuffling entire queue...' if shuffle else 'Unshuffling entire queue...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Track Shuffled' if shuffle else 'Track Unshuffled', description='Shuffling entire queue...' if shuffle else 'Unshuffling entire queue...', color=(get_setting('general', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
         case 'Loop':
             loop = (playerManager.player.loop + 1) % 3
             playerManager.player.set_loop(loop)
             if loop == 0:
-                embed = hikari.Embed(title='Looping Off', description='Setting looping to off...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
+                embed = hikari.Embed(title='Looping Off', description='Setting looping to off...', color=(get_setting('general', 'embed_important_color')), timestamp=datetime.now().astimezone())
             elif loop == 1:
-                embed = hikari.Embed(title='Looping Track', description='Currently looping single (current) track...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
+                embed = hikari.Embed(title='Looping Track', description='Currently looping single (current) track...', color=(get_setting('general', 'embed_important_color')), timestamp=datetime.now().astimezone())
             elif loop == 2:
-                embed = hikari.Embed(title='Looping Queue', description='Currently looping entire queue...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
+                embed = hikari.Embed(title='Looping Queue', description='Currently looping entire queue...', color=(get_setting('general', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
         case 'Clear':
             playerManager.player.queue.clear()
-            embed = hikari.Embed(title='Queue Cleared', description='Clearing entire queue...', color=(get_setting('settings', 'embed_important_color')), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title='Queue Cleared', description='Clearing entire queue...', color=(get_setting('general', 'embed_important_color')), timestamp=datetime.now().astimezone())
             embed.set_footer(text=f'Requested by {ctx.author.username}', icon=ctx.author.display_avatar_url)
             await ctx.respond(embed)
 

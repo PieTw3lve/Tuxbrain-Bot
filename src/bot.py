@@ -21,10 +21,11 @@ def get_setting_json():
     bot = {
         'version': VERSION, # DO NOT CHANGE
         'token': '', # BOT TOKEN (REQUIRED)
-        'admin_guild_id': [000000000000000000], # ADMIN COMMAND ENABLED GUILDS (OPTIONAL)
+        'owner_id': [], # BOT OWNER IDS (REQUIRED)
+        'test_guild_id': [], # APPLICATION COMMAND ENABLED GUILDS (OPTIONAL)
         'wordnik_api_key': '', # WORDNIK API KEY (OPTIONAL)
     }
-    settings = {
+    general = {
         'database_data_dir': 'database/database.sqlite',
         'command_cooldown': 5,
         'embed_color': '#249EDB',
@@ -77,7 +78,7 @@ def get_setting_json():
 
     json = {
         'bot': bot,
-        'settings': settings,
+        'general': general,
         'economy': economy,
         'profile': profile,
         'pokemon': pokemon,
@@ -138,7 +139,7 @@ def write_setting(section: str, option: str, value):
         json.dump(data, openfile, indent=4)
 
 def register_user(user: hikari.User):
-    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+    db = sqlite3.connect(get_setting('general', 'database_data_dir'))
     cursor = db.cursor()
     
     sql = ('INSERT INTO economy(user_id, balance, total, loss, tpass, streak, date, level, experience) VALUES (?,?,?,?,?,?,?,?,?)')
@@ -150,7 +151,7 @@ def register_user(user: hikari.User):
     db.close()
 
 def verify_user(user: hikari.User):
-    db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+    db = sqlite3.connect(get_setting('general', 'database_data_dir'))
     cursor = db.cursor()
     
     cursor.execute(f'SELECT user_id FROM economy WHERE user_id = {user.id}') # moves cursor to user's id from database
@@ -176,10 +177,10 @@ def get_commands(bot: lightbulb.BotApp) -> dict:
 
 if __name__ == '__main__':
     # Generate settings.json if not found
-    settings = 'settings.json'
-    if not os.path.isfile(settings) or not os.access(settings, os.R_OK):
+    settingsFile  = 'settings.json'
+    if not os.path.isfile(settingsFile) or not os.access(settingsFile, os.R_OK):
         settings = get_setting_json()
-        with io.open(settings, 'w') as file:
+        with io.open(settingsFile, 'w') as file:
             file.write(json.dumps(settings, indent=4))
         print('Please add your bot information to settings.json')
         sys.exit(0)
@@ -191,7 +192,6 @@ if __name__ == '__main__':
 
     # Check if bot token is set
     token = get_setting('bot', 'token')
-    admin_guild_id = get_setting('bot', 'admin_guild_id')
     if not token:
         print('Please add your bot information to settings.json')
         sys.exit(0)
@@ -199,7 +199,8 @@ if __name__ == '__main__':
     # Create a bot instance
     bot = lightbulb.BotApp(
         token=token,
-        default_enabled_guilds=admin_guild_id,
+        owner_ids=get_setting('bot', 'owner_id'),
+        default_enabled_guilds=get_setting('bot', 'test_guild_id'),
         help_class=None,
         intents=hikari.Intents.ALL,
     )
@@ -211,7 +212,7 @@ if __name__ == '__main__':
         if not os.path.exists('database'):
             os.makedirs('database')
         
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         cursor.execute('''CREATE TABLE IF NOT EXISTS economy (
             user_id INTEGER, 

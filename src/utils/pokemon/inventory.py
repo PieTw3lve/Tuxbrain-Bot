@@ -13,7 +13,7 @@ economy = EconomyManager()
 
 class Inventory:
     def __init__(self, ctx: lightbulb.Context, user: hikari.User):
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         self.user = user
         self.ctx = ctx
@@ -23,14 +23,14 @@ class Inventory:
         inventory = self.get_inventory()
 
         if not inventory:
-            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'No cards or packs found!', color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'No cards or packs found!', color=get_setting('general', 'embed_color'))
             return [embed]
         else:
             items, cards = inventory
         
         pages = []
         for i in range(0, len(items), items_per_page):
-            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'Capacity: `{self.get_inventory_capacity()}/{self.max}`', color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'Capacity: `{self.get_inventory_capacity()}/{self.max}`', color=get_setting('general', 'embed_color'))
             # embed.set_thumbnail('assets/img/pokemon/inventory_icon.png')
             end = i + items_per_page
             for pack in items[i:end]:
@@ -43,7 +43,7 @@ class Inventory:
                     embed.edit_field(1, embed.fields[1].name, f'{embed.fields[1].value}\n{id}')
             pages.append(embed)
         for i in range(0, len(cards), items_per_page):
-            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'Capacity: `{self.get_inventory_capacity()}/{self.max}`', color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(title=f"{self.user.global_name}'s Inventory", description=f'Capacity: `{self.get_inventory_capacity()}/{self.max}`', color=get_setting('general', 'embed_color'))
             # embed.set_thumbnail('assets/img/pokemon/inventory_icon.png')
             end = i + items_per_page
             for card in cards[i:end]:
@@ -141,7 +141,7 @@ class Inventory:
             shiny = card[6]
             favorite = card[7]
             if favorite or not self.get_item(cardID):
-                embed = hikari.Embed(title='Sell Error', description='At least one card is favorite or does not exist.', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(title='Sell Error', description='At least one card is favorite or does not exist.', color=get_setting('general', 'embed_error_color'))
                 embed.set_thumbnail('assets/img/pokemon/convert_icon.png')
                 await self.ctx.edit_last_response(embed, components=[])
                 return
@@ -156,7 +156,7 @@ class Inventory:
         self.db.commit()
         economy.add_money(self.user.id, value, True)
 
-        embed = hikari.Embed(title='Success', description=f'You sold {len(cards)} cards for 🪙 {value}!', color=get_setting('settings', 'embed_success_color'))
+        embed = hikari.Embed(title='Success', description=f'You sold {len(cards)} cards for 🪙 {value}!', color=get_setting('general', 'embed_success_color'))
         embed.set_thumbnail('assets/img/pokemon/convert_icon.png')
         # embed.set_footer('Your balance has been updated.')
         await self.ctx.edit_last_response(embed, components=[])
@@ -195,7 +195,7 @@ class SellView(miru.View):
         
         view = PromptView()
         self.embed.title = 'Are you sure?'
-        self.embed.color = get_setting('settings', 'embed_error_color')
+        self.embed.color = get_setting('general', 'embed_error_color')
         self.embed.set_footer('This action is irreversible!')
         message = await ctx.edit_response(self.embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
 

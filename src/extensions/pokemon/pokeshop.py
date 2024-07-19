@@ -19,7 +19,7 @@ class PackShop(miru.View):
             register_user(ctx.user)
 
         if economy.remove_money(ctx.user.id, 200, True) == False: # checks if user has enough money
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
 
@@ -32,7 +32,7 @@ class PackShop(miru.View):
             register_user(ctx.user)
         
         if economy.remove_ticket(ctx.user.id, 1) == False: # checks if user has enough tickets
-            embed = hikari.Embed(description='You do not have enough tickets!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough tickets!', color=get_setting('general', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         
         pack = PremiumPokemonCardPack(ctx.user, ctx)
@@ -40,7 +40,7 @@ class PackShop(miru.View):
 
     @miru.button(label='What are Booster Packs?', emoji='❔', style=hikari.ButtonStyle.SECONDARY, custom_id='card_pack_info')
     async def info(self, ctx: miru.ViewContext, button: miru.Button) -> None:
-        embed = hikari.Embed(title='What are Booster Packs?', description="Pokémon Booster Packs are packs of 7 randomly selected Pokémon cards, up to Gen 2, that enhance your Pokémon card collection. They include rare cards ranging from 1-5 ⭐, with a chance of finding a shiny Pokémon. You can purchase the standard booster packs using PokéCoins, and premium booster packs require 1 🎟️. Collect and trade cards with other players to build an impressive collection of Gen 2 and earlier Pokémon cards. Perfect for beginners and seasoned collectors alike.", color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title='What are Booster Packs?', description="Pokémon Booster Packs are packs of 7 randomly selected Pokémon cards, up to Gen 2, that enhance your Pokémon card collection. They include rare cards ranging from 1-5 ⭐, with a chance of finding a shiny Pokémon. You can purchase the standard booster packs using PokéCoins, and premium booster packs require 1 🎟️. Collect and trade cards with other players to build an impressive collection of Gen 2 and earlier Pokémon cards. Perfect for beginners and seasoned collectors alike.", color=get_setting('general', 'embed_color'))
         embed.set_thumbnail('assets/img/pokemon/shop_icon.png')
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
@@ -49,7 +49,7 @@ class PackShop(miru.View):
 @lightbulb.command('pokeshop', 'Access the PokéShop menu.')
 @lightbulb.implements(lightbulb.SlashCommand)
 async def shop(ctx: lightbulb.Context) -> None:
-    embed = hikari.Embed(title='Welcome to the PokéShop!', description='Get your hands on the newest Pokémon cards at the Pokémon Booster Pack Shop! Simply choose from one of the two options below to start building your collection today. \n\nA standard booster pack costs 🪙 200, while the premium booster pack, which offers a **3x boost** on the chance of getting rare quality cards, can be yours for just 1 🎟️.', color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title='Welcome to the PokéShop!', description='Get your hands on the newest Pokémon cards at the Pokémon Booster Pack Shop! Simply choose from one of the two options below to start building your collection today. \n\nA standard booster pack costs 🪙 200, while the premium booster pack, which offers a **3x boost** on the chance of getting rare quality cards, can be yours for just 1 🎟️.', color=get_setting('general', 'embed_color'))
     embed.set_thumbnail('assets/img/pokemon/shop_icon.png')
 
     view = PackShop()

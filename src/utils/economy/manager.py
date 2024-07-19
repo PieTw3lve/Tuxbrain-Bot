@@ -4,7 +4,7 @@ from bot import get_setting
 
 class EconomyManager:
     def check_sufficient_amount(self, userID: str, amount: int) -> bool:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT balance FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -24,7 +24,7 @@ class EconomyManager:
         return True
 
     def set_money(self, userID: str, amount: int) -> bool:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         sql = ('UPDATE economy SET balance = ? WHERE user_id = ?')
@@ -38,7 +38,7 @@ class EconomyManager:
         return True
 
     def set_ticket(self, userID: str, amount: int) -> bool:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         sql = ('UPDATE economy SET tpass = ? WHERE user_id = ?')
@@ -52,7 +52,7 @@ class EconomyManager:
         return True
 
     def add_money(self, userID: str, amount: int, updateGain: bool) -> bool:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT balance, total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -76,7 +76,7 @@ class EconomyManager:
         return True
 
     def add_ticket(self, userID: str, amount: int) -> bool:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT tpass FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -98,7 +98,7 @@ class EconomyManager:
         return True
 
     def remove_money(self, userID: str, amount: int, updateLoss: bool) -> bool:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT balance, loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -125,7 +125,7 @@ class EconomyManager:
         return True
 
     def remove_ticket(self, userID: str, amount: int) -> bool:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT tpass FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -150,7 +150,7 @@ class EconomyManager:
         return True
 
     def add_gain(self, userID: str, amount: int):
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -172,7 +172,7 @@ class EconomyManager:
         return True
 
     def remove_gain(self, userID: str, amount: int):
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT total FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -194,7 +194,7 @@ class EconomyManager:
         return True
 
     def add_loss(self, userID: str, amount: int):
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database
@@ -216,7 +216,7 @@ class EconomyManager:
         return True
 
     def remove_loss(self, userID: str, amount: int):
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         
         cursor.execute(f'SELECT loss FROM economy WHERE user_id = {userID}') # moves cursor to user's balance from database

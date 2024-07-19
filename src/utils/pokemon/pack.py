@@ -25,7 +25,7 @@ class StandardPokemonCardPack:
         self.ctx = ctx
     
     async def buy(self):
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         
         packID = str(uuid.uuid4())
@@ -40,14 +40,14 @@ class StandardPokemonCardPack:
             self.db.rollback()
             print("Error inserting item from the database:", e)
 
-        embed = hikari.Embed(title='Pokémon Booster Pack Shop', description=f'Thank you for your purchase <@{self.user.id}>!\nPack ID: `{packID}`', color=get_setting('settings', 'embed_success_color'))
+        embed = hikari.Embed(title='Pokémon Booster Pack Shop', description=f'Thank you for your purchase <@{self.user.id}>!\nPack ID: `{packID}`', color=get_setting('general', 'embed_success_color'))
         embed.set_thumbnail('assets/img/pokemon/shop_icon.png')
         await self.ctx.respond(embed, delete_after=30)
 
     async def open(self, packID):
         self.cards = []
         
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         
         pokeapi_url = "https://pokeapi.co/api/v2/pokemon?limit=251"
@@ -98,7 +98,7 @@ class StandardPokemonCardPack:
             self.db.rollback()
             print("Error deleting item from the database:", e)
 
-        embed = hikari.Embed(title=f'Standard Booster Pack Overview', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f'Standard Booster Pack Overview', color=get_setting('general', 'embed_color'))
         embed.set_footer('Type `/packinventory view` to view your cards and packs.')
 
         pages = []
@@ -122,7 +122,7 @@ class PremiumPokemonCardPack:
         self.ctx = ctx
     
     async def buy(self):
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         
         packID = str(uuid.uuid4())
@@ -137,7 +137,7 @@ class PremiumPokemonCardPack:
             self.db.rollback()
             print("Error inserting item from the database:", e)
 
-        embed = hikari.Embed(title='Pokémon Booster Pack Shop', description=f'Thank you for your purchase <@{self.user.id}>!\nPack ID: `{packID}`', color=get_setting('settings', 'embed_success_color'))
+        embed = hikari.Embed(title='Pokémon Booster Pack Shop', description=f'Thank you for your purchase <@{self.user.id}>!\nPack ID: `{packID}`', color=get_setting('general', 'embed_success_color'))
         embed.set_thumbnail('assets/img/pokemon/shop_icon.png')
         embed.set_footer('Type `/packinventory view` to see your packs!')
         await self.ctx.respond(embed, delete_after=30)
@@ -145,7 +145,7 @@ class PremiumPokemonCardPack:
     async def open(self, packID):
         self.cards = []
         
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         
         pokeapi_url = "https://pokeapi.co/api/v2/pokemon?limit=251"
@@ -196,7 +196,7 @@ class PremiumPokemonCardPack:
             self.db.rollback()
             print("Error deleting item from the database:", e)
 
-        embed = hikari.Embed(title=f'Premium Booster Pack Overview', color=get_setting('settings', 'embed_color'))
+        embed = hikari.Embed(title=f'Premium Booster Pack Overview', color=get_setting('general', 'embed_color'))
         embed.set_footer('Type `/packinventory view` to view your cards and packs.')
 
         pages = []

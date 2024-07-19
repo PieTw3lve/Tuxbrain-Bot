@@ -23,13 +23,13 @@ class DailyMysteryBoxView(miru.View):
     async def get_users(self, ctx: miru.ViewContext, select: miru.UserSelect) -> None:
         user = select.values[0]
         if user.is_bot:
-            embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('general', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         elif user.id == ctx.user.id:
             amount = round(self.options[1][0] * self.options[1][1])
             economy.add_money(self.user.id, amount, True)
 
-            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
             embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
@@ -43,7 +43,7 @@ class DailyMysteryBoxView(miru.View):
             economy.add_money(self.user.id, amount, True)
             economy.add_money(user.id, amount, True)
             
-            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+            embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
             embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         

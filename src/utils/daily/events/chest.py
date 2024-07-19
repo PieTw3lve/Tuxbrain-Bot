@@ -46,7 +46,7 @@ class DailyChestsView(miru.View):
                 description = 'Tempted by the allure of immense wealth, you decide to open it. With a dramatic flourish, the chest reveals a dazzling array of coins. Yet, you sense the weight of responsibility that accompanies such wealth, a reminder that great riches come with equally great risks.'
                 img = 'assets/img/emotes/large_chest.png'
 
-        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         embed.set_thumbnail(img)
     

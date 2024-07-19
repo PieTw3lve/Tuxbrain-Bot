@@ -60,7 +60,7 @@ async def draw(ctx: lightbulb.Context):
     card = get_card(deck)
     deck.remove(card)
 
-    embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('general', 'embed_color'))
     await ctx.respond(embed,components=view.build())
     
     client = ctx.bot.d.get('client')
@@ -74,9 +74,9 @@ async def draw(ctx: lightbulb.Context):
                     if len(deck) >= 1:
                         card = get_card(deck)
                         deck.remove(card)
-                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('settings', 'embed_color'))
+                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('general', 'embed_color'))
                     else:
-                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('settings', 'embed_color')))
+                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('general', 'embed_color')))
                 case 'Draw 5':
                     if len(deck) >= 5:
                         cards = []
@@ -84,18 +84,18 @@ async def draw(ctx: lightbulb.Context):
                             card = get_card(deck)
                             cards.append(get_card_str(card))
                             deck.remove(card)
-                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('settings', 'embed_color'))
+                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('general', 'embed_color'))
                     elif len(deck) < 5 and len(deck) > 0:
                         cards = []
                         for i in range(len(deck)):
                             card = get_card(deck)
                             cards.append(get_card_str(card))
                             deck.remove(card)
-                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('settings', 'embed_color'))
+                        embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your cards: {', '.join(cards)}", color=get_setting('general', 'embed_color'))
                     else:
-                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('settings', 'embed_color')))
+                        return await ctx.edit_last_response(hikari.Embed(description=f"There are no more cards in this deck.", color=get_setting('general', 'embed_color')))
         else:
-            embed = hikari.Embed(description=f"Menu has closed due to inactivity.", color=get_setting('settings', 'embed_color'))
+            embed = hikari.Embed(description=f"Menu has closed due to inactivity.", color=get_setting('general', 'embed_color'))
             await ctx.edit_last_response(embed, components=[])
             return
         

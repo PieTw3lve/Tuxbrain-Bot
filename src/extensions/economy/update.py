@@ -18,7 +18,7 @@ async def update_leaderboard():
     leaderboardEcoLastRefresh = datetime.now().astimezone()
 
     try:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         query = "SELECT user_id, balance, tpass FROM economy ORDER BY balance DESC"
         cursor.execute(query)

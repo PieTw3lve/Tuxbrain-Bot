@@ -154,7 +154,7 @@ async def rushsite(ctx: lightbulb.Context) -> None:
 @lightbulb.command('overview', 'Get an overview of a specific season.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def overview(ctx: lightbulb.Context, season: str) -> None:
-    embed = hikari.Embed(title=f'{season} Overview', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title=f'{season} Overview', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
     embed.set_image(f'assets/img/rushsite/overviews/{season.lower().replace(" ", "_")}.png')
     embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
     await ctx.respond(embed)
@@ -165,7 +165,7 @@ async def overview(ctx: lightbulb.Context, season: str) -> None:
 @lightbulb.command('info', 'Get info for the latest Rushsite tournament!', pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def signup(ctx: lightbulb.Context) -> None:
-    embed = hikari.Embed(title='Rushsite Tournament Information', description=f"Rushsite is a seasonal CS:GO 2v2 wingman competition. Six teams or more fight through group stages and playoff brackets to become champion!", color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title='Rushsite Tournament Information', description=f"Rushsite is a seasonal CS:GO 2v2 wingman competition. Six teams or more fight through group stages and playoff brackets to become champion!", color=get_setting('general', 'embed_color'))
     embed.set_thumbnail('assets/img/rushsite/logos/placeholder.png')
     embed.add_field(name='Game', value='Counter-Strike 2', inline=True)
     embed.add_field(name='Current Season', value='Season 4', inline=True)
@@ -185,7 +185,7 @@ async def signup(ctx: lightbulb.Context) -> None:
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def search(ctx: lightbulb.Context, name: str) -> None:
     if name not in allNames[0] + allNames[1]: # If name is not in teams or players
-        embed = (hikari.Embed(description=f'The player or team name cannot be found.', color=get_setting('settings', 'embed_error_color')))
+        embed = (hikari.Embed(description=f'The player or team name cannot be found.', color=get_setting('general', 'embed_error_color')))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif name in allNames[0]: # If name is a team
         teamName = allNames[0][allNames[0].index(name)]
@@ -205,7 +205,7 @@ async def search(ctx: lightbulb.Context, name: str) -> None:
         
         img = re.sub(r'[^a-zA-Z0-9\s]', '', str(teamName).lower().replace(" ", ""))
         thumbnail = f'assets/img/rushsite/logos/{img}.png'
-        embed = (hikari.Embed(title=f'Team: {teamName} {" ".join(trophies)}', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone()))
+        embed = (hikari.Embed(title=f'Team: {teamName} {" ".join(trophies)}', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone()))
         embed.set_thumbnail(thumbnail if os.path.exists(thumbnail) else 'assets/img/rushsite/logos/placeholder.png')
         embed.add_field(name='Favorite Maps', value=f'> {f"{chr(10)}> ".join(commonMap)}', inline=True)
         embed.add_field(name='Avg. Group Placings', value=f'> {add_ordinal_suffix(avgGroupPlacing)}', inline=True)
@@ -230,7 +230,7 @@ async def search(ctx: lightbulb.Context, name: str) -> None:
         except ZeroDivisionError:
             kdr = 0
         
-        embed = (hikari.Embed(title=f'Player: {playerName} ({", ".join(teams)}) {" ".join(trophies)}', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone()))
+        embed = (hikari.Embed(title=f'Player: {playerName} ({", ".join(teams)}) {" ".join(trophies)}', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone()))
         embed.set_thumbnail(thumbnail if os.path.exists(thumbnail) else 'assets/img/rushsite/logos/placeholder.png')
         embed.add_field(name='Kills', value=f'> {kills:,}', inline=True)
         embed.add_field(name='Assists', value=f'> {assists:,}', inline=True)
@@ -292,7 +292,7 @@ async def search(ctx: lightbulb.Context, stat: str) -> None:
     
     users, values = get_top_stats(rushsiteStats['Players'], statDict.get(stat), amount)
 
-    embed = hikari.Embed(title=f'Top {amount} players based on {stat}', color=get_setting('settings', 'embed_color'), timestamp=datetime.now().astimezone())
+    embed = hikari.Embed(title=f'Top {amount} players based on {stat}', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
     embed.add_field(name='Players', value='\n'.join(users), inline=True)
     embed.add_field(name=stat, value='\n'.join(values), inline=True)
     embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)

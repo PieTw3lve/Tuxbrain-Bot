@@ -26,13 +26,13 @@ async def baltop(ctx: lightbulb.SlashContext) -> None:
         except IndexError:
             pass
 
-        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('settings', 'embed_color'), timestamp=leaderboardEcoLastRefresh)
+        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('general', 'embed_color'), timestamp=leaderboardEcoLastRefresh)
         embed.add_field(name='Discord User', value='\n'.join(rankings), inline=True)
         embed.add_field(name='Balance', value='\n'.join(balances), inline=True)
         embed.add_field(name='Tux Pass', value='\n'.join(tpasses), inline=True)
         embed.set_footer(f'Last updated')
     else:
-        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('settings', 'embed_color'), timestamp=leaderboardEcoLastRefresh)
+        embed = hikari.Embed(title='Economy Leaderboard', color=get_setting('general', 'embed_color'), timestamp=leaderboardEcoLastRefresh)
         embed.add_field(name='Discord User', value='🥇 Unknown', inline=True)
         embed.add_field(name='Balance', value='🪙 0', inline=True)
         embed.add_field(name='Tux Pass', value='🎟️ 0', inline=True)

@@ -18,12 +18,12 @@ async def profile(ctx: lightbulb.Context, user: Optional[hikari.Member] = None) 
     user = user or ctx.member
     
     if not user:
-        embed = hikari.Embed(description='That user is not in the server.', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='That user is not in the server.', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed)
         return
     
     inventory = Inventory(user)
-    profile = Card(user, ctx.bot.application)
+    profile = Card(user, ctx)
 
     bg, card, nametag = inventory.get_active_customs()
     bg = Image.open(f'assets/img/general/profile/banner/{bg}.png').convert('RGBA')

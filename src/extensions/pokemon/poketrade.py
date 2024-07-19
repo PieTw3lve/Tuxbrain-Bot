@@ -11,7 +11,7 @@ plugin = lightbulb.Plugin('Poketrade')
 class TradeView(miru.View):
     def __init__(self, ctx: lightbulb.Context, embed: hikari.Embed, user1: hikari.User, user2: hikari.User) -> None:
         super().__init__(timeout=120)
-        self.db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         self.cursor = self.db.cursor()
         self.ctx = ctx
         self.embed = embed
@@ -71,14 +71,14 @@ class TradeView(miru.View):
             if user1Inv.get_inventory_capacity() + len(self.user2_offer) > user1Inv.max:
                 self.embed.title = 'Trade Error!'
                 self.embed.description = f'{self.user1.global_name} does not have enough inventory space!'
-                self.embed.color = get_setting('settings', 'embed_error_color')
+                self.embed.color = get_setting('general', 'embed_error_color')
                 self.embed.set_footer(None)
                 self.stop()
                 return await self.ctx.edit_last_response(self.embed, components=[])
             elif user2Inv.get_inventory_capacity() + len(self.user1_offer) > user2Inv.max:
                 self.embed.title = 'Trade Error!'
                 self.embed.description = f'{self.user2.global_name} does not have enough inventory space!'
-                self.embed.color = get_setting('settings', 'embed_error_color')
+                self.embed.color = get_setting('general', 'embed_error_color')
                 self.embed.set_footer(None)
                 self.stop()
                 return await self.ctx.edit_last_response(self.embed, components=[])
@@ -88,7 +88,7 @@ class TradeView(miru.View):
                     if user1Inv.get_item(itemID) == None:
                         self.embed.title = 'Trade Error!'
                         self.embed.description = f'{self.user1.global_name} no longer owns card(s) or pack(s)!'
-                        self.embed.color = get_setting('settings', 'embed_error_color')
+                        self.embed.color = get_setting('general', 'embed_error_color')
                         self.embed.set_footer(None)
                         self.stop()
                         return await self.ctx.edit_last_response(self.embed, components=[])
@@ -97,13 +97,13 @@ class TradeView(miru.View):
                     if user2Inv.get_item(itemID) == None:
                         self.embed.title = 'Trade Error!'
                         self.embed.description = f'{self.user2.global_name} no longer owns card(s) or pack(s)!'
-                        self.embed.color = get_setting('settings', 'embed_error_color')
+                        self.embed.color = get_setting('general', 'embed_error_color')
                         self.embed.set_footer(None)
                         self.stop()
                         return await self.ctx.edit_last_response(self.embed, components=[])
                 self.complete_trade()
                 self.embed.title = 'Trade has been completed!'
-                self.embed.color = get_setting('settings', 'embed_success_color')
+                self.embed.color = get_setting('general', 'embed_success_color')
                 self.stop()
                 return await ctx.edit_response(self.embed, components=[])
 
@@ -130,7 +130,7 @@ class TradeView(miru.View):
     @miru.button(label='Exit', style=hikari.ButtonStyle.DANGER, row=1, custom_id='exit')
     async def exit(self, button: miru.Button, ctx: miru.ViewContext) -> None:
         self.embed.title = f'{self.user1.global_name} has declined the trade!' if ctx.user.id == self.user1.id else f'{self.user2.global_name} has declined the trade!'
-        self.embed.color = get_setting('settings', 'embed_error_color')
+        self.embed.color = get_setting('general', 'embed_error_color')
         await ctx.edit_response(self.embed, components=[])
         self.stop()
 
@@ -184,7 +184,7 @@ class TradeView(miru.View):
         await self.ctx.edit_last_response(self.embed)
     
     def complete_trade(self) -> None:
-        db = sqlite3.connect(get_setting('settings', 'database_data_dir'))
+        db = sqlite3.connect(get_setting('general', 'database_data_dir'))
         cursor = db.cursor()
         for item in self.user1_offer:
             name, itemID = item
@@ -209,13 +209,13 @@ class AddItemModal(miru.Modal):
         result = inventory.get_item(self.id.value)
 
         if not result:
-            embed = hikari.Embed(title='Item Error', description='You do not own this item!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(title='Item Error', description='You do not own this item!', color=get_setting('general', 'embed_error_color'))
             embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
             self.stop()
             return
         elif len(self.user_offer) >= 10:
-            embed = hikari.Embed(title='Item Error', description='You reached the item limit!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(title='Item Error', description='You reached the item limit!', color=get_setting('general', 'embed_error_color'))
             embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
             self.stop()
@@ -232,12 +232,12 @@ class AddItemModal(miru.Modal):
         
         for item in self.user_offer:
             if itemID in item:
-                embed = hikari.Embed(title='Item Error', description='You already added this item!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(title='Item Error', description='You already added this item!', color=get_setting('general', 'embed_error_color'))
                 embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
                 self.item = None
                 break
         else:
-            embed = hikari.Embed(title='Item Added', description=f'You added {name} (`{itemID}`) to the trade.', color=get_setting('settings', 'embed_success_color'))
+            embed = hikari.Embed(title='Item Added', description=f'You added {name} (`{itemID}`) to the trade.', color=get_setting('general', 'embed_success_color'))
             embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
         
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
@@ -253,7 +253,7 @@ class RemoveItemModal(miru.Modal):
     async def callback(self, ctx: miru.ModalContext) -> None:
         try:
             if int(self.val.value) > len(self.user_offer) or int(self.val.value) < 1:
-                embed = hikari.Embed(title='Item Error', description='Invalid index!', color=get_setting('settings', 'embed_error_color'))
+                embed = hikari.Embed(title='Item Error', description='Invalid index!', color=get_setting('general', 'embed_error_color'))
                 embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
                 await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
                 self.item_index = None
@@ -262,14 +262,14 @@ class RemoveItemModal(miru.Modal):
             else:
                 self.item_index = int(self.val.value)
         except ValueError:
-            embed = hikari.Embed(title='Item Error', description='Input is not a number!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(title='Item Error', description='Input is not a number!', color=get_setting('general', 'embed_error_color'))
             embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
             self.item_index = None
             self.stop()
             return
         
-        embed = hikari.Embed(title='Item Removed', description=f'{self.user_offer[self.item_index-1][0]} was removed.', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(title='Item Removed', description=f'{self.user_offer[self.item_index-1][0]} was removed.', color=get_setting('general', 'embed_error_color'))
         embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
 
@@ -280,11 +280,11 @@ class RemoveItemModal(miru.Modal):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def trade(ctx: lightbulb.Context, user: hikari.User) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
-        embed = hikari.Embed(description='You are not allowed to trade with this user!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to trade with this user!', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL, delete_after=10)
         return
     
-    embed = hikari.Embed(title=f'Trading with {user.global_name}...', description='Use the buttons below to edit the Items/Cards in your trade.', color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title=f'Trading with {user.global_name}...', description='Use the buttons below to edit the Items/Cards in your trade.', color=get_setting('general', 'embed_color'))
     embed.set_thumbnail('assets/img/pokemon/trade_icon.png')
     embed.add_field(name=f'{ctx.author.global_name} Trade Offer', value='`Item Limit: 0/10`\n' + '\n'.join(['• -' for i in range(10)]), inline=True)
     embed.add_field(name=f'{user.global_name} Trade Offer', value='`Item Limit: 0/10`\n' + '\n'.join(['• -' for i in range(10)]), inline=True)

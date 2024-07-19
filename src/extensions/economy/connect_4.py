@@ -76,7 +76,7 @@ class Connect4DuelView(miru.View):
     @miru.button(label='Accept', style=hikari.ButtonStyle.SUCCESS, row=1)
     async def accept(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if economy.remove_money(self.opponent.id, self.bet, False) == False:
-            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+            embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             return
     
@@ -90,7 +90,7 @@ class Connect4DuelView(miru.View):
         embed = hikari.Embed(
             title=f'{self.opponent} has declined the duel request!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a Connect 4 game!',
-            color=get_setting('settings', 'embed_color')
+            color=get_setting('general', 'embed_color')
         )
         embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: Bet: 🪙 {self.bet}')
@@ -105,7 +105,7 @@ class Connect4DuelView(miru.View):
         embed = hikari.Embed(
             title=f'The game request timed out!',
             description=f'**{self.author}** has challenged **{self.opponent}** to a Connect 4 game!',
-            color=get_setting('settings', 'embed_color')
+            color=get_setting('general', 'embed_color')
         )
         embed.set_thumbnail(self.author.avatar_url)
         embed.add_field(name='__Game Info__', value=f'Bet: 🪙 {self.bet}')
@@ -143,7 +143,7 @@ class Connect4GameView(miru.View):
         player = '🔴' if self.game.currentPlayer == '1' else '🟡'
         
         if move < 0 or move > 6 or self.game.board[0][move] != '🔵':
-            await ctx.respond(hikari.Embed(description='Invalid move, try again.', color=get_setting('settings', 'embed_error_color')), flags=hikari.MessageFlag.EPHEMERAL)
+            await ctx.respond(hikari.Embed(description='Invalid move, try again.', color=get_setting('general', 'embed_error_color')), flags=hikari.MessageFlag.EPHEMERAL)
             move = int(select.values[0]) - 1
             return
         self.game.makeMove(move)
@@ -204,18 +204,18 @@ class Connect4GameView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     if user.is_bot or ctx.author.id == user.id: # checks if the user is a bot or the sender
-        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You are not allowed to challenge this user!', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     elif economy.remove_money(ctx.author.id, bet, False) == False:
-        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
+        embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
     
     embed = hikari.Embed(
         title=f'A wild duel request appeared!',
         description=f'**{ctx.author}** has challenged **{user}** to a Connect Four game!',
-        color=get_setting('settings', 'embed_color')
+        color=get_setting('general', 'embed_color')
     )
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.add_field(name='__Game Info__', value=f'Bet: 🪙 {bet}')
@@ -234,7 +234,7 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     
     game = Connect4()
     
-    embed = hikari.Embed(title='Welcome to a game of Connect Four!', description=f"It's **{ctx.author.global_name}** turn! Make your move!\n{game.printBoard()}", color=get_setting('settings', 'embed_color'))
+    embed = hikari.Embed(title='Welcome to a game of Connect Four!', description=f"It's **{ctx.author.global_name}** turn! Make your move!\n{game.printBoard()}", color=get_setting('general', 'embed_color'))
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.set_footer('You have 60 seconds to choose an option or you will automatically forfeit!')
 

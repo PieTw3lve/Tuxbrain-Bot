@@ -11,15 +11,15 @@ class Error:
         if isinstance(event.exception, lightbulb.CommandNotFound):
             return
         if isinstance(event.exception, lightbulb.NotEnoughArguments):
-            embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('settings', 'embed_error_color')))
+            embed = (hikari.Embed(description='Not enough arguments were passed.\n' + ', '.join(event.exception.args), color=get_setting('general', 'embed_error_color')))
             return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-            embed = (hikari.Embed(description=f'Command is on cooldown.\nTry again in {Error().format_seconds(round(event.exception.retry_after))}.', color=get_setting('settings', 'embed_error_color')))
+            embed = (hikari.Embed(description=f'Command is on cooldown.\nTry again in {Error().format_seconds(round(event.exception.retry_after))}.', color=get_setting('general', 'embed_error_color')))
             return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         if isinstance(event.exception, lightbulb.NotOwner):
-            embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('settings', 'embed_error_color')))
+            embed = (hikari.Embed(description=f'You do not have permission to use this command!', color=get_setting('general', 'embed_error_color')))
             return await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-        embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('settings', 'embed_error_color')))
+        embed = (hikari.Embed(description='I have errored, and I cannot get up', color=get_setting('general', 'embed_error_color')))
         await event.context.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
         raise event.exception
 
