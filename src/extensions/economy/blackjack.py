@@ -85,10 +85,10 @@ class BlackJackView(miru.View):
         self.player = player
         self.dealer = dealer
     
-    @miru.button(label='Hit', style=hikari.ButtonStyle.SUCCESS)
+    @miru.button(label='Hit', style=hikari.ButtonStyle.SUCCESS, custom_id='hit')
     async def hit(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         self.player.hand.hit()
-        self.double.disabled = True
+        self.get_item_by_id(custom_id='double').disabled = True
         
         if self.player.hand.is_busted():
             self.embed.title = 'You Busted!' # Your hand went over 21
@@ -115,7 +115,7 @@ class BlackJackView(miru.View):
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             await ctx.edit_response(self.embed, components=self)
     
-    @miru.button(label='Stand', style=hikari.ButtonStyle.PRIMARY)
+    @miru.button(label='Stand', style=hikari.ButtonStyle.PRIMARY, custom_id='stand')
     async def stand(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         while self.dealer.hand.score() < 17:
             self.dealer.hand.hit()
@@ -168,7 +168,7 @@ class BlackJackView(miru.View):
 
         await ctx.edit_response(self.embed, components=[])
 
-    @miru.button(label='Double Down', style=hikari.ButtonStyle.DANGER)
+    @miru.button(label='Double Down', style=hikari.ButtonStyle.DANGER, custom_id='double')
     async def double(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if economy.remove_money(self.author.id, self.bet, False) == False:
             embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
