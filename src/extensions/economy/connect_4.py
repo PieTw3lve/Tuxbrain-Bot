@@ -223,7 +223,7 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     
     view = Connect4DuelView(ctx.author, user, bet)
     
-    message = await ctx.respond(embed, components=view.build())
+    await ctx.respond(embed, components=view.build())
     
     client = ctx.bot.d.get('client')
     client.start_view(view)

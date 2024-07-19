@@ -33,8 +33,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     
     view = RRLobbyView(ctx.author, players, capacity, bet)
     
-    message = await ctx.respond(embed, components=view.build())
-    message = await message
+    await ctx.respond(embed, components=view.build())
     
     client = ctx.bot.d.get('client')
     client.start_view(view) # starts up lobby
@@ -50,7 +49,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
         
     view = RRGameView(view.game, 15.0)
         
-    message = await ctx.edit_last_response(embed, components=view.build())
+    await ctx.edit_last_response(embed, components=view.build())
 
     client.start_view(view) # starts game
     

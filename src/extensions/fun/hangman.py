@@ -36,8 +36,7 @@ async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
 
     view = HangmanLobbyView(ctx.author, guessers, word, theme)
     
-    message = await ctx.respond(embed, components=view.build(), reply=False)
-    message = await message
+    await ctx.respond(embed, components=view.build(), reply=False)
     
     client = ctx.bot.d.get('client')
     client.start_view(view) # starts up lobby
@@ -70,7 +69,7 @@ async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
         
     view = HangmanGameView(ctx.author.id, view.game, wordVisual, charIndex)
         
-    message = await ctx.edit_last_response(embed, components=view.build())
+    await ctx.edit_last_response(embed, components=view.build())
 
     client.start_view(view) # starts game
 

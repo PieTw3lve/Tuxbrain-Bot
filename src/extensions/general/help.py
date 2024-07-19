@@ -90,7 +90,7 @@ async def help(ctx: lightbulb.Context) -> None:
         .set_footer('Use the select menu below for more info!')
     )
     
-    message = await ctx.respond(embed, components=view.build())
+    await ctx.respond(embed, components=view.build())
     client = ctx.bot.d.get('client')
     client.start_view(view)
 

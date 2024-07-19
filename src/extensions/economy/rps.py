@@ -36,7 +36,7 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     
     view = DuelView(ctx.author, user, bet, wins)
     
-    message = await ctx.respond(embed, components=view.build())
+    await ctx.respond(embed, components=view.build())
     
     client = ctx.bot.d.get('client')
     client.start_view(view)
@@ -57,7 +57,7 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     
     view = RPSGameView(embed, ctx.author, user, bet, wins)
     
-    message = await ctx.edit_last_response(embed, components=view.build())
+    await ctx.edit_last_response(embed, components=view.build())
     
     client = ctx.bot.d.get('client')
     client.start_view(view)

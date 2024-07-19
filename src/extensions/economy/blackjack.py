@@ -312,7 +312,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     
     view = BlackJackView(embed, ctx.user, bet, deck, player, dealer)
     
-    message = await ctx.respond(embed, components=view.build())
+    await ctx.respond(embed, components=view.build())
     client = ctx.bot.d.get('client')
     client.start_view(view)
 

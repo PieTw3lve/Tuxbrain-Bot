@@ -61,8 +61,7 @@ async def draw(ctx: lightbulb.Context):
     deck.remove(card)
 
     embed = hikari.Embed(title=f'Cards Remaining: {len(deck)}', description=f"Your card: {get_card_str(card)}", color=get_setting('settings', 'embed_color'))
-    message = await ctx.respond(embed,components=view.build())
-    message = await message
+    await ctx.respond(embed,components=view.build())
     
     client = ctx.bot.d.get('client')
     client.start_view(view)
@@ -103,7 +102,7 @@ async def draw(ctx: lightbulb.Context):
         view = CheckView(player)
         view.add_item(DrawButton())
         view.add_item(Draw5Button())
-        message = await ctx.edit_last_response(embed, components=view.build())
+        await ctx.edit_last_response(embed, components=view.build())
         client = ctx.bot.d.get('client')
         client.start_view(view)
         await view.wait()

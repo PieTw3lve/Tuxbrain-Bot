@@ -53,7 +53,7 @@ async def shop(ctx: lightbulb.Context) -> None:
     embed.set_thumbnail('assets/img/pokemon/shop_icon.png')
 
     view = PackShop()
-    message = await ctx.respond(embed, components=view.build())
+    await ctx.respond(embed, components=view.build())
 
     client = ctx.bot.d.get('client')
     client.start_view(view)

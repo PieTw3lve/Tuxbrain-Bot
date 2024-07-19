@@ -232,7 +232,7 @@ async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: i
     view = ResultView(ctx.user, view)
     embed.title = f'{name} (Closed)'
     embed.description = f'Submissions have ended'
-    message = await ctx.edit_last_response(embed, components=view.build())
+    await ctx.edit_last_response(embed, components=view.build())
     client = ctx.bot.d.get('client')
     client.start_view(view)
 

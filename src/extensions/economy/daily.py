@@ -54,8 +54,9 @@ async def daily(ctx: lightbulb.Context) -> None:
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
             view = DailyFoxView(dailyManager, ctx.author)
     
-    message = await ctx.respond(embed, components=view.build())
-    await view.start(message)
+    await ctx.respond(embed, components=view.build())
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 def load(bot):
     bot.add_plugin(plugin)

@@ -45,7 +45,7 @@ async def purge(ctx: lightbulb.Context, amount: int) -> None:
     view.add_item(CancelButton())
     
     embed = hikari.Embed(title='Are you sure you want to continue the purge operation?', description='**__WARNING:__** This Action is irreversible!', color=get_setting('settings', 'embed_color'))
-    message = await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
+    await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
     
     client = ctx.bot.d.get('client')
     client.start_view(view)
