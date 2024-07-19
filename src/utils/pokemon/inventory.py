@@ -180,7 +180,7 @@ class SellView(miru.View):
         ],
         row=1
     )
-    async def sell_option(self, select: miru.TextSelect, ctx: miru.Context):
+    async def sell_option(self, ctx: miru.ViewContext, select: miru.TextSelect):
         option = select.values[0]
 
         match option:
@@ -215,7 +215,7 @@ class SellView(miru.View):
     
 class ChecksView(nav.NavigatorView):
     def __init__(self, user: hikari.User, pages, buttons, timeout, autodefer: bool = True) -> None:
-        super().__init__(pages=pages, buttons=buttons, timeout=timeout, autodefer=autodefer)
+        super().__init__(pages=pages, items=buttons, timeout=timeout, autodefer=autodefer)
         self.user = user
 
     async def view_check(self, ctx: miru.ViewContext) -> bool:
@@ -238,10 +238,10 @@ class PromptView(miru.View):
         self.answer = False
     
     @miru.button(label='Confirm', style=hikari.ButtonStyle.SUCCESS)
-    async def confirm(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def confirm(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         self.answer = True
         self.stop()
     
     @miru.button(label='Cancel', style=hikari.ButtonStyle.DANGER)
-    async def cancel(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def cancel(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         self.stop()

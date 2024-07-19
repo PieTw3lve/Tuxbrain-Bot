@@ -86,7 +86,7 @@ class BlackJackView(miru.View):
         self.dealer = dealer
     
     @miru.button(label='Hit', style=hikari.ButtonStyle.SUCCESS)
-    async def hit(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def hit(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         self.player.hand.hit()
         self.double.disabled = True
         
@@ -116,7 +116,7 @@ class BlackJackView(miru.View):
             await ctx.edit_response(self.embed, components=self)
     
     @miru.button(label='Stand', style=hikari.ButtonStyle.PRIMARY)
-    async def stand(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def stand(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         while self.dealer.hand.score() < 17:
             self.dealer.hand.hit()
         
@@ -169,7 +169,7 @@ class BlackJackView(miru.View):
         await ctx.edit_response(self.embed, components=[])
 
     @miru.button(label='Double Down', style=hikari.ButtonStyle.DANGER)
-    async def double(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def double(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if economy.remove_money(self.author.id, self.bet, False) == False:
             embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -313,7 +313,8 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
     view = BlackJackView(embed, ctx.user, bet, deck, player, dealer)
     
     message = await ctx.respond(embed, components=view.build())
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 def load(bot):
     bot.add_plugin(plugin)

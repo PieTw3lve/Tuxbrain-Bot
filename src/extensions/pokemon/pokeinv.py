@@ -45,9 +45,11 @@ async def open(ctx: lightbulb.Context, user: Optional[hikari.User] = None) -> No
     inventory = Inventory(ctx, user)
     pages = inventory.show_inventory(10)
     buttons = [nav.FirstButton(row=1), nav.PrevButton(emoji='⬅️', row=1), NavPageInfo(len(pages), 1), nav.NextButton(emoji='➡️', row=1), nav.LastButton(row=1)]
-    navigator = nav.NavigatorView(pages=pages, buttons=buttons, timeout=None)
-
-    await navigator.send(ctx.interaction)
+    navigator = nav.NavigatorView(pages=pages, items=buttons, timeout=None)
+    client = ctx.bot.d.get('client')
+    builder = await navigator.build_response_async(client=client, ephemeral=True)
+    await builder.create_initial_response(ctx.interaction)
+    client.start_view(navigator)
 
 ## Sell Command ##
 

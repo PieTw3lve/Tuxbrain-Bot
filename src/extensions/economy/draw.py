@@ -11,7 +11,7 @@ class DrawButton(miru.Button):
     def __init__(self) -> None:
         super().__init__(style=hikari.ButtonStyle.PRIMARY, label='Draw')
     
-    async def callback(self, ctx: miru.Context) -> None:
+    async def callback(self, ctx: miru.ViewContext) -> None:
         self.view.action = 'Draw'
         self.view.stop()
 
@@ -19,7 +19,7 @@ class Draw5Button(miru.Button):
     def __init__(self) -> None:
         super().__init__(style=hikari.ButtonStyle.SUCCESS, label='Draw 5')
     
-    async def callback(self, ctx: miru.Context) -> None:
+    async def callback(self, ctx: miru.ViewContext) -> None:
         self.view.action = 'Draw 5'
         self.view.stop()
 
@@ -28,7 +28,7 @@ class CheckView(miru.View):
         self.author = author
         super().__init__(timeout=60.0)
         
-    async def view_check(self, ctx: miru.Context) -> bool:
+    async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.author.id
 
 @plugin.command
@@ -64,7 +64,8 @@ async def draw(ctx: lightbulb.Context):
     message = await ctx.respond(embed,components=view.build())
     message = await message
     
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
     await view.wait()
 
     while True:
@@ -103,7 +104,8 @@ async def draw(ctx: lightbulb.Context):
         view.add_item(DrawButton())
         view.add_item(Draw5Button())
         message = await ctx.edit_last_response(embed, components=view.build())
-        await view.start(message)
+        client = ctx.bot.d.get('client')
+        client.start_view(view)
         await view.wait()
 
 def get_card(cards):

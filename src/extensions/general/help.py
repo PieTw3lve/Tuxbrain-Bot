@@ -25,13 +25,13 @@ class InfoView(miru.View):
             miru.SelectOption(label="What's New", emoji='📰', value='News', description='Explore our latest changes and bug fixes.')
         ]
     )
-    async def select_menu(self, select: miru.TextSelect, ctx: miru.Context) -> None:
+    async def select_menu(self, ctx: miru.ViewContext, select: miru.TextSelect) -> None:
         option = select.values[0]
           
         match option:
             case 'About':
                 embed = hikari.Embed(color=get_setting('settings', 'embed_color')) 
-                author = await ctx.bot.rest.fetch_user('291001658362560513')
+                author = await ctx.client.rest.fetch_user(291001658362560513)
                 embed.title = '💬 About'
                 embed.description = 'Tuxbrain Bot is an [open source](https://github.com/PieTw3lve/Tux_Bot), multi-use Discord bot written in [hikari.py](https://www.hikari-py.dev/), a new static-typed Python API wrapper. ' \
                                     f'It is programmed by <@{author.id}> to serve as the official Tuxbrain.org Discord bot. The bot is currently still in development, so there may be some bugs. ' \
@@ -50,8 +50,10 @@ class InfoView(miru.View):
                 commands = [lightbulb.BotApp.get_slash_command(self=plugin.bot, name=name) for name in names]
                 pages = self.generate_pages(commands, 8)
                 buttons = [nav.PrevButton(emoji='⬅️', row=1), NavPageInfo(len(pages), 1), nav.NextButton(emoji='➡️', row=1)]
-                navigator = nav.NavigatorView(pages=pages, buttons=buttons, timeout=None)
-                return await navigator.send(ctx.interaction, ephemeral=True)
+                navigator = nav.NavigatorView(pages=pages, items=buttons, timeout=None)
+                builder = await navigator.build_response_async(client=ctx.client, ephemeral=True)
+                await builder.create_initial_response(ctx.interaction)
+                return ctx.client.start_view(navigator)
             case 'News':
                 embed = hikari.Embed(color=get_setting('settings', 'embed_color')) 
                 embed.title = "📰 What's New"
@@ -70,7 +72,7 @@ class InfoView(miru.View):
             pages.append(embed)
         return pages
 
-    async def view_check(self, ctx: miru.Context) -> bool:
+    async def view_check(self, ctx: miru.ViewContext) -> bool:
         return True
 
 @plugin.command
@@ -89,8 +91,8 @@ async def help(ctx: lightbulb.Context) -> None:
     )
     
     message = await ctx.respond(embed, components=view.build())
-
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 def load(bot):
     bot.add_plugin(plugin)

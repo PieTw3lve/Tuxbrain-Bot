@@ -74,7 +74,7 @@ class Connect4DuelView(miru.View):
         self.accepted = False
     
     @miru.button(label='Accept', style=hikari.ButtonStyle.SUCCESS, row=1)
-    async def accept(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def accept(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if economy.remove_money(self.opponent.id, self.bet, False) == False:
             embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -84,7 +84,7 @@ class Connect4DuelView(miru.View):
         self.stop()
     
     @miru.button(label='Decline', style=hikari.ButtonStyle.DANGER, row=1)
-    async def decline(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def decline(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         economy.add_money(self.author.id, self.bet, False)
         
         embed = hikari.Embed(
@@ -138,7 +138,7 @@ class Connect4GameView(miru.View):
         ],
         row=1
     )
-    async def select_column(self, select: miru.TextSelect, ctx: miru.Context) -> None:
+    async def select_column(self, ctx: miru.ViewContext, select: miru.TextSelect) -> None:
         move = int(select.values[0]) - 1
         player = '🔴' if self.game.currentPlayer == '1' else '🟡'
         
@@ -225,7 +225,8 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     
     message = await ctx.respond(embed, components=view.build())
     
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
     await view.wait()
     
     if not view.accepted:
@@ -241,7 +242,8 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     
     message = await ctx.edit_last_response(embed, components=view.build())
     
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 def load(bot):
     bot.add_plugin(plugin)

@@ -27,7 +27,7 @@ class DailyFoxView(miru.View):
             miru.SelectOption(label='Leave the Fox Alone', emoji='<:sleeping_fox:1143665534030848080>', description='Let the fox rest peacefully and continue with your day.', value='1'),
         ]
     )
-    async def fox(self, select: miru.TextSelect, ctx: miru.Context) -> None:
+    async def fox(self, ctx: miru.ViewContext, select: miru.TextSelect) -> None:
         amount = self.options[int(select.values[0])][0] * self.options[int(select.values[0])][1]
         economy.add_money(self.user.id, amount, True)
 

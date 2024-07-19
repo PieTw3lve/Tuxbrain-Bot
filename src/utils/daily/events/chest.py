@@ -28,7 +28,7 @@ class DailyChestsView(miru.View):
             miru.SelectOption(label='Luxurious Chest', emoji='<:large_chest:1143260812002218164>', description='Lavish and extravagant, may promise grand rewards.', value='2'),
         ]
     )
-    async def chests(self, select: miru.TextSelect, ctx: miru.Context) -> None:
+    async def chests(self, ctx: miru.ViewContext, select: miru.TextSelect) -> None:
         amount = self.options[int(select.values[0])][0] * self.options[int(select.values[0])][1]
         economy.add_money(self.user.id, amount, True)
 

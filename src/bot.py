@@ -238,8 +238,9 @@ if __name__ == '__main__':
         uvloop.install()
 
     # Release the bot!
-    miru.install(bot)
     tasks.load(bot)
+    client = miru.Client(bot)
+    bot.d.setdefault('client', client)
     bot.load_extensions_from('extensions', recursive=True)
     bot.run(
         status=hikari.Status.DO_NOT_DISTURB, 

@@ -30,7 +30,7 @@ class FavoriteButton(miru.Button):
         self.indents = indents
         self.card_id = card_id
 
-    async def callback(self, ctx: miru.Context) -> None:
+    async def callback(self, ctx: miru.ViewContext) -> None:
         inventory = Inventory(ctx, ctx.user)
         result = inventory.get_item(self.card_id)
 
@@ -66,7 +66,7 @@ class SellButton(miru.Button):
         self.cursor = self.db.cursor()
         self.card_id = card_id
 
-    async def callback(self, ctx: miru.Context) -> None:
+    async def callback(self, ctx: miru.ViewContext) -> None:
         inventory = Inventory(ctx, ctx.user)
         result = inventory.get_item(self.card_id)
 
@@ -93,7 +93,8 @@ class SellButton(miru.Button):
         embed.set_footer('This action is irreversible!')
         message = await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
 
-        await view.start(message)
+        client = ctx.bot.d.get('client')
+        client.start_view(view)
         await view.wait()
         
         if view.answer:
@@ -185,7 +186,8 @@ async def open(ctx: lightbulb.Context, uuid: str) -> None:
         view.add_item(SellButton(card_id))
 
     message = await ctx.respond(embed, components=view.build())
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 def load(bot):
     bot.add_plugin(plugin)

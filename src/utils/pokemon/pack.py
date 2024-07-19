@@ -20,7 +20,7 @@ class PokemonPack:
         self.pack_type = pack_type
 
 class StandardPokemonCardPack:
-    def __init__(self, user: hikari.User, ctx: miru.Context):
+    def __init__(self, ctx: miru.ViewContext, user: hikari.User):
         self.user = user
         self.ctx = ctx
     
@@ -109,14 +109,15 @@ class StandardPokemonCardPack:
         
         buttons = [nav.PrevButton(emoji='⬅️', row=1), NavPageInfo(len(pages), row=1), nav.NextButton(emoji='➡️', row=1), nav.LastButton(row=1)]
         navigator = ChecksView(self.user, pages, buttons, timeout=None)
-
-        await navigator.send(self.ctx.interaction)
+        builder = await navigator.build_response_async(client=self.ctx.client, ephemeral=True)
+        await builder.create_initial_response(self.ctx.interaction)
+        self.ctx.client.start_view(navigator)
 
     def __del__(self):
         self.db.close()
 
 class PremiumPokemonCardPack:
-    def __init__(self, user: hikari.User, ctx: miru.Context):
+    def __init__(self, user: hikari.User, ctx: miru.ViewContext):
         self.user = user
         self.ctx = ctx
     
@@ -205,16 +206,17 @@ class PremiumPokemonCardPack:
         pages.append(embed)
         
         buttons = [nav.PrevButton(emoji='⬅️'), NavPageInfo(len(pages)), nav.NextButton(emoji='➡️'), nav.LastButton()]
-        navigator = nav.NavigatorView(pages=pages, buttons=buttons, timeout=None)
-
-        await navigator.send(self.ctx.interaction)
+        navigator = nav.NavigatorView(pages=pages, items=buttons, timeout=None)
+        builder = await navigator.build_response_async(client=self.ctx.client, ephemeral=True)
+        await builder.create_initial_response(self.ctx.interaction)
+        self.ctx.client.start_view(navigator)
 
     def __del__(self):
         self.db.close()
 
 class ChecksView(nav.NavigatorView):
     def __init__(self, user: hikari.User, pages, buttons, timeout, autodefer: bool = True) -> None:
-        super().__init__(pages=pages, buttons=buttons, timeout=timeout, autodefer=autodefer)
+        super().__init__(pages=pages, items=buttons, timeout=timeout, autodefer=autodefer)
         self.user = user
 
     async def view_check(self, ctx: miru.ViewContext) -> bool:

@@ -36,7 +36,8 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     message = await ctx.respond(embed, components=view.build())
     message = await message
     
-    await view.start(message) # starts up lobby
+    client = ctx.bot.d.get('client')
+    client.start_view(view) # starts up lobby
     await view.wait() # waiting until lobby starts or timed out
     
     if not view.gameStart: # if lobby timed out
@@ -51,7 +52,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
         
     message = await ctx.edit_last_response(embed, components=view.build())
 
-    await view.start(message) # starts game
+    client.start_view(view) # starts game
     
 class RRLobbyView(miru.View):
     def __init__(self, author: hikari.User, players: dict, capacity: int, amount: int) -> None:
@@ -60,7 +61,7 @@ class RRLobbyView(miru.View):
         self.gameStart = False
     
     @miru.button(label='Start', style=hikari.ButtonStyle.SUCCESS, row=1)
-    async def start_game(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def start_game(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if self.game.get('author').id != ctx.user.id: # checks if user is host
             embed = hikari.Embed(description='You are not the host!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -78,7 +79,7 @@ class RRLobbyView(miru.View):
         self.stop()
     
     @miru.button(label='Join Game', style=hikari.ButtonStyle.PRIMARY, row=1)
-    async def join(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def join(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if verify_user(ctx.user) == None: # if user has never been register
             register_user(ctx.user)
 
@@ -106,7 +107,7 @@ class RRLobbyView(miru.View):
         await ctx.message.edit(embed)
         
     @miru.button(label='Refund', style=hikari.ButtonStyle.DANGER, row=1)
-    async def refund(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def refund(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if self.game['author'].id != ctx.user.id: # checks if user is host
             embed = hikari.Embed(description='You are not the host!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -133,7 +134,7 @@ class RRLobbyView(miru.View):
         
         await self.message.edit(embed, components=[])
     
-    async def view_check(self, ctx: miru.Context) -> bool:
+    async def view_check(self, ctx: miru.ViewContext) -> bool:
         return True
 
 class RRGameView(miru.View):
@@ -152,7 +153,7 @@ class RRGameView(miru.View):
         random.shuffle(self.chamber)
     
     @miru.button(label='Fire', emoji='💥', style=hikari.ButtonStyle.PRIMARY, row=1)
-    async def fire(self, button: miru.Button, ctx: miru.Context):
+    async def fire(self, ctx: miru.ViewContext, button: miru.Button):
         if len(self.chamber) == 0:
             return
         elif self.chamber[0]:
@@ -181,7 +182,7 @@ class RRGameView(miru.View):
         await ctx.edit_response(embed, components=self.build())
     
     @miru.button(label='End Turn', style=hikari.ButtonStyle.SUCCESS, row=1, disabled=False)
-    async def next_turn(self, button: miru.Button, ctx: miru.Context):
+    async def next_turn(self, ctx: miru.ViewContext, button: miru.Button):
         if self.endTurn:
             try: # cycle turns
                 self.player = next(self.playerIter)[1]
@@ -214,7 +215,7 @@ class RRGameView(miru.View):
             
         await self.message.edit(embed, components=[])
     
-    async def view_check(self, ctx: miru.Context) -> bool:
+    async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.player['id']
 
 def load(bot):

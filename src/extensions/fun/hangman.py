@@ -39,7 +39,8 @@ async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
     message = await ctx.respond(embed, components=view.build(), reply=False)
     message = await message
     
-    await view.start(message) # starts up lobby
+    client = ctx.bot.d.get('client')
+    client.start_view(view) # starts up lobby
     await view.wait() # waiting until lobby starts or timed out
     
     if not view.gameStart: # if lobby timed out
@@ -71,7 +72,7 @@ async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
         
     message = await ctx.edit_last_response(embed, components=view.build())
 
-    await view.start(message) # starts game
+    client.start_view(view) # starts game
 
 class HangmanLobbyView(miru.View):
     def __init__(self, author: hikari.User, guessers: dict, word: int, theme: int) -> None:
@@ -80,7 +81,7 @@ class HangmanLobbyView(miru.View):
         self.gameStart = False
     
     @miru.button(label='Start', style=hikari.ButtonStyle.SUCCESS, row=1)
-    async def start_game(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def start_game(self, ctx: miru.ViewContext , button: miru.Button) -> None:
         if self.game['author'].id != ctx.user.id: # checks if user is host
             embed = hikari.Embed(description='You are not the host!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -94,7 +95,7 @@ class HangmanLobbyView(miru.View):
         self.stop()
     
     @miru.button(label='Join Game', style=hikari.ButtonStyle.PRIMARY, row=1)
-    async def join(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def join(self, ctx: miru.ViewContext , button: miru.Button) -> None:
         player = f'<@{ctx.user.id}>'
         playerInfo = {'name': f'{ctx.user.global_name}', 'id': ctx.user.id, 'url': ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url}
         
@@ -157,7 +158,7 @@ class HangmanGameView(miru.View):
         ],
         row=1
     )
-    async def select_letter_1(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_letter_1(self, ctx: miru.ViewContext , select: miru.TextSelect):
         letter = select.values[0]
         
         if letter in self.guesses: # if player guessed that letter already
@@ -239,7 +240,7 @@ class HangmanGameView(miru.View):
         ],
         row=2
     )
-    async def select_letter_2(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_letter_2(self, ctx: miru.ViewContext, select: miru.TextSelect):
         letter = select.values[0]
         
         if letter in self.guesses: # if player guessed that letter already
@@ -318,7 +319,7 @@ class HangmanGameView(miru.View):
         ],
         row=3
     )
-    async def select_number_1(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_number_1(self, ctx: miru.ViewContext, select: miru.TextSelect):
         number = select.values[0]
         
         if number in self.guesses: # if player guessed that letter already
@@ -380,7 +381,7 @@ class HangmanGameView(miru.View):
             
             return
     
-    async def view_check(self, ctx: miru.Context) -> bool:
+    async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.guesser['id']
 
 def load(bot):

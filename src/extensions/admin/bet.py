@@ -25,7 +25,7 @@ class BetView(miru.View):
         self.greenTeam = {}
     
     @miru.button(label='Bet Blue', style=hikari.ButtonStyle.PRIMARY)
-    async def blue(self, button: miru.Button, ctx: miru.ViewContext) -> None:
+    async def blue(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         modal = BettingView(self.blueTeam, self.greenTeam, 0)
         userID = ctx.user.id
         await ctx.respond_with_modal(modal)
@@ -44,7 +44,7 @@ class BetView(miru.View):
         await BetView.update_view(self)
              
     @miru.button(label='Bet Green', style=hikari.ButtonStyle.SUCCESS)
-    async def green(self, button: miru.Button, ctx: miru.ViewContext) -> None:
+    async def green(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         modal = BettingView(self.blueTeam, self.greenTeam, 1)
         userID = str(ctx.user.id)
         await ctx.respond_with_modal(modal)
@@ -63,7 +63,7 @@ class BetView(miru.View):
         await BetView.update_view(self)
     
     @miru.button(label='Force Close', style=hikari.ButtonStyle.DANGER)
-    async def close(self, button: miru.Button, ctx: miru.ViewContext) -> None:
+    async def close(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if ctx.user.id == self.author.id:
             self.task.cancel()
     
@@ -118,7 +118,7 @@ class ResultView(miru.View):
         ],
         row=1
     )
-    async def select_winner(self, select: miru.TextSelect, ctx: miru.Context):
+    async def select_winner(self, ctx: miru.ViewContext, select: miru.TextSelect):
         option = select.values[0]
         await ctx.edit_response(components=[])
         self.stop()
@@ -128,7 +128,7 @@ class ResultView(miru.View):
                 for userID in self.betView.blueTeam.keys():
                     economy.add_money(userID, round(self.betView.blueTeam[userID] * self.betView.bPayout), False)
                 if len(self.betView.blueTeam) > 0:
-                    user = await ctx.app.rest.fetch_user(self.betView.bHighID)
+                    user = await ctx.client.rest.fetch_user(self.betView.bHighID)
                     embed = (hikari.Embed(title=f'{self.betView.blueName} Won!', description=f'🪙 {(self.betView.bHighBet * self.betView.bPayout):,.0f} go to <@{self.betView.bHighID}> and {(self.betView.bParticipants) - 1:,} others.\n{self.betView.get_blue_overview(10)}\n‍',  color=get_setting('settings', 'embed_color')))
                     embed.set_thumbnail(user.avatar_url)
                 else:
@@ -137,7 +137,7 @@ class ResultView(miru.View):
                 for userID in self.betView.greenTeam.keys():
                     economy.add_money(userID, round(self.betView.greenTeam[userID] * self.betView.gPayout), False)
                 if len(self.betView.greenTeam) > 0:
-                    user = await ctx.app.rest.fetch_user(self.betView.gHighID)
+                    user = await ctx.client.rest.fetch_user(self.betView.gHighID)
                     embed = (hikari.Embed(title=f'{self.betView.greenName} Won!', description=f'🪙 {(self.betView.gHighBet * self.betView.gPayout):,.0f} go to <@{self.betView.gHighID}> and {(self.betView.gParticipants - 1):,} others.\n{self.betView.get_green_overview(10)}\n‍',  color=get_setting('settings', 'embed_color')))
                     embed.set_thumbnail(user.avatar_url) 
                 else:
@@ -152,7 +152,7 @@ class ResultView(miru.View):
         embed.set_footer(text="The players' balances have been updated")
         await self.message.respond(embed, reply=True)
     
-    async def view_check(self, ctx: miru.Context) -> bool:
+    async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.author.id
 
 class BettingView(miru.Modal):
@@ -218,7 +218,8 @@ async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: i
     view = BetView(task, ctx.author, embed, blue, green, timer)
     message = await ctx.respond(embed, components=view.build())
     
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
     # Update timer real time
     while not event.is_set():
@@ -232,7 +233,8 @@ async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: i
     embed.title = f'{name} (Closed)'
     embed.description = f'Submissions have ended'
     message = await ctx.edit_last_response(embed, components=view.build())
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 async def cancel_sleep(event: asyncio.Event, timer: int) -> None:
     try:

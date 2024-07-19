@@ -20,7 +20,7 @@ class DailyMysteryBoxView(miru.View):
         # print(self.options)
     
     @miru.user_select(placeholder='Select a User')
-    async def get_users(self, select: miru.UserSelect, ctx: miru.ViewContext) -> None:
+    async def get_users(self, ctx: miru.ViewContext, select: miru.UserSelect) -> None:
         user = select.values[0]
         if user.is_bot:
             embed = hikari.Embed(description="Bots don't have the rights to earn money!", color=get_setting('settings', 'embed_error_color'))

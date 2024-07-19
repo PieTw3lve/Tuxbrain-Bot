@@ -8,13 +8,13 @@ from bot import get_setting
 plugin = lightbulb.Plugin('Purge')
 
 class PromptView(miru.View):
-    async def view_check(self, ctx: miru.Context) -> bool:
+    async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == ctx.author.id
 
 class ConfirmButton(miru.Button):
     def __init__(self) -> None:
         super().__init__(style=hikari.ButtonStyle.DANGER, label="Confirm")
-    async def callback(self, ctx: miru.Context) -> None:
+    async def callback(self, ctx: miru.ViewContext) -> None:
         # You can access the view an item is attached to by accessing it's view property
         self.view.accepted = True
         self.view.stop()
@@ -23,7 +23,7 @@ class CancelButton(miru.Button):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(style=hikari.ButtonStyle.SUCCESS, label="Cancel")
 
-    async def callback(self, ctx: miru.Context) -> None:
+    async def callback(self, ctx: miru.ViewContext) -> None:
         self.view.accepted = False
         self.view.stop()
 
@@ -47,7 +47,8 @@ async def purge(ctx: lightbulb.Context, amount: int) -> None:
     embed = hikari.Embed(title='Are you sure you want to continue the purge operation?', description='**__WARNING:__** This Action is irreversible!', color=get_setting('settings', 'embed_color'))
     message = await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
     
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
     await view.wait()
 
     if hasattr(view, 'accepted'):

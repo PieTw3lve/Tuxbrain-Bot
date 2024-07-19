@@ -38,7 +38,8 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     
     message = await ctx.respond(embed, components=view.build())
     
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
     await view.wait()
     
     if not view.accepted:
@@ -58,7 +59,8 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     
     message = await ctx.edit_last_response(embed, components=view.build())
     
-    await view.start(message)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
     await view.wait()
     
     if view.player1['score'] > view.player2['score']:
@@ -99,7 +101,7 @@ class DuelView(miru.View):
         self.accepted = False
 
     @miru.button(label='Accept', style=hikari.ButtonStyle.SUCCESS, row=1)
-    async def accept(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def accept(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if economy.remove_money(self.opponent.id, self.bet, False) == False:
             embed = hikari.Embed(description='You do not have enough money!', color=get_setting('settings', 'embed_error_color'))
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
@@ -109,7 +111,7 @@ class DuelView(miru.View):
         self.stop()
     
     @miru.button(label='Decline', style=hikari.ButtonStyle.DANGER, row=1)
-    async def decline(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def decline(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         economy.add_money(self.author.id, self.bet, False)
         
         embed = hikari.Embed(
@@ -154,7 +156,7 @@ class RPSGameView(miru.View):
         self.player2 = {'ready': False, 'score': 0, 'actions': []}
     
     @miru.button(label='Rock', emoji='🪨', style=hikari.ButtonStyle.SECONDARY, row=1)
-    async def rock(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def rock(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if ctx.user.id == self.author.id:
             if not self.player1['ready']:
                 self.embed.edit_field(0, f'{self.author} [{self.player1["score"]}] ☑️', '❔' if len(self.player1['actions']) < 1 else ' | '.join(self.player1['actions']))
@@ -215,7 +217,7 @@ class RPSGameView(miru.View):
             await ctx.edit_response(self.embed)
 
     @miru.button(label='Paper', emoji='📄', style=hikari.ButtonStyle.SECONDARY, row=1)
-    async def paper(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def paper(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if ctx.user.id == self.author.id:
             if not self.player1['ready']:
                 self.embed.edit_field(0, f'{self.author} [{self.player1["score"]}] ☑️', '❔' if len(self.player1['actions']) < 1 else ' | '.join(self.player1['actions']))
@@ -276,7 +278,7 @@ class RPSGameView(miru.View):
             await ctx.edit_response(self.embed)
         
     @miru.button(label='Scissors', emoji='✂️', style=hikari.ButtonStyle.SECONDARY, row=1)
-    async def scissors(self, button: miru.Button, ctx: miru.Context) -> None:
+    async def scissors(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if ctx.user.id == self.author.id:
             if not self.player1['ready']:
                 self.embed.edit_field(0, f'{self.author} [{self.player1["score"]}] ☑️', '❔' if len(self.player1['actions']) < 1 else ' | '.join(self.player1['actions']))
