@@ -10,7 +10,7 @@ import sqlite3
 
 from lightbulb.ext import tasks
 
-VERSION = '1.3.2'
+VERSION = '1.3.3'
 
 ## Functions ##
 

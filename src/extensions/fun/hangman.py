@@ -34,7 +34,7 @@ async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
     embed.add_field(name='__Guessers__', value=f'None', inline=True)
     embed.set_footer(text=f'The game will timeout in 2 minutes!')
 
-    view = HangmanLobbyView(ctx.author, guessers, word, theme)
+    view = HangmanLobbyView(ctx, guessers, word, theme)
     
     await ctx.respond(embed, components=view.build(), reply=False)
     
@@ -74,9 +74,10 @@ async def hangman(ctx: lightbulb.Context, word: str, theme: str) -> None:
     client.start_view(view) # starts game
 
 class HangmanLobbyView(miru.View):
-    def __init__(self, author: hikari.User, guessers: dict, word: int, theme: int) -> None:
+    def __init__(self, ctx: lightbulb.Context, guessers: dict, word: int, theme: int) -> None:
         super().__init__(timeout=120.0)
-        self.game = {'author': author, 'guessers': guessers, 'word': word, 'theme': theme}
+        self.ctx = ctx
+        self.game = {'author': ctx.author, 'guessers': guessers, 'word': word, 'theme': theme}
         self.gameStart = False
     
     @miru.button(label='Start', style=hikari.ButtonStyle.SUCCESS, row=1)
@@ -120,7 +121,7 @@ class HangmanLobbyView(miru.View):
         embed.set_image('assets/img/fun/hangman/0.png')
         embed.set_footer(text=f'The game will timeout in 2 minutes!')
         
-        await self.message.edit(embed, components=[])
+        await self.ctx.edit_last_response(embed, components=[])
         self.stop()
 
 class HangmanGameView(miru.View):

@@ -66,9 +66,10 @@ class Connect4:
         return False
 
 class Connect4DuelView(miru.View):
-    def __init__(self, author: hikari.User, opponent: hikari.User, bet: int) -> None:
+    def __init__(self, ctx: lightbulb.Context, opponent: hikari.User, bet: int) -> None:
         super().__init__(timeout=120.0)
-        self.author = author
+        self.ctx = ctx
+        self.author = ctx.author
         self.opponent = opponent
         self.bet = bet
         self.accepted = False
@@ -95,8 +96,7 @@ class Connect4DuelView(miru.View):
         embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: Bet: 🪙 {self.bet}')
         
-        
-        await self.message.edit(embed, components=[])
+        await ctx.edit_response(embed, components=[])
         self.stop()
     
     async def on_timeout(self) -> None:
@@ -110,17 +110,18 @@ class Connect4DuelView(miru.View):
         embed.set_thumbnail(self.author.avatar_url)
         embed.add_field(name='__Game Info__', value=f'Bet: 🪙 {self.bet}')
         
-        await self.message.edit(embed, components=[])
+        await self.ctx.edit_last_response(embed, components=[])
     
     async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.opponent.id
 
 class Connect4GameView(miru.View):
-    def __init__(self, game: Connect4, embed: hikari.Embed, author: hikari.User, opponent: hikari.User, bet: int) -> None:
+    def __init__(self, ctx: lightbulb.Context, game: Connect4, embed: hikari.Embed, opponent: hikari.User, bet: int) -> None:
         super().__init__(timeout=None)
+        self.ctx = ctx
         self.game = game
         self.embed = embed
-        self.author = author
+        self.author = ctx.author
         self.opponent = opponent
         self.bet = bet
     
@@ -187,7 +188,7 @@ class Connect4GameView(miru.View):
             economy.add_money(self.opponent.id, self.bet*2, True)
             economy.add_loss(self.author.id, self.bet)
         self.embed.set_footer(None)
-        await self.message.edit(self.embed, components=[])
+        await self.ctx.edit_last_response(self.embed, components=[])
         self.stop()
     
     async def view_check(self, ctx: miru.ViewContext) -> bool:
@@ -221,7 +222,7 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     embed.add_field(name='__Game Info__', value=f'Bet: 🪙 {bet}')
     embed.set_footer('The duel request will timeout in 2 minutes!')
     
-    view = Connect4DuelView(ctx.author, user, bet)
+    view = Connect4DuelView(ctx, user, bet)
     
     await ctx.respond(embed, components=view.build())
     
@@ -238,9 +239,9 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.set_footer('You have 60 seconds to choose an option or you will automatically forfeit!')
 
-    view = Connect4GameView(game, embed, ctx.author, user, bet)
+    view = Connect4GameView(ctx, game, embed, user, bet)
     
-    message = await ctx.edit_last_response(embed, components=view.build())
+    await ctx.edit_last_response(embed, components=view.build())
     
     client = ctx.bot.d.get('client')
     client.start_view(view)

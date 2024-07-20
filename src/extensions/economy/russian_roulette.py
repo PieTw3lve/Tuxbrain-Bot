@@ -31,7 +31,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     embed.add_field(name='__Player List__', value=f'{", ".join(players)}', inline=True)
     embed.set_footer(text=f'The game will timeout in 2 minutes!')
     
-    view = RRLobbyView(ctx.author, players, capacity, bet)
+    view = RRLobbyView(ctx, players, capacity, bet)
     
     await ctx.respond(embed, components=view.build())
     
@@ -54,9 +54,10 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     client.start_view(view) # starts game
     
 class RRLobbyView(miru.View):
-    def __init__(self, author: hikari.User, players: dict, capacity: int, amount: int) -> None:
+    def __init__(self, ctx: lightbulb.Context, players: dict, capacity: int, amount: int) -> None:
         super().__init__(timeout=120.0)
-        self.game = {'author': author, 'players': players, 'capacity': capacity, 'amount': amount, 'pool': amount}
+        self.ctx = ctx
+        self.game = {'author': ctx.author, 'players': players, 'capacity': capacity, 'amount': amount, 'pool': amount}
         self.gameStart = False
     
     @miru.button(label='Start', style=hikari.ButtonStyle.SUCCESS, row=1)
@@ -131,14 +132,15 @@ class RRLobbyView(miru.View):
         embed.add_field(name='__Game info__', value=f"Initial Bet: 🪙 {self.game['amount']:,}\nBet Pool: 🪙 {self.game['pool']:,}\nChamber Capacity: `{self.game['capacity']:,}`", inline=True)
         embed.add_field(name='__Player List__', value=f'`{", ".join(self.game["players"])}`', inline=True)
         
-        await self.message.edit(embed, components=[])
+        await self.ctx.edit_last_response(embed, components=[])
     
     async def view_check(self, ctx: miru.ViewContext) -> bool:
         return True
 
 class RRGameView(miru.View):
-    def __init__(self, game: dict, timeout: float) -> None:
+    def __init__(self, ctx: lightbulb.Context, game: dict, timeout: float) -> None:
         super().__init__(timeout=timeout)
+        self.ctx = ctx
         self.game = game
         self.playerIter = iter(game['players'].items())
         self.player = next(self.playerIter)[1]
@@ -211,8 +213,8 @@ class RRGameView(miru.View):
                 economy.add_money(player['id'], self.game['pool'] / (len(self.game['players']) - 1), False)
                 economy.add_gain(player['id'], self.game['amount'])
         economy.add_loss(self.player['id'], self.game['amount'])
-            
-        await self.message.edit(embed, components=[])
+        
+        await self.ctx.edit_last_response(embed, components=[])
     
     async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.player['id']

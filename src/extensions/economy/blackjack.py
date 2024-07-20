@@ -76,10 +76,11 @@ class Dealer:
         return deck
 
 class BlackJackView(miru.View):
-    def __init__(self, embed: hikari.Embed, author: hikari.User, bet: int, deck: Deck, player: Player, dealer: Dealer) -> None:
+    def __init__(self, ctx: lightbulb.Context, embed: hikari.Embed, bet: int, deck: Deck, player: Player, dealer: Dealer) -> None:
         super().__init__(timeout=60.0)
+        self.ctx = ctx
         self.embed = embed
-        self.author = author
+        self.author = ctx.author
         self.bet = bet
         self.deck = deck
         self.player = player
@@ -262,7 +263,7 @@ class BlackJackView(miru.View):
         self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
         self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
         self.embed.set_footer(None)
-        await self.message.edit(self.embed, components=[])
+        await self.ctx.edit_last_response(self.embed, components=[])
         economy.add_loss(self.author.id, self.bet)
     
     async def view_check(self, ctx: miru.ViewContext) -> bool:
@@ -310,7 +311,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
         economy.remove_money(ctx.author.id, bet, True)
         return await ctx.respond(embed)
     
-    view = BlackJackView(embed, ctx.user, bet, deck, player, dealer)
+    view = BlackJackView(ctx, embed, bet, deck, player, dealer)
     
     await ctx.respond(embed, components=view.build())
     client = ctx.bot.d.get('client')

@@ -34,7 +34,7 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{wins}`!\nBet: 🪙 {bet}')
     embed.set_footer('The duel request will timeout in 2 minutes!')
     
-    view = DuelView(ctx.author, user, bet, wins)
+    view = DuelView(ctx, user, bet, wins)
     
     await ctx.respond(embed, components=view.build())
     
@@ -92,9 +92,10 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
         await ctx.edit_last_response(embed, components=[])
     
 class DuelView(miru.View):
-    def __init__(self, author: hikari.User, opponent: hikari.User, bet: int, wins: int) -> None:
+    def __init__(self, ctx: lightbulb.Context, opponent: hikari.User, bet: int, wins: int) -> None:
         super().__init__(timeout=120.0, autodefer=True)
-        self.author = author
+        self.ctx = ctx
+        self.author = ctx.author
         self.opponent = opponent
         self.bet = bet
         self.wins = wins
@@ -122,8 +123,7 @@ class DuelView(miru.View):
         embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{self.wins}`!\nBet: 🪙 {self.bet}')
         
-        
-        await self.message.edit(embed, components=[])
+        await ctx.edit_response(embed, components=[])
         self.stop()
     
     async def on_timeout(self) -> None:
@@ -137,7 +137,7 @@ class DuelView(miru.View):
         embed.set_thumbnail(self.author.avatar_url)
         embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{self.wins}`!\nBet: 🪙 {self.bet}')
         
-        await self.message.edit(embed, components=[])
+        await self.ctx.edit_last_response(embed, components=[])
     
     async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.opponent.id
