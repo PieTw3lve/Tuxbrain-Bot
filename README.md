@@ -18,7 +18,7 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 - Interactive Games: `russian-roulette`, `rps`, `connect4`, `blackjack`, and `hangman`!
 - Tuxbrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
 - Moderation: `broadcast`, `poll`, `purge`, `translator` and **6** more!
-- Fun/Useless Commands: `random`, `fact`, `wotd`, and `bored`!
+- Fun/Useless Commands: `random`, `fact`, and `wotd`!
 
 ### Installation
 
