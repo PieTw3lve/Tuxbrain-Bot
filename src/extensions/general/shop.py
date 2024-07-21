@@ -117,7 +117,7 @@ class ProfileConfirmView(miru.View):
 
 class ChecksView(nav.NavigatorView):
     def __init__(self, inventory: Inventory, pages, buttons, timeout, autodefer: bool = True) -> None:
-        super().__init__(pages=pages, buttons=buttons, timeout=timeout, autodefer=autodefer)
+        super().__init__(pages=pages, items=buttons, timeout=timeout, autodefer=autodefer)
         self.inventory = inventory
 
     async def view_check(self, ctx: miru.ViewContext) -> bool:
@@ -147,8 +147,10 @@ async def customize(ctx: lightbulb.Context) -> None:
     pages = inventory.get_pages(items, 10)
     buttons = [NavShopSelectView(inventory, items, 10, row=1), nav.PrevButton(emoji='⬅️', row=2), NavPageInfo(len(pages), row=2), nav.NextButton(emoji='➡️', row=2)]
     navigator = ChecksView(inventory, pages, buttons, timeout=None)
-
-    await navigator.send(ctx.interaction)
+    client = ctx.bot.d.get('client')
+    builder = await navigator.build_response_async(client=client, ephemeral=True)
+    await builder.create_initial_response(ctx.interaction)
+    client.start_view(navigator)
 
 def load(bot):
     bot.add_plugin(plugin)
