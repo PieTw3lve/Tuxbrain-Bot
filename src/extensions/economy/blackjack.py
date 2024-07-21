@@ -22,7 +22,7 @@ class Deck:
         return self.cards.pop()
     
 class Hand:
-    def __init__(self, deck):
+    def __init__(self, deck: Deck):
         self.deck = deck
         self.cards = [deck.draw(), deck.draw()]
         
@@ -308,7 +308,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
         embed = hikari.Embed(title=f'Blackjack! Dealer has won!', description=f"The dealer's hand was exactly 21. You lost 🪙 {bet}!", color=get_setting('general', 'embed_error_color'))
         embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
         embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
-        economy.remove_money(ctx.author.id, bet, True)
+        economy.add_loss(ctx.author.id, bet)
         return await ctx.respond(embed)
     
     view = BlackJackView(ctx, embed, bet, deck, player, dealer)
