@@ -31,7 +31,7 @@ class MapSelection(miru.TextSelect):
 
 class SideSelection(miru.TextSelect):
     def __init__(self) -> None:
-        super().__init__(options=[miru.SelectOption(label='Counter-Terrorist', emoji='<:CounterTerrorist:1139266351073079406>', value='ct'), miru.SelectOption(label='Terrorist', emoji='<:Terrorist:1139272220884091001>', value='t')], custom_id='side_select', placeholder='Pick a Side')
+        super().__init__(options=[miru.SelectOption(label='Counter-Terrorist', emoji='<:CounterTerrorist:1265770646739353684>', value='ct'), miru.SelectOption(label='Terrorist', emoji='<:Terrorist:1139272220884091001>', value='t')], custom_id='side_select', placeholder='Pick a Side')
 
 class StrikeViewPools(miru.View):
     def __init__(self, embed: hikari.Embed, maps: list, user1: hikari.User, user2: hikari.User) -> None:

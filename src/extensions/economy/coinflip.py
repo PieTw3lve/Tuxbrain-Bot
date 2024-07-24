@@ -19,10 +19,10 @@ async def coinflip(ctx: lightbulb.SlashContext, number: int) -> None:
     for i in range(number):
         number = random.randint(1,2)
         if number == 1:
-            result.append('<:heads:1142649356827242536>')
+            result.append('<:heads:1265769437814853733>')
             heads += 1
         else:
-            result.append('<:tails:1142651928824774737>')
+            result.append('<:tails:1265769509235593380>')
             tails += 1
 
     result = (' '.join(result))

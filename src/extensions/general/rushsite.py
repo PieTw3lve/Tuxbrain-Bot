@@ -12,7 +12,7 @@ from bot import get_setting
 
 plugin = lightbulb.Plugin('Rushsite')
 dataDirectory = 'database/rushsite'
-trophiesIndex = {'s1': '<:TrophyS1:1143265272510304308>', 's2': '<:TrophyS2:1143265277925142578>', 's3': '<:TrophyS3:1143265282614366258>', 's4': '<:TrophyS4:1143265285848178778>', 's5': '<:TrophyS5:1143272567965237360>',}
+trophiesIndex = {'s1': '<:TrophyS1:1265770665378709598>', 's2': '<:TrophyS2:1265770682659111136>', 's3': '<:TrophyS3:1265770692666986648>', 's4': '<:TrophyS4:1265770707233800333>', 's5': '<:TrophyS5:1265770715978661919>',}
 rushsiteStats = {}
 allNames = []
 

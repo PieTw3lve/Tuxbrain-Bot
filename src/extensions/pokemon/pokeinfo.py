@@ -47,9 +47,9 @@ class FavoriteButton(miru.Button):
         self.db.commit()
 
         if favorite:
-            favorite_symbol = '<:favorite_icon:1074056642368377023>'
+            favorite_symbol = '<:favorite_icon:1265770511858794496>'
         else:
-            favorite_symbol = '<:unfavorite_icon:1074057036393881672>'
+            favorite_symbol = '<:unfavorite_icon:1265770609732751451>'
 
         self.embed.title = f'{name} Card {self.indents}{favorite_symbol}' if not shiny else f'Shiny {name} Card {self.indents}{favorite_symbol}'
         self.emoji = favorite_symbol
@@ -167,9 +167,9 @@ async def open(ctx: lightbulb.Context, uuid: str) -> None:
             indents = '\t\t\t\t\t\t\t\t\t\t\t'
         
         if favorite:
-            favorite_symbol = '<:favorite_icon:1074056642368377023>'
+            favorite_symbol = '<:favorite_icon:1265770511858794496>'
         else:
-            favorite_symbol = '<:unfavorite_icon:1074057036393881672>'
+            favorite_symbol = '<:unfavorite_icon:1265770609732751451>'
         
         embed = hikari.Embed(title=f'{name} Card {indents}{favorite_symbol}' if not shiny else f'Shiny {name} Card {indents}{favorite_symbol}', color=get_setting('general', 'embed_color'))
         embed.set_image(f'https://img.pokemondb.net/sprites/home/normal/{name.lower()}.png' if not shiny else f'https://img.pokemondb.net/sprites/home/shiny/{name.lower()}.png')

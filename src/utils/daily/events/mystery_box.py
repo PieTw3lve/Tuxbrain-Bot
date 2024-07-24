@@ -30,7 +30,7 @@ class DailyMysteryBoxView(miru.View):
             economy.add_money(self.user.id, amount, True)
 
             embed = hikari.Embed(title=f'A Solitary Journey into the Unknown', description=f'With a resolute spirit, you decide to open the enigmatic mystery box solely for yourself. As you carefully lift the lid, a sense of adventure courses through you. What awaits within is exclusively yours, a treasure that reflects your individual journey.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
+            embed.set_thumbnail('assets/img/general/daily/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
             await ctx.edit_response(embed, components=[])
@@ -44,7 +44,7 @@ class DailyMysteryBoxView(miru.View):
             economy.add_money(user.id, amount, True)
             
             embed = hikari.Embed(title=f'A Bond Forged Through Sharing', description=f'As you choose to share the enigmatic mystery box with {user.global_name}, a sense of anticipation fills the air. Gently, you pass the box to {user.global_name}, and together, you both open it.\n\n> You and <@{user.id}> earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
-            embed.set_thumbnail('assets/img/general/dailies/question_mark.png')
+            embed.set_thumbnail('assets/img/general/daily/question_mark.png')
             embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         
             await ctx.edit_response(embed, components=[])

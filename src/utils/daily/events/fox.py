@@ -24,7 +24,7 @@ class DailyFoxView(miru.View):
         placeholder='Select an Option',
         options=[
             miru.SelectOption(label='PET THE GOD DAMN FOX', emoji='🫳', description='You simply must pet the fox, no questions asked.', value='0'),
-            miru.SelectOption(label='Leave the Fox Alone', emoji='<:sleeping_fox:1143665534030848080>', description='Let the fox rest peacefully and continue with your day.', value='1'),
+            miru.SelectOption(label='Leave the Fox Alone', emoji='<:sleeping_fox:1265769415014879232>', description='Let the fox rest peacefully and continue with your day.', value='1'),
         ]
     )
     async def fox(self, ctx: miru.ViewContext, select: miru.TextSelect) -> None:
@@ -41,7 +41,7 @@ class DailyFoxView(miru.View):
                 embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.'
 
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
-        embed.set_thumbnail('assets/img/general/dailies/fox.png')
+        embed.set_thumbnail('assets/img/emotes/general/sleeping_fox.png')
     
         await ctx.edit_response(embed, components=[])
         self.stop()

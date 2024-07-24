@@ -50,7 +50,7 @@ class Inventory:
                 id, userID, date, name, pokemonId, rarity, shiny, favorite = card
                 emoji_star = '⭐' if not shiny else '🌟'
                 name_symbol = '' if not shiny else '**'
-                favorite_symbol = '' if not favorite else '<:favorite_icon:1074056642368377023>'
+                favorite_symbol = '' if not favorite else '<:favorite_icon:1265770511858794496>'
                 rarity_emoji = emoji_star * int(rarity)
                 if len(embed.fields) == 0:
                     embed.add_field(name='Pokémon Name', value=f'• {name_symbol}{name}{name_symbol} {favorite_symbol}', inline=True)

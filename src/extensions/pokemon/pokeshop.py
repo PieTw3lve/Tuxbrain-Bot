@@ -13,7 +13,7 @@ class PackShop(miru.View):
     def __init__(self) -> None:
         super().__init__(timeout=None)
     
-    @miru.button(label='Standard Pack', emoji='<:standard_booster_pack:1073771426324156428>', style=hikari.ButtonStyle.PRIMARY, custom_id='standard_pack_button')
+    @miru.button(label='Standard Pack', emoji='<:standard_booster_pack:1265770591319883919>', style=hikari.ButtonStyle.PRIMARY, custom_id='standard_pack_button')
     async def standard(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if verify_user(ctx.user) == None: # if user has never been register
             register_user(ctx.user)
@@ -26,7 +26,7 @@ class PackShop(miru.View):
         pack = StandardPokemonCardPack(ctx.user, ctx)
         await pack.buy()
     
-    @miru.button(label='Premium Pack', emoji='<:premium_booster_pack:1073771425095237662>', style=hikari.ButtonStyle.PRIMARY, custom_id='premium_pack_button')
+    @miru.button(label='Premium Pack', emoji='<:premium_booster_pack:1265770581832503316>', style=hikari.ButtonStyle.PRIMARY, custom_id='premium_pack_button')
     async def premium(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         if verify_user(ctx.user) == None: # if user has never been register
             register_user(ctx.user)

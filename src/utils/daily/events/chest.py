@@ -23,9 +23,9 @@ class DailyChestsView(miru.View):
         custom_id='info_select',
         placeholder='Select a Treasure Chest',
         options=[
-            miru.SelectOption(label='Old Chest', emoji='<:small_chest:1143255749322100837>', description='Worn and enigmatic, with tales of bygone days.', value='0'),
-            miru.SelectOption(label='Standard Chest', emoji='<:medium_chest:1143258292253118525>', description='Unremarkable yet dependable.', value='1'),
-            miru.SelectOption(label='Luxurious Chest', emoji='<:large_chest:1143260812002218164>', description='Lavish and extravagant, may promise grand rewards.', value='2'),
+            miru.SelectOption(label='Old Chest', emoji='<:small_chest:1265769485441175562>', description='Worn and enigmatic, with tales of bygone days.', value='0'),
+            miru.SelectOption(label='Standard Chest', emoji='<:medium_chest:1265769466109890693>', description='Unremarkable yet dependable.', value='1'),
+            miru.SelectOption(label='Luxurious Chest', emoji='<:large_chest:1265769448095092777>', description='Lavish and extravagant, may promise grand rewards.', value='2'),
         ]
     )
     async def chests(self, ctx: miru.ViewContext, select: miru.TextSelect) -> None:
