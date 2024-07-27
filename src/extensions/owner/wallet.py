@@ -21,7 +21,7 @@ async def wallet(ctx: lightbulb.Context) -> None:
 @lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
 @lightbulb.command('set', "Set a server member's wallet to a specific amount.", pass_options=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def set_wallet(ctx: lightbulb.Context, user: hikari.User, currency: str, amount: int):
+async def set_wallet(ctx: lightbulb.Context, user: hikari.User, amount: str):
     if user.is_bot:
         embed = hikari.Embed(description='You are not allowed to set money to this user!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
