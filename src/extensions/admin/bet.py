@@ -204,7 +204,7 @@ class BettingView(miru.Modal):
 @lightbulb.option('green', 'Outcome 2, like "No"', type=str, required=True)
 @lightbulb.option('blue', 'Outcome 1, like "Yes"', type=str, required=True)
 @lightbulb.option('name', 'What users will bet, like "Will I win five games in a row?"', type=str, required=True)
-@lightbulb.command('start-prediction', 'Initiate a live interactive bet for users to participate in.', pass_options=True)
+@lightbulb.command('prediction', 'Initiate a live interactive bet for users to participate in.', pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def bet(ctx: lightbulb.Context, blue: str, name: str, green: str, timer: int) -> None:
     embed = hikari.Embed(title=f'{name} (Open)', description=f'Submissions will close in {Error().format_seconds(timer)}.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
