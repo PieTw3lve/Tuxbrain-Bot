@@ -30,22 +30,22 @@ class FishpediaTerm:
 async def fishpedia(ctx: lightbulb.Context, term: str) -> None:
     termType, termId = term.split(',')
     
-    data_map = {
+    dataMap = {
         'Bait': data.baits,
         'Fish': data.fishes,
         'Location': data.locations,
         'Weather': data.weathers
     }
     
-    if termType not in data_map:
+    if termType not in dataMap:
         embed = hikari.Embed(
             description='Invalid term type.',
             color=get_setting('general', 'embed_error_color')
         )
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
-    item_dict = data_map[termType]
-    item = item_dict.get(termId)
+    itemDict = dataMap[termType]
+    item = itemDict.get(termId)
     
     if not item:
         embed = hikari.Embed(
@@ -54,8 +54,8 @@ async def fishpedia(ctx: lightbulb.Context, term: str) -> None:
         )
         return await ctx.respond("Item not found.", flags=hikari.MessageFlag.EPHEMERAL)
     
-    def create_embed(item, is_fish=False):
-        if is_fish:
+    def create_embed(item, fish=False):
+        if fish:
             salvage = item.combine_salvages(1, randomize=False)
             description = (
                 f'{item.description}\n\n'
@@ -77,7 +77,7 @@ async def fishpedia(ctx: lightbulb.Context, term: str) -> None:
             color=get_setting('general', 'embed_color')
         ).set_thumbnail(hikari.emojis.Emoji.parse(item.emoji).url)
     
-    embed = create_embed(item, is_fish=(termType == 'Fish'))
+    embed = create_embed(item, fish=(termType == 'Fish'))
     await ctx.respond(embed)
 
 @fishpedia.autocomplete('term')

@@ -11,14 +11,13 @@ Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a ne
 
 ### Features
 
-- Profile Customization: `profile`, `set`, `shop`!
-- Economy Integration: `leaderboard`, `daily`, `pay`, and **6** more!
-- Music Player: `play`, `controller`, `join`, and `leave`!
-- Pokémon Card Collecting and Trading: `pokeshop`, `pokeinv`, `pokeopen`, `pokeinfo`, and `poketrade`!
-- Interactive Games: `russian-roulette`, `rps`, `connect4`, `blackjack`, and `hangman`!
-- Tuxbrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
-- Moderation: `broadcast`, `poll`, `purge`, `translator` and **6** more!
-- Fun/Useless Commands: `random`, `fact`, and `wotd`!
+-   Profile Customization: `profile`, `set`, `shop`!
+-   Economy Integration: `leaderboard`, `daily`, `pay`, and **6** more!
+-   Music Player: `play`, `controller`, `join`, and `leave`!
+-   Interactive Games: `fish`, `russian-roulette`, `rps`, `connect4`, `blackjack`, and `hangman`!
+-   Tuxbrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
+-   Moderation: `broadcast`, `poll`, `purge`, `translator` and **6** more!
+-   Fun/Useless Commands: `random`, `fact`, and `wotd`!
 
 ### Installation
 
@@ -58,9 +57,9 @@ python3.11 -O bot.py
 
 ### Further readings
 
-- Hikari: https://github.com/hikari-py/hikari
-- Lightbulb: https://github.com/tandemdude/hikari-lightbulb
-- Miru: https://github.com/HyperGH/hikari-miru
-- Lavalink: https://github.com/Devoxin/Lavalink.py
-- Deep Translator: https://github.com/nidhaloff/deep-translator#chatgpt-translator
-- Lingua: https://github.com/pemistahl/lingua-py
+-   Hikari: https://github.com/hikari-py/hikari
+-   Lightbulb: https://github.com/tandemdude/hikari-lightbulb
+-   Miru: https://github.com/HyperGH/hikari-miru
+-   Lavalink: https://github.com/Devoxin/Lavalink.py
+-   Deep Translator: https://github.com/nidhaloff/deep-translator#chatgpt-translator
+-   Lingua: https://github.com/pemistahl/lingua-py
