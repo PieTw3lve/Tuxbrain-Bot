@@ -3,7 +3,7 @@ import hikari.emojis
 import lightbulb
 import itertools
 
-from extensions.general.fish import data
+from extensions.economy.fish import data
 from utils.fishing.bait import Bait
 from utils.fishing.fish import Fish
 from utils.fishing.location import Location

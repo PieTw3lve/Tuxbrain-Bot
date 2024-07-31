@@ -1,5 +1,3 @@
-import json
-
 class Weather:
     def __init__(self, id: str, name: str, emoji: str, description: str, weight: int, success_rate_bonus: float, quantity_bonus: float, rarity_bonus: float) -> None:
         """
