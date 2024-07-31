@@ -2,7 +2,7 @@ import hikari
 import lightbulb
 import random
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from bot import get_setting, verify_user, register_user
 from utils.daily.manager import DailyManager

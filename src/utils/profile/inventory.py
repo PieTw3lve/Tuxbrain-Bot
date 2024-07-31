@@ -49,7 +49,8 @@ class Inventory():
     def get_pages(self, items: list, maxItems: int):
         pages = []
         for i in range(0, len(items), maxItems):
-            embed = hikari.Embed(title="Profile Customization Shop", description='Welcome to our Profile Customization Shop, where you can transform your online presence and make a lasting impression. Our extensive menu offers a wide range of options to personalize and enhance your profile to truly reflect your unique style and personality.', color=get_setting('general', 'embed_color'))
+            embed = hikari.Embed(title="Welcome to the Profile Shop!", description='This is where you can purchase a wide range of cosmetic items to customize and enhance your profile card.', color=get_setting('general', 'embed_color'))
+            embed.set_thumbnail('assets/img/general/profile/palette.png')
             end = i + maxItems
             for option in items[i:end]:
                 currency, name, price = option

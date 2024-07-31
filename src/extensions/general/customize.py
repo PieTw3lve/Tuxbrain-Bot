@@ -23,7 +23,7 @@ class ProfileCustomizeView(miru.View):
         self.newPreset = newPreset
 
     @miru.button(label='Save', emoji='🖨️', style=hikari.ButtonStyle.SUCCESS, row=1)
-    async def save(self, button: miru.Button, ctx: miru.ViewContext):
+    async def save(self, ctx: miru.ViewContext, button: miru.Button):
         self.cursor.execute('UPDATE profile SET active = 0 WHERE user_id = ?', (ctx.user.id,))
         for item in self.newPreset:
             name, type = str(item).split('-')
@@ -36,12 +36,12 @@ class ProfileCustomizeView(miru.View):
         self.stop()
     
     @miru.button(label='Cancel', emoji='✖️', style=hikari.ButtonStyle.DANGER, row=1)
-    async def cancel(self, button: miru.Button, ctx: miru.ViewContext):
+    async def cancel(self, ctx: miru.ViewContext, button: miru.Button):
         await ctx.edit_response(components=[])
         self.stop()
     
     @miru.button(label='Preview', emoji='🔍', style=hikari.ButtonStyle.PRIMARY, row=1)
-    async def preview(self, button: miru.Button, ctx: miru.ViewContext):
+    async def preview(self, ctx: miru.ViewContext, button: miru.Button):
         bg = Image.open(f'assets/img/general/profile/banner/{self.newPreset[0]}.png').convert('RGBA')
         card = Image.open(f'assets/img/general/profile/base/{self.newPreset[1]}.png').convert('RGBA')
         nametag = Image.open(f'assets/img/general/profile/nametag/{self.newPreset[2]}.png').convert('RGBA')
@@ -61,7 +61,7 @@ class ProfileCustomizeView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def customize(ctx: lightbulb.Context, banner: str, base: str, nametag: str) -> None:
     inventory = Inventory(ctx.member)
-    profile = Card(ctx.member)
+    profile = Card(ctx.member, ctx)
     
     oldPreset = inventory.get_active_customs()
     activePreset = [banner, base, nametag]
@@ -86,8 +86,9 @@ async def customize(ctx: lightbulb.Context, banner: str, base: str, nametag: str
         .set_footer(text='This action cannot be undone.')
     )
 
-    message = await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
-    await view.start(message)
+    await ctx.respond(embed, components=view.build(), flags=hikari.MessageFlag.EPHEMERAL)
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 @customize.autocomplete('banner', 'base', 'nametag')
 async def search_autocomplete(opt: hikari.AutocompleteInteractionOption, ctx: hikari.AutocompleteInteraction):

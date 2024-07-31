@@ -26,7 +26,7 @@ async def set_ticket(ctx: lightbulb.Context, user: hikari.User, amount: int):
         embed = hikari.Embed(description='You are not allowed to set tickets to this user!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None:
-        register_user(ctx.user)
+        register_user(user)
 
     economy.set_ticket(user.id, amount)
     embed = (hikari.Embed(description=f"You set {user.global_name}'s ticket amount to 🎟️ {amount:,}.", color=get_setting('general', 'embed_color')))
@@ -43,7 +43,7 @@ async def add(ctx: lightbulb.Context, user: hikari.User, amount: int):
         embed = hikari.Embed(description='You are not allowed to add tickets to this user!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None:
-        register_user(ctx.user)
+        register_user(user)
     
     if economy.add_ticket(user.id, amount):
         embed = (hikari.Embed(description=f"You added {amount:,} 🎟️ to {user.global_name}'s wallet.", color=get_setting('general', 'embed_color')))
@@ -60,7 +60,7 @@ async def remove(ctx: lightbulb.Context, user: hikari.User, amount: int, update:
         embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('general', 'embed_error_color'))
         return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     elif verify_user(user) == None:
-        register_user(ctx.user)
+        register_user(user)
     
     if economy.remove_ticket(user.id, amount):
         embed = (hikari.Embed(description=f"You took {amount:,} 🎟️ from {user.global_name}'s wallet.", color=get_setting('general', 'embed_color')))

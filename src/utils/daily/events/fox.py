@@ -35,7 +35,7 @@ class DailyFoxView(miru.View):
         match select.values[0]:
             case '0':
                 embed.title = 'A Touch of Fate'
-                embed.description = f'As you extend your hand to gently pet the curious red fox, you initiate a unique connection with the wild.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.'
+                embed.description = f'As you extend your hand to gently pet the curious red fox, you initiate a unique connection with the wild.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EST.'
             case '1':
                 embed.title = "Respecting Nature's Rhythm"
                 embed.description = f'As you stand there amidst the tranquil forest, you recognize the importance of allowing nature to unfold at its own pace. The fox, in its natural habitat, is a symbol of the untamed, unscripted beauty of the wilderness.\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.'

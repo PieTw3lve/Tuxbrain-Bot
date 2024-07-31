@@ -36,17 +36,17 @@ class DailyChestsView(miru.View):
             case '0':
                 chest = 'Old Chest'
                 description = 'With a creaking sound, you gingerly open it. Inside, you find a modest sum of coins, their aged appearance hinting at the wisdom of the past. The Old Chest offers a reminder that even the simplest treasures hold value when viewed through the lens of history.'
-                img = 'assets/img/emotes/small_chest.png'
+                img = 'assets/img/emotes/general/small_chest.png'
             case '1':
                 chest = 'Standard Chest'
                 description = 'With a steady hand, you unlock it. Inside, you discover a sum of coins that neither beguiles nor overwhelms, leaving you with a sense of steady progression. The Standard Chest reaffirms the virtue of reliability in an unpredictable world.'
-                img = 'assets/img/emotes/medium_chest.png'
+                img = 'assets/img/emotes/general/medium_chest.png'
             case '2':
                 chest = 'Luxurious Chest'
                 description = 'Tempted by the allure of immense wealth, you decide to open it. With a dramatic flourish, the chest reveals a dazzling array of coins. Yet, you sense the weight of responsibility that accompanies such wealth, a reminder that great riches come with equally great risks.'
-                img = 'assets/img/emotes/large_chest.png'
+                img = 'assets/img/emotes/general/large_chest.png'
 
-        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EDT.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
+        embed = hikari.Embed(title=f'You opened the {chest}', description=f'{description}\n\n> You earned 🪙 {amount}!\n> Your daily streak is now **{self.dailyManager.streak}**!\n\nCommand cooldown will reset at 12 AM EST.', color=get_setting('general', 'embed_color'), timestamp=datetime.now().astimezone())
         embed.set_footer(text=f'Requested by {ctx.author.global_name}', icon=ctx.author.display_avatar_url)
         embed.set_thumbnail(img)
     

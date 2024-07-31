@@ -10,140 +10,19 @@ import sqlite3
 
 from lightbulb.ext import tasks
 
-VERSION = '1.3.3'
+from utils.general.config import VERSION, get_setting_json, update_settings, get_setting, write_setting
 
 ## Functions ##
 
 def install(package):
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
 
-def get_setting_json():
-    bot = {
-        'version': VERSION, # DO NOT CHANGE
-        'token': '', # BOT TOKEN (REQUIRED)
-        'owner_id': [], # BOT OWNER IDS (REQUIRED)
-        'test_guild_id': [], # APPLICATION COMMAND ENABLED GUILDS (OPTIONAL)
-        'wordnik_api_key': '', # WORDNIK API KEY (OPTIONAL)
-    }
-    general = {
-        'database_data_dir': 'database/database.sqlite',
-        'command_cooldown': 5,
-        'embed_color': '#249EDB',
-        'embed_important_color': 'b03f58',
-        'embed_success_color': '#32CD32',
-        'embed_error_color': '#FF0000',
-        'auto_translate_conf': 0.80,
-        'auto_translate_min_relative_distance': 0.90,
-    }
-    economy = {
-        'starting_balance': 300,
-        'starting_tux_pass': 0,
-        'daily_max_streak': 30,
-    }
-    profile = {
-        'coin': {
-            'gray-banner': 200,
-            'float-nametag': 200,
-            'separator-nametag': 200,
-            'tuxedo-nametag': 200,
-            'apple-base': 500,
-            'burgundy-base': 500,
-            'blueberry-base': 500,
-            'grape-base': 500,
-            'snow-base': 1000,
-            'snow-nametag': 1000,
-            'plastic-banner': 1000,
-            'plastic-base': 1000,
-            'plastic-nametag': 1000,
-            'blue-banner': 2000,
-            'orange-banner': 2000,
-            'grassiant-banner': 5000,
-            'sky-banner': 5000,
-            'purp-banner': 5000,
-            'purp-base': 5000,
-            'purp-nametag': 5000,
-            'charged_rose-banner': 5000,
-            'rushsite_s3-banner': 7000,
-            'france-banner': 10000,
-            'usa-banner': 10000,
-            },
-            'tpass': {
-                'nippuwu-banner': 1,
-            }
-        }
-    pokemon = {
-        'pokemon_pack_amount': 7,
-        'pokemon_max_capacity': 2000,
-    }
-
-    json = {
-        'bot': bot,
-        'general': general,
-        'economy': economy,
-        'profile': profile,
-        'pokemon': pokemon,
-    }
-        
-    return json
-
-def update_settings():
-    settings = get_setting_json()
-    with open('settings.json', 'r') as openfile:
-        data = json.load(openfile)
-    
-    # Add or update settings
-    for section in settings:
-        if section not in data:
-            data[section] = settings[section]
-        else:
-            for option in settings[section]:
-                if option not in data[section]:
-                    data[section][option] = settings[section][option]
-
-    # Remove settings not present in get_setting_json()
-    sections_to_remove = [section for section in data if section not in settings]
-    for section in sections_to_remove:
-        del data[section]
-    
-    for section in data:
-        options_to_remove = [option for option in data[section] if option not in settings[section]]
-        for option in options_to_remove:
-            del data[section][option]
-
-    with open('settings.json', 'w') as openfile:
-        json.dump(data, openfile, indent=4)
-
-def get_setting(section: str, option: str = None):
-    with open('settings.json', 'r') as openfile:
-        data = json.load(openfile)
-        if option:
-            if section in data and option in data[section]:
-                return data[section][option]
-            else:
-                return None
-        elif section in data:
-            return data[section]
-        else:
-            return None
-
-def write_setting(section: str, option: str, value):
-    with open('settings.json', 'r') as openfile:
-        data = json.load(openfile)
-
-    if section not in data:
-        data[section] = {}
-
-    data[section][option] = value
-
-    with open('settings.json', 'w') as openfile:
-        json.dump(data, openfile, indent=4)
-
 def register_user(user: hikari.User):
     db = sqlite3.connect(get_setting('general', 'database_data_dir'))
     cursor = db.cursor()
     
-    sql = ('INSERT INTO economy(user_id, balance, total, loss, tpass, streak, date, level, experience) VALUES (?,?,?,?,?,?,?,?,?)')
-    val = (user.id, get_setting('economy', 'starting_balance'), get_setting('economy', 'starting_balance'), 0, get_setting('economy', 'starting_tux_pass'), 0, None, 0, 0)
+    sql = ('INSERT INTO economy(user_id, balance, total, loss, tpass, streak, date) VALUES (?,?,?,?,?,?,?)')
+    val = (user.id, get_setting('economy', 'starting_balance'), get_setting('economy', 'starting_balance'), 0, get_setting('economy', 'starting_tux_pass'), 0, None)
     cursor.execute(sql, val) 
     
     db.commit() # saves changes
@@ -223,22 +102,18 @@ if __name__ == '__main__':
             streak INTEGER,
             date TEXT
         )''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS pokemon (
-            id TEXT PRIMARY KEY, 
-            user_id TEXT,
-            date TEXT, 
-            name TEXT, 
-            pokemon_id INTEGER, 
-            rarity INTEGER, 
-            shiny INTEGER,
-            favorite INTEGER
-        )''')
         cursor.execute('''CREATE TABLE IF NOT EXISTS profile (
             user_id TEXT,
             name TEXT, 
             type TEXT,
             active INTEGER,
             PRIMARY KEY (user_id, type, name)
+        )''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS fishing (
+            user_id TEXT,
+            bait_id TEXT,
+            amount INTEGER,
+            PRIMARY KEY (user_id, bait_id)
         )''')
 
     # Install uvloop for Linux users

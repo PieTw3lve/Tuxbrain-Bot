@@ -4,7 +4,7 @@ import miru
 
 from miru.ext import nav
 from bot import get_setting, get_commands
-from utils.pokemon.inventory import NavPageInfo
+from utils.general.navigator import NavPageInfo
 
 VERSION = get_setting('bot', 'version')
 

@@ -1,8 +1,10 @@
 import typing as t
+import hikari
 import lightbulb
 import sqlite3
 
 from lightbulb.ext import tasks
+from lightbulb.ext.tasks import CronTrigger
 from datetime import datetime
 
 from bot import get_setting
@@ -11,7 +13,7 @@ plugin = lightbulb.Plugin('Update Leaderboard')
 leaderboardEco = []
 leaderboardEcoLastRefresh = None
 
-@tasks.task(m=30, auto_start=True)
+@tasks.task(CronTrigger("0,30 * * * *"), auto_start=True)
 async def update_leaderboard():
     global leaderboardEco, leaderboardEcoLastRefresh
     leaderboardEco = []
@@ -47,6 +49,10 @@ async def update_leaderboard():
     db.commit()
     cursor.close()
     db.close()
+
+@plugin.listener(hikari.StartedEvent)
+async def on_start(event: hikari.StartedEvent) -> None:
+    await update_leaderboard()
 
 def getLeaderboard() -> list:
     return leaderboardEco
