@@ -109,7 +109,8 @@ class BlackJackView(miru.View):
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             await ctx.edit_response(self.embed, components=[])
-            economy.add_money(ctx.author.id, self.bet*2, True)
+            economy.add_money(ctx.author.id, self.bet*2, False)
+            economy.add_gain(self.author.id, self.bet)
             self.stop()
         else:
             self.embed.edit_field(0, "Dealer's Hand", f'{self.dealer.cards()[0]} ?\nValue: ?')
@@ -128,7 +129,8 @@ class BlackJackView(miru.View):
             self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
-            economy.add_money(ctx.author.id, self.bet*2, True)
+            economy.add_money(ctx.author.id, self.bet*2, False)
+            economy.add_gain(ctx.author.id, self.bet)
             self.stop()
         elif self.dealer.hand.score() == 21:
             self.embed.title = 'Blackjack! Dealer has won!' # Dealer hand value is exactly 21
@@ -146,7 +148,8 @@ class BlackJackView(miru.View):
             self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
-            economy.add_money(ctx.author.id, self.bet*2, True)
+            economy.add_money(ctx.author.id, self.bet*2, False)
+            economy.add_gain(ctx.author.id, self.bet)
             self.stop()
         elif self.player.hand.score() == self.dealer.hand.score():
             self.embed.title = 'Push (Draw)' # Tie
@@ -197,7 +200,8 @@ class BlackJackView(miru.View):
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
             await ctx.edit_response(self.embed, components=[])
-            economy.add_money(ctx.author.id, self.bet*2, True)
+            economy.add_money(ctx.author.id, self.bet*2, False)
+            economy.add_gain(ctx.author.id, self.bet)
             self.stop()
             return
         else:
@@ -215,7 +219,8 @@ class BlackJackView(miru.View):
             self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
-            economy.add_money(ctx.author.id, self.bet*2, True)
+            economy.add_money(ctx.author.id, self.bet*2, False)
+            economy.add_gain(ctx.author.id, self.bet)
             self.stop()
         elif self.dealer.hand.score() == 21:
             self.embed.title = 'Blackjack! Dealer has won!' # Dealer hand value is exactly 21
@@ -233,7 +238,8 @@ class BlackJackView(miru.View):
             self.embed.edit_field(0, "Dealer's Hand", f'{" ".join(self.dealer.cards())}\nValue: {self.dealer.hand.score()}')
             self.embed.edit_field(1, "Your Hand", f'{" ".join(self.player.cards())}\nValue: {self.player.hand.score()}')
             self.embed.set_footer(None)
-            economy.add_money(ctx.author.id, self.bet*2, True)
+            economy.add_money(ctx.author.id, self.bet*2, False)
+            economy.add_gain(ctx.author.id, self.bet)
             self.stop()
         elif self.player.hand.score() == self.dealer.hand.score():
             self.embed.title = 'Push (Draw)' # Tie
@@ -302,7 +308,8 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
         embed = hikari.Embed(title=f'Blackjack! You have won!', description=f'Your hand was exactly 21. You won 🪙 {bet}!', color=get_setting('general', 'embed_success_color'))
         embed.add_field(name="Dealer's Hand", value=f'{" ".join(dealer.cards())}\nValue: {dealer.hand.score()}', inline=True)
         embed.add_field(name="Your Hand", value=f'{" ".join(player.cards())}\nValue: {player.hand.score()}', inline=True)
-        economy.add_money(ctx.author.id, bet*2, True)
+        economy.add_money(ctx.author.id, bet*2, False)
+        economy.add_gain(ctx.author.id, bet)
         return await ctx.respond(embed)
     elif dealer.hand.score() == 21:
         embed = hikari.Embed(title=f'Blackjack! Dealer has won!', description=f"The dealer's hand was exactly 21. You lost 🪙 {bet}!", color=get_setting('general', 'embed_error_color'))

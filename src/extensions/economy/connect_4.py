@@ -153,12 +153,14 @@ class Connect4GameView(miru.View):
             if self.game.currentPlayer == '1':
                 self.embed.description = f'**{self.author.global_name}** wins!\n{self.game.printBoard()}'
                 self.embed.set_thumbnail(self.author.avatar_url if self.author.avatar_url != None else self.author.default_avatar_url)
-                economy.add_money(self.author.id, self.bet*2, True)
+                economy.add_money(self.author.id, self.bet*2, False)
+                economy.add_gain(self.author.id, self.bet)
                 economy.add_loss(self.opponent.id, self.bet)
             else:
                 self.embed.description = f'**{self.opponent.global_name}** wins!\n{self.game.printBoard()}'
                 self.embed.set_thumbnail(self.opponent.avatar_url if self.opponent.avatar_url != None else self.opponent.default_avatar_url)
-                economy.add_money(self.opponent.id, self.bet*2, True)
+                economy.add_money(self.opponent.id, self.bet*2, False)
+                economy.add_gain(self.opponent.id, self.bet)
                 economy.add_loss(self.author.id, self.bet)
             self.embed.set_footer(None)
             await ctx.edit_response(self.embed, components=[])
@@ -180,12 +182,14 @@ class Connect4GameView(miru.View):
         if self.game.currentPlayer == '1':
             self.embed.description = f'**{self.author.global_name}** wins!\n{self.game.printBoard()}'
             self.embed.set_thumbnail(self.author.avatar_url if self.author.avatar_url != None else self.author.default_avatar_url)
-            economy.add_money(self.author.id, self.bet*2, True)
+            economy.add_money(self.author.id, self.bet*2, False)
+            economy.add_gain(self.author.id, self.bet)
             economy.add_loss(self.opponent.id, self.bet)
         else:
             self.embed.description = f'**{self.opponent.global_name}** wins!\n{self.game.printBoard()}'
             self.embed.set_thumbnail(self.opponent.avatar_url if self.opponent.avatar_url != None else self.opponent.default_avatar_url)
-            economy.add_money(self.opponent.id, self.bet*2, True)
+            economy.add_money(self.opponent.id, self.bet*2, False)
+            economy.add_gain(self.opponent.id, self.bet)
             economy.add_loss(self.author.id, self.bet)
         self.embed.set_footer(None)
         await self.ctx.edit_last_response(self.embed, components=[])

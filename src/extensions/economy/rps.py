@@ -65,7 +65,8 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     
     if view.player1['score'] > view.player2['score']:
         economy.add_loss(user.id, bet)
-        economy.add_money(ctx.author.id, bet*2, True)
+        economy.add_money(ctx.author.id, bet*2, False)
+        economy.add_gain(ctx.author.id, bet)
         
         embed.title = f'{ctx.author} wins the RPS duel!'
         embed.description = f'🪙 {bet*2} coins has been sent to the winner!'
@@ -74,7 +75,8 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
         await ctx.edit_last_response(embed, components=[])
     elif view.player1['score'] < view.player2['score']:
         economy.add_loss(ctx.author.id, bet)
-        economy.add_money(user.id, bet*2, True)
+        economy.add_money(user.id, bet*2, False)
+        economy.add_gain(user.id, bet)
         
         embed.title = f'{user} wins the RPS duel!'
         embed.description = f'🪙 {bet*2} coins has been sent to the winner!'

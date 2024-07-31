@@ -36,7 +36,7 @@ class DailyMysteryBoxView(miru.View):
             await ctx.edit_response(embed, components=[])
             self.stop()
         else:
-            if verify_user(user) == None: # if user has never been register
+            if verify_user(user) == None: 
                 register_user(user)
             
             amount = self.options[0][0] * self.options[0][1]
