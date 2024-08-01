@@ -277,7 +277,7 @@ class BlackJackView(miru.View):
 
 @plugin.command
 @lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=20, max_value=5000, required=True)
+@lightbulb.option('bet', 'Number of coins you want to bet.', type=int, min_value=1, max_value=5000, required=True)
 @lightbulb.command('blackjack', 'Try your luck in a game of Blackjack against a computer.', aliases=['bj'], pass_options=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
