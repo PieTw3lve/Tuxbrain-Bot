@@ -17,6 +17,7 @@ class ShopSelectView(miru.View):
     def __init__(self, user: hikari.User) -> None:
         super().__init__(timeout=None)
         self.author = user
+        self.embed = self.get_embed()
         self.option = None
     
     @miru.text_select(
@@ -31,6 +32,18 @@ class ShopSelectView(miru.View):
         self.option = select.values[0]
         self.stop()
 
+    def get_embed(self) -> hikari.Embed:
+        return hikari.Embed(
+            title=f'Select a Shop',
+            description=(
+                'Welcome to the shop! Here, you can spend your hard-earned coins and tickets on a variety of items. '
+                'Select a shop below to get started.\n\n'
+                '🎨 **Profile Shop** - Personalize your profile with a wide range of options.\n'
+                '🎣 **Fishing Shop** - Find the perfect bait to reel in your next big catch.'
+            ),
+            color=get_setting('general', 'embed_color')
+        )
+
     async def view_check(self, ctx: miru.ViewContext) -> bool:
         return ctx.user.id == self.author.id
 
@@ -39,13 +52,8 @@ class ShopSelectView(miru.View):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def customize(ctx: lightbulb.Context) -> None:
     view = ShopSelectView(ctx.author)
-    embed = hikari.Embed(
-        title=f'Select a Shop',
-        description='Spend your hard-earned coins and tickets on a variety of items!',
-        color=get_setting('general', 'embed_color')
-    )
     
-    await ctx.respond(embed, components=view.build())
+    await ctx.respond(view.embed, components=view.build())
     client = ctx.bot.d.get('client')
     client.start_view(view)
     await view.wait()
