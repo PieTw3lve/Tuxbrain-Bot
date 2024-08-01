@@ -208,9 +208,9 @@ async def strike(ctx: lightbulb.Context, maps: str, user1: hikari.User, user2: h
         view = StrikeViewPlayoffs(embed, mapList, user1, user2)
     
     view.add_item(MapSelection(options))
-    message = await ctx.respond(embed, components=view.build())
-    
-    await view.start(message)
+    await ctx.respond(embed, components=view.build())
+    client = ctx.bot.d.get('client')
+    client.start_view(view)
 
 ## Generate Pools ##
 
