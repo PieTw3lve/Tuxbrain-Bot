@@ -22,7 +22,7 @@ economy = EconomyManager()
 data = FishingConfigLoader()
 todaysWeather = None
 
-@tasks.task(CronTrigger('0 0 * * *'), auto_start=True)
+@tasks.task(CronTrigger('0 5 * * *'), auto_start=True)
 async def update_weather() -> None:
     global todaysWeather
     weathers = list(data.weathers.values())
