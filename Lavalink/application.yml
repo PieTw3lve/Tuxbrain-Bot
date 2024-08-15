@@ -11,23 +11,24 @@ plugins:
         # Clients are queried in the order they are given (so the first client is queried first and so on...)
         clients:
             - MUSIC
-            - ANDROID
+            - ANDROID_MUSIC
+            - TVHTML5EMBEDDED
             - WEB
         # You can configure individual clients with the following.
         # Any options or clients left unspecified will use their default values,
         # which enables everything for all clients.
-        WEB: # names are specified as they are written below under "Available Clients".
-            # This will disable using the WEB client for video playback.
-            playback: false
-        TVHTML5EMBEDDED:
-            # The below config disables everything except playback for this client.
-            playlistLoading: false # Disables loading of playlists and mixes for this client.
-            videoLoading: false # Disables loading of videos for this client (playback is still allowed).
-            searching: false # Disables the ability to search for videos for this client.
+        # WEB: # names are specified as they are written below under "Available Clients".
+        #     # This will disable using the WEB client for video playback.
+        #     playback: false
+        #     videoLoading: false # Disables loading of videos for this client. A client may still be used for playback even if this is set to 'false'.
+        # TVHTML5EMBEDDED:
+        #     # The below config disables everything except playback for this client.
+        #     videoLoading: false # Disables loading of videos for this client (playback is still allowed).
+        #     searching: false # Disables the ability to search for videos for this client.
 lavalink:
     plugins:
         # Replace VERSION with the current version as shown by the Releases tab or a long commit hash for snapshots.
-        - dependency: 'dev.lavalink.youtube:youtube-plugin:1.5.1'
+        - dependency: 'dev.lavalink.youtube:youtube-plugin:1.6.0'
           snapshot: false # Set to true if you want to use a snapshot version.
     pluginsDir: './plugins'
     server:
