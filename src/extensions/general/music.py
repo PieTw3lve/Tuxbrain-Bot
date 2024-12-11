@@ -238,7 +238,7 @@ async def search_autocomplete(opt: hikari.AutocompleteInteractionOption, inter: 
     # Check if the user input might be a URL. If it isn't, we can Lavalink do a YouTube search for it instead.
     url_rx = re.compile(r'https?://(?:www\.)?.+')
     if not url_rx.match(query):
-        ytquery = f'ytmsearch:{query}'
+        ytquery = f'ytsearch:{query}'
         scquery = f'scsearch:{query}'
     else:
         ytquery = query
