@@ -194,11 +194,11 @@ class HiLoView(miru.View):
             await self.switch_view(ctx)
         else:
             economy.add_loss(self.author.id, self.bet)
-            self.embed.title = f'Round {self.round}: You guessed incorrectly!'
+            self.embed.title = f'You guessed incorrectly!'
             self.embed.description = (
                 f'Better luck next time.\n\n'
                 f'> **Total Rounds**: {self.round}\n'
-                f'> **Payout Winnings**: 0 🪙\n'
+                f'> **Your Bet**: {self.bet:,} 🪙\n'
             )
             self.embed.color = get_setting('general', 'embed_error_color')
             self.embed.set_image(self.deck.display(self.player, self.dealer))
