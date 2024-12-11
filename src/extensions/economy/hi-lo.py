@@ -16,16 +16,10 @@ class Player:
     def __init__(self, deck):
         self.hand = Hand(deck)
 
-    def cards(self):
-        deck = []
-        for card in self.hand.cards:
-            deck.append(f'{card["rank"]}{card["suit"]}')
-        return deck
-
 class Deck:
     CARD_IMAGE_PATH = 'assets/img/economy/casino/{suit}/{rank}.png'
     BACK_IMAGE_PATH = 'assets/img/economy/casino/back.png'
-    TABLE_IMAGE_PATH = 'assets/img/economy/casino/hi-lo_table.png'
+    TABLE_IMAGE_PATH = 'assets/img/economy/casino/table.png'
 
     def __init__(self):
         ranks = ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K']
@@ -128,11 +122,11 @@ class ContinueView(miru.View):
     @miru.button('Cash Out', style=hikari.ButtonStyle.DANGER, custom_id='cash_out')
     async def on_cash_out(self, ctx: miru.ViewContext, button: miru.Button) -> None:
         economy.add_money(self.author.id, self.bet, True)
-        self.embed.title = f'Round {self.round}: Cashed Out!'
+        self.embed.title = f'Cashed Out!'
         self.embed.description = (
             f'You cashed out your winnings.\n\n'
+            f'> **Total Rounds**: {self.round}\n'
             f'> **Payout Winnings**: {self.bet:,} 🪙\n'
-            f'> **Cards Remaining**: {len(self.deck.cards)}'
         )
         self.embed.color = get_setting('general', 'embed_success_color')
         self.embed.set_footer(None)
@@ -147,10 +141,11 @@ class ContinueView(miru.View):
 
     async def on_timeout(self) -> None:
         economy.add_money(self.author.id, self.bet, True)
+        self.embed.title = f'Cashed Out!'
         self.embed.description = (
             f'You cashed out your winnings.\n\n'
+            f'> **Total Rounds**: {self.round}\n'
             f'> **Payout Winnings**: {self.bet:,} 🪙\n'
-            f'> **Cards Remaining**: {len(self.deck.cards)}'
         )
         self.embed.color = get_setting('general', 'embed_success_color')
         self.embed.set_footer(None)
@@ -198,13 +193,12 @@ class HiLoView(miru.View):
             self.bet = payout
             await self.switch_view(ctx)
         else:
+            economy.add_loss(self.author.id, self.bet)
             self.embed.title = f'Round {self.round}: You guessed incorrectly!'
             self.embed.description = (
                 f'Better luck next time.\n\n'
-                f'> **Your Bet**: {self.bet:,} 🪙\n'
-                f'> **Payout Multiplier**: x{self.player.hand.payout(option)}\n'
+                f'> **Total Rounds**: {self.round}\n'
                 f'> **Payout Winnings**: 0 🪙\n'
-                f'> **Cards Remaining**: {len(self.deck.cards)}'
             )
             self.embed.color = get_setting('general', 'embed_error_color')
             self.embed.set_image(self.deck.display(self.player, self.dealer))
@@ -251,11 +245,11 @@ class HiLoView(miru.View):
         self.client.start_view(view)
 
     async def on_timeout(self) -> None:
+        economy.add_loss(self.author.id, self.bet)
         self.embed.description = (
             f'Game has timed out!\n\n'
             f'> **Total Rounds**: {self.round}\n'
             f'> **Payout Winnings**: 0 🪙\n'
-            f'> **Cards Remaining**: {len(self.deck.cards)}'
         )
         self.embed.color = get_setting('general', 'embed_error_color')
         self.embed.set_image(self.deck.display(self.player, self.dealer))
