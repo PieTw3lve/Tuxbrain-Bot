@@ -111,7 +111,7 @@ class ConvertView(miru.View):
 
         await plugin.bot.rest.create_message(CONSOLE_ID, f'eco add {self.username} {self.amount // CONVERT_RATE}')
         await ctx.edit_response(self.embed, components=[])
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        await ctx.respond(embed)
     
     @miru.button(label='Set Coins', emoji='🪙', style=hikari.ButtonStyle.PRIMARY, custom_id='coins')
     async def set_coins(self, ctx: miru.ViewContext, button: miru.Button) -> None:
