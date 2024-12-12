@@ -1,4 +1,3 @@
-import sqlite3
 import hikari
 import lightbulb
 import miru
