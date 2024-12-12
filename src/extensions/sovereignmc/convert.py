@@ -41,7 +41,7 @@ class CoinModal(miru.Modal, title='Set Coin Amount'):
         if self.amount + coins > WEEKLY_LIMIT:
             self.amount = WEEKLY_LIMIT - coins
 
-        if self.amount == 0:
+        if self.amount == 0 and coins == WEEKLY_LIMIT:
             embed = hikari.Embed(description=f'You have reached the weekly limit of {WEEKLY_LIMIT:,} 🪙.', color=get_setting('general', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
