@@ -1,6 +1,6 @@
 import json
 
-VERSION = '1.4.2'
+VERSION = '1.4.3'
 
 def get_setting_json():
     bot = {

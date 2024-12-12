@@ -18,6 +18,11 @@ plugin = lightbulb.Plugin('SovereignMC')
 economy = EconomyManager()
 database = SovManager()
 
+@plugin.listener(hikari.StartedEvent)
+async def on_start(event: hikari.StartedEvent) -> None:
+    if plugin.bot.cache.get_guild(GUILD_ID) is None:
+        plugin.bot.remove_plugin(plugin)
+
 @plugin.command
 @lightbulb.app_command_permissions(dm_enabled=False)
 @lightbulb.command('sovereignmc', 'Commands for SovereignMC.')
@@ -182,5 +187,4 @@ async def convert(ctx: lightbulb.Context) -> None:
     client.start_view(view)
 
 def load(bot: lightbulb.BotApp) -> None:
-    if bot.cache.get_guild(GUILD_ID) is not None:
-        bot.add_plugin(plugin)
+    bot.add_plugin(plugin)
