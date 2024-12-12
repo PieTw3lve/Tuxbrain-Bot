@@ -93,7 +93,7 @@ class ConvertView(miru.View):
         if verify_user(ctx.user) is None:
             register_user(ctx.user)
         
-        if economy.remove_money(ctx.author.id, self.amount, False) == False:
+        if economy.remove_money(ctx.author.id, self.amount, True) == False:
             embed = hikari.Embed(description='You do not have enough money!', color=get_setting('general', 'embed_error_color'))
             return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
