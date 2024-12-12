@@ -166,6 +166,10 @@ class ConvertView(miru.View):
 @lightbulb.command('convert', 'Convert coins into Gems.')
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def convert(ctx: lightbulb.Context) -> None:
+    if ctx.guild_id != GUILD_ID:
+        embed = hikari.Embed(description='This command can only be used in the SovereignMC Discord server.', color=get_setting('general', 'embed_error_color'))
+        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+
     embed = hikari.Embed(
         title = 'SovereignMC: Coins to Gems Conversion',
         description = (
