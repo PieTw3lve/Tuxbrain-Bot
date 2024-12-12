@@ -135,7 +135,7 @@ class ContinueView(miru.View):
 
     async def switch_view(self, ctx: miru.ViewContext) -> None:
         self.stop()
-        view = HiLoView(self.ctx, self.embed, self.bet, self.deck, self.player, self.dealer, self.round, self.switch)
+        view = HiLoView(self.ctx, self.embed, self.bet, self.deck, self.player, self.dealer, self.round + 1, self.switch)
         await ctx.edit_response(embed=self.embed, components=view.build())
         self.client.start_view(view)
 
@@ -240,7 +240,7 @@ class HiLoView(miru.View):
 
     async def switch_view(self, ctx: miru.ViewContext) -> None:
         self.stop()
-        view = ContinueView(self.ctx, self.embed, self.bet, self.deck, self.player, self.dealer, self.round + 1, self.get_item_by_id(custom_id='switch').disabled)
+        view = ContinueView(self.ctx, self.embed, self.bet, self.deck, self.player, self.dealer, self.round, self.get_item_by_id(custom_id='switch').disabled)
         await ctx.edit_response(embed=self.embed, components=view.build())
         self.client.start_view(view)
 
