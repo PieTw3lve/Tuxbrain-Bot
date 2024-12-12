@@ -116,7 +116,7 @@ class Hand:
     
 class BlackJackView(miru.View):
     def __init__(self, ctx: lightbulb.Context, embed: hikari.Embed, bet: int, deck: Deck, player: Player, dealer: Player) -> None:
-        super().__init__(timeout=60.0)
+        super().__init__(timeout=300.0)
         self.ctx = ctx
         self.embed = embed
         self.author = ctx.author
@@ -348,7 +348,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
         color=get_setting('general', 'embed_color')
     )
     embed.set_image(deck.display(player, dealer, True))
-    embed.set_footer(text='You have 1 minute to choose an action!')
+    embed.set_footer(text='You have 5 minute to choose an action!')
 
     if player.hand.score() == 21 and dealer.hand.score() == 21:
         embed = hikari.Embed(

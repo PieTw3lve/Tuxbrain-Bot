@@ -67,7 +67,7 @@ class Connect4:
 
 class Connect4DuelView(miru.View):
     def __init__(self, ctx: lightbulb.Context, opponent: hikari.User, bet: int) -> None:
-        super().__init__(timeout=120.0)
+        super().__init__(timeout=300.0)
         self.ctx = ctx
         self.author = ctx.author
         self.opponent = opponent
@@ -117,7 +117,7 @@ class Connect4DuelView(miru.View):
 
 class Connect4GameView(miru.View):
     def __init__(self, ctx: lightbulb.Context, game: Connect4, embed: hikari.Embed, opponent: hikari.User, bet: int) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout=60)
         self.ctx = ctx
         self.game = game
         self.embed = embed
@@ -224,7 +224,7 @@ async def connect4(ctx: lightbulb.Context, user: hikari.User, bet: int) -> None:
     )
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.add_field(name='__Game Info__', value=f'Bet: 🪙 {bet}')
-    embed.set_footer('The duel request will timeout in 2 minutes!')
+    embed.set_footer('The duel request will timeout in 5 minutes!')
     
     view = Connect4DuelView(ctx, user, bet)
     

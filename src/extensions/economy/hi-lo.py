@@ -156,7 +156,7 @@ class ContinueView(miru.View):
 
 class HiLoView(miru.View):
     def __init__(self, ctx: lightbulb.Context, embed: hikari.Embed, bet: int, deck: Deck, player: Player, dealer: Player, round: int = 1, switch: bool = False) -> None:
-        super().__init__(timeout=60.0)
+        super().__init__(timeout=300.0)
         self.ctx = ctx
         self.embed = embed
         self.author = ctx.author
@@ -291,7 +291,7 @@ async def hi_lo(ctx: lightbulb.Context, bet: int) -> None:
         color=get_setting('general', 'embed_color')
     )
     embed.set_image(deck.display(player, dealer, True))
-    embed.set_footer(text='You have 1 minute to choose an action.')
+    embed.set_footer(text='You have 5 minute to choose an action!')
 
     view = HiLoView(ctx, embed, bet, deck, player, dealer)
 

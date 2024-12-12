@@ -32,7 +32,7 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     )
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
     embed.add_field(name='__Game Info__', value=f'Win Condition: First to `{wins}`!\nBet: 🪙 {bet}')
-    embed.set_footer('The duel request will timeout in 2 minutes!')
+    embed.set_footer('The duel request will timeout in 5 minutes!')
     
     view = DuelView(ctx, user, bet, wins)
     
@@ -95,7 +95,7 @@ async def rps(ctx: lightbulb.Context, user: hikari.User, bet: int, wins: int) ->
     
 class DuelView(miru.View):
     def __init__(self, ctx: lightbulb.Context, opponent: hikari.User, bet: int, wins: int) -> None:
-        super().__init__(timeout=120.0, autodefer=True)
+        super().__init__(timeout=300.0, autodefer=True)
         self.ctx = ctx
         self.author = ctx.author
         self.opponent = opponent

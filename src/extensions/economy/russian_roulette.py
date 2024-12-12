@@ -29,7 +29,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     embed.set_image('assets/img/fun/revolver.png')
     embed.add_field(name='__Game info__', value=f'Initial Bet: 🪙 {bet:,}\nBet Pool: 🪙 {bet:,}\nChamber Capacity: `{capacity:,}`', inline=True)
     embed.add_field(name='__Player List__', value=f'{", ".join(players)}', inline=True)
-    embed.set_footer(text=f'The game will timeout in 2 minutes!')
+    embed.set_footer(text=f'The game will timeout in 5 minutes!')
     
     view = RRLobbyView(ctx, players, capacity, bet)
     
@@ -45,9 +45,9 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     embed = hikari.Embed(title=f"It's {ctx.user.global_name} Turn!", description=f'Players: {", ".join(view.game["players"])}\nBet Pool: 🪙 {view.game["pool"]:,}\nBullets Remaining: `{view.game["capacity"]}`', color=get_setting('general', 'embed_color'))
     embed.set_image('assets/img/fun/revolver.png')
     embed.set_thumbnail(ctx.user.avatar_url if ctx.user.avatar_url != None else ctx.user.default_avatar_url)
-    embed.set_footer(text=f'You have {15.0} seconds to choose an action!')
+    embed.set_footer(text=f'You have 15 seconds to choose an action or you will automatically forfeit!')
         
-    view = RRGameView(view.game, 15.0)
+    view = RRGameView(view.game)
         
     await ctx.edit_last_response(embed, components=view.build())
 
@@ -55,7 +55,7 @@ async def russian_roulette(ctx: lightbulb.Context, capacity: int, bet: int):
     
 class RRLobbyView(miru.View):
     def __init__(self, ctx: lightbulb.Context, players: dict, capacity: int, amount: int) -> None:
-        super().__init__(timeout=120.0)
+        super().__init__(timeout=300.0)
         self.ctx = ctx
         self.game = {'author': ctx.author, 'players': players, 'capacity': capacity, 'amount': amount, 'pool': amount}
         self.gameStart = False
@@ -138,8 +138,8 @@ class RRLobbyView(miru.View):
         return True
 
 class RRGameView(miru.View):
-    def __init__(self, ctx: lightbulb.Context, game: dict, timeout: float) -> None:
-        super().__init__(timeout=timeout)
+    def __init__(self, ctx: lightbulb.Context, game: dict) -> None:
+        super().__init__(timeout=15)
         self.ctx = ctx
         self.game = game
         self.playerIter = iter(game['players'].items())
