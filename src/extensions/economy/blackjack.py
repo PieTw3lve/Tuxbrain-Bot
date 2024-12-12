@@ -348,7 +348,7 @@ async def blackjack(ctx: lightbulb.Context, bet: int) -> None:
         color=get_setting('general', 'embed_color')
     )
     embed.set_image(deck.display(player, dealer, True))
-    embed.set_footer(text='You have 5 minute to choose an action!')
+    embed.set_footer(text='You have 5 minutes to choose an action!')
 
     if player.hand.score() == 21 and dealer.hand.score() == 21:
         embed = hikari.Embed(
