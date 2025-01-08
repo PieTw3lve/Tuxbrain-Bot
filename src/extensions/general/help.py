@@ -19,16 +19,21 @@ class InfoView(miru.View):
         custom_id='info_select',
         placeholder='Choose a category',
         options=[
+            miru.SelectOption(label="What's New", emoji='📰', value='News', description='Explore our latest changes and bug fixes.'),
             miru.SelectOption(label='About', emoji='💬', value='About', description='More info about Tuxbrain Bot.'),
             miru.SelectOption(label='Invite Bot', emoji='🤖', value='Invite', description='How do I invite Tuxbrain Bot to my server?'),
             miru.SelectOption(label='Commands', emoji='📝', value='Commands', description='Explore an array of versatile and essential commands.'),
-            miru.SelectOption(label="What's New", emoji='📰', value='News', description='Explore our latest changes and bug fixes.')
         ]
     )
     async def select_menu(self, ctx: miru.ViewContext, select: miru.TextSelect) -> None:
         option = select.values[0]
           
         match option:
+            case 'News':
+                embed = hikari.Embed(color=get_setting('general', 'embed_color')) 
+                embed.title = "📰 What's New"
+                embed.description = f'Check out the latest changes and bug fixes [here](https://github.com/PieTw3lve/Tuxbrain-Bot/releases/tag/v{VERSION}).'
+                return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
             case 'About':
                 embed = hikari.Embed(color=get_setting('general', 'embed_color')) 
                 author = await ctx.client.rest.fetch_user(291001658362560513)
@@ -54,11 +59,6 @@ class InfoView(miru.View):
                 builder = await navigator.build_response_async(client=ctx.client, ephemeral=True)
                 await builder.create_initial_response(ctx.interaction)
                 return ctx.client.start_view(navigator)
-            case 'News':
-                embed = hikari.Embed(color=get_setting('general', 'embed_color')) 
-                embed.title = "📰 What's New"
-                embed.description = 'Check out the latest changes and bug fixes [here](https://github.com/PieTw3lve/Tuxbrain-Bot/releases/tag/v1.2.0).'
-                return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
     
     def generate_pages(self, commands: list[lightbulb.SlashCommand | None], items_per_page: int) -> list:
         pages = []
@@ -85,7 +85,7 @@ async def help(ctx: lightbulb.Context) -> None:
     
     embed = (hikari.Embed(title=f'{bot.display_name}  `v{VERSION}`', description='I am a simple and humble bot that can do really cool things!', color=get_setting('general', 'embed_color'))
         .set_thumbnail(bot.avatar_url if bot.avatar_url else bot.default_avatar_url)
-        .add_field('I have various cool features:', '• Profile Customization\n• Economy Integration\n• Music Player\n• Full-Fledged Out Fishing System\n• Moderation Helper\n• Fun Interactive Games\n• And Many More!', inline=True)
+        .add_field('I have various cool features:', '• Profile Customization\n• Economy Integration\n• SovereignMC Integration\n• Music Player\n• Custom Graphics\n• Moderation Helper\n• Fun Interactive Games\n• And Many More!', inline=True)
         .add_field('Want to learn more about Tuxbrain Bot?', '\n\nClick on 💬 **About** to learn more about Tuxbrain Bot!\n\n**Want to learn more about commands?**\nAll commands are located in the dropdown menu.', inline=True)
         .set_footer('Use the select menu below for more info!')
     )
