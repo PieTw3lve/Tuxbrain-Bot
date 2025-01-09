@@ -85,7 +85,7 @@ async def help(ctx: lightbulb.Context) -> None:
     
     embed = (hikari.Embed(title=f'{bot.display_name}  `v{VERSION}`', description='I am a simple and humble bot that can do really cool things!', color=get_setting('general', 'embed_color'))
         .set_thumbnail(bot.avatar_url if bot.avatar_url else bot.default_avatar_url)
-        .add_field('I have various cool features:', '• Profile Customization\n• Economy Integration\n• SovereignMC Integration\n• Music Player\n• Custom Graphics\n• Moderation Helper\n• Fun Interactive Games\n• And Many More!', inline=True)
+        .add_field('I have various cool features:', '• Moderation Integration\n• Economy Integration\n• SovereignMC Integration\n• Profile Customization\n• Music Player\n• Graphical Interfaces\n• Fun Interactive Games\n• And Many More!', inline=True)
         .add_field('Want to learn more about Tuxbrain Bot?', '\n\nClick on 💬 **About** to learn more about Tuxbrain Bot!\n\n**Want to learn more about commands?**\nAll commands are located in the dropdown menu.', inline=True)
         .set_footer('Use the select menu below for more info!')
     )
