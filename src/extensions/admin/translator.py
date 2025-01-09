@@ -54,8 +54,8 @@ async def info(ctx: lightbulb.Context) -> None:
     webhooks = await ctx.bot.rest.fetch_guild_webhooks(ctx.guild_id)
     translators = get_translators(webhooks)
     embed = hikari.Embed(title='Translator Settings', color=get_setting('general', 'embed_color'))
-    embed.add_field(name='Confidence Threshold', value=f'- Default: 0.8\n- Current: {get_setting("settings", "auto_translate_conf")}', inline=True)
-    embed.add_field(name='Minimum Relative Distance', value=f'- Default: 0.9\n- Current: {get_setting("settings", "auto_translate_min_relative_distance")}', inline=True)
+    embed.add_field(name='Confidence Threshold', value=f'- Default: 0.8\n- Current: {get_setting("general", "auto_translate_conf")}', inline=True)
+    embed.add_field(name='Minimum Relative Distance', value=f'- Default: 0.9\n- Current: {get_setting("general", "auto_translate_min_relative_distance")}', inline=True)
     embed.add_field(name='Active Channels', value=', '.join([f'<#{translator.channel_id}>' for translator in translators]) if translators else 'No active channels.', inline=False)
     await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
