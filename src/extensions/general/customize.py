@@ -1,11 +1,8 @@
 import asyncio
 import hikari
 import lightbulb
-import miru
 import sqlite3
 
-from miru.context import ViewContext
-from miru.context.view import ViewContext
 from PIL import Image
 
 from bot import get_setting

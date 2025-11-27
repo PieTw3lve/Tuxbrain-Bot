@@ -65,7 +65,6 @@ async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
 @loader.listener(hikari.StoppingEvent)
 async def disconnect(event: hikari.StoppingEvent) -> None:
     """Disconnect from Lavalink server on bot shutdown"""
-    global client
     if client:
         await client.close()
 

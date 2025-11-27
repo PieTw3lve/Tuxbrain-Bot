@@ -1,30 +1,31 @@
 import hikari
 import lightbulb
 
-from lightbulb.ext import tasks
-from lightbulb.ext.tasks import CronTrigger
 from datetime import datetime
 
 from .convert import GUILD_ID
 from utils.economy.sovereignmc import SovManager
 
-plugin = lightbulb.Plugin('SovereignMCReset')
+loader = lightbulb.Loader()
+
 database = SovManager()
 
-@tasks.task(CronTrigger('0 5 * * *'), auto_start=False)
 def check_day() -> None:
-    today = datetime.now().strftime('%A')
+    today = datetime.now().strftime("%A")
 
-    if today == 'Monday':
+    if today == "Monday":
         database.reset_database()
 
-@plugin.listener(hikari.StartedEvent)
-async def on_start(event: hikari.StartedEvent) -> None:
-    if plugin.bot.cache.get_guild(GUILD_ID) is not None:
-        check_day.start()
-        check_day()
-    else:
-        plugin.bot.remove_plugin(plugin)
+@loader.task(lightbulb.crontrigger("0 5 * * *"), auto_start=False)
+async def task():
+    check_day()
 
-def load(bot: lightbulb.BotApp) -> None:
-    bot.add_plugin(plugin)
+@loader.listener(hikari.StartedEvent)
+async def on_start(event: hikari.StartedEvent, bot: hikari.GatewayBot, client: lightbulb.Client) -> None:
+    try:
+        guild = await bot.rest.fetch_guild(GUILD_ID)
+        if guild is not None:
+            task.start()
+            check_day()
+    except:
+        await loader.remove_from_client(client)
