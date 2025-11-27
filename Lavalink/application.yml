@@ -3,7 +3,23 @@ server: # REST and WS server
   address: 127.0.0.1
 plugins:
   youtube:
+    remoteCipher:
+        url: "https://cipher.kikkia.dev/"
+        userAgent: "tuxbrain_bot" # Optional
     enabled: true # Whether this source can be used.
+    oauth:
+      # setting "enabled: true" is the bare minimum to get OAuth working.
+      enabled: false
+
+      # if you have a refresh token, you may set it below (make sure to uncomment the line to apply it).
+      # setting a valid refresh token will skip the OAuth flow entirely. See above note on how to retrieve
+      # your refreshToken.
+      # refreshToken: "paste your refresh token here if applicable"
+
+      # Set this if you don't want the OAuth flow to be triggered, if you intend to supply a refresh token later.
+      # Initialization is skipped automatically if a valid refresh token is supplied. Leave this commented if you're
+      # completing the OAuth flow for the first time/do not have a refresh token.
+      # skipInitialization: true
     allowSearch: true # Whether "ytsearch:" and "ytmsearch:" can be used.
     allowDirectVideoIds: true # Whether just video IDs can match. If false, only complete URLs will be loaded.
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
@@ -29,7 +45,7 @@ plugins:
 lavalink:
   plugins:
     # Replace VERSION with the current version as shown by the Releases tab or a long commit hash for snapshots.
-    - dependency: 'dev.lavalink.youtube:youtube-plugin:1.11.3'
+    - dependency: 'dev.lavalink.youtube:youtube-plugin:1.15.0'
       snapshot: false # Set to true if you want to use a snapshot version.
   pluginsDir: './plugins'
   server:

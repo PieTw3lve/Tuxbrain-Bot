@@ -5,7 +5,7 @@ from bot import get_setting
 
 class Inventory():
     def __init__(self, user: hikari.Member) -> None:
-        self.db = sqlite3.connect(get_setting('general', 'database_data_dir'))
+        self.db = sqlite3.connect(get_setting("general", "database_data_dir"))
         self.cursor = self.db.cursor()
         self.user = user
     
@@ -28,7 +28,7 @@ class Inventory():
         items = self.cursor.fetchall()
 
         # Define the types to check for
-        typeList = ['banner', 'base', 'nametag']
+        typeList = ["banner", "base", "nametag"]
         
         # Initialize a dictionary to keep track of the types found
         typeFound = {t: False for t in typeList}
@@ -38,39 +38,39 @@ class Inventory():
             if item[1] in typeList:
                 typeFound[item[1]] = True
         
-        # Create a list of tuples with missing types added as 'default'
+        # Create a list of tuples with missing types added as "default"
         result = [(item[0], item[1]) for item in items]
-        result.extend([('default', t) for t in typeList if not typeFound[t]])
+        result.extend([("default", t) for t in typeList if not typeFound[t]])
         
         # Convert the result list to the desired format
-        results = tuple(f'{result[i][0]}-{result[i][1]}' for i in range(3))
+        results = tuple(f"{result[i][0]}-{result[i][1]}" for i in range(3))
         return results
     
     def get_pages(self, items: list, maxItems: int):
         pages = []
         for i in range(0, len(items), maxItems):
-            embed = hikari.Embed(title="Welcome to the Profile Shop!", description='This is where you can purchase a wide range of cosmetic items to customize and enhance your profile card.', color=get_setting('general', 'embed_color'))
-            embed.set_thumbnail('assets/img/general/profile/palette.png')
+            embed = hikari.Embed(title="Welcome to the Profile Shop!", description="This is where you can purchase a wide range of cosmetic items to customize and enhance your profile card.", color=get_setting("general", "embed_color"))
+            embed.set_thumbnail("assets/img/general/profile/palette.png")
             end = i + maxItems
             for option in items[i:end]:
                 currency, name, price = option
-                strName = str(name).replace('_', ' ').title().split('-')
-                strCurrency = '🪙' if currency == 'coin' else '🎟️'
-                owned = '\✔️' if self.get_profile_item(str(name).split('-')) else '\❌'
+                strName = str(name).replace("_", " ").title().split("-")
+                strCurrency = "🪙" if currency == "coin" else "🎟️"
+                owned = "✔️" if self.get_profile_item(str(name).split("-")) else "❌"
                 if len(embed.fields) == 0:
-                    embed.add_field(name='Profile Item', value=f'{strName[0]} ({strName[1].lower()})', inline=True)
-                    embed.add_field(name='Price', value=f'{strCurrency} {price:,}', inline=True)
-                    embed.add_field(name='Purchased', value=f'{owned}', inline=True)
+                    embed.add_field(name="Profile Item", value=f"{strName[0]} ({strName[1].lower()})", inline=True)
+                    embed.add_field(name="Price", value=f"{strCurrency} {price:,}", inline=True)
+                    embed.add_field(name="Purchased", value=f"{owned}", inline=True)
                 else:
-                    embed.edit_field(0, embed.fields[0].name, f'{embed.fields[0].value}\n{strName[0]} ({strName[1].lower()})')
-                    embed.edit_field(1, embed.fields[1].name, f'{embed.fields[1].value}\n{strCurrency} {price:,}')
-                    embed.edit_field(2, embed.fields[2].name, f'{embed.fields[2].value}\n{owned}')
+                    embed.edit_field(0, embed.fields[0].name, f"{embed.fields[0].value}\n{strName[0]} ({strName[1].lower()})")
+                    embed.edit_field(1, embed.fields[1].name, f"{embed.fields[1].value}\n{strCurrency} {price:,}")
+                    embed.edit_field(2, embed.fields[2].name, f"{embed.fields[2].value}\n{owned}")
             pages.append(embed)
         return pages
     
     def add_item(self, item: tuple):
         try:
-            self.cursor.execute('INSERT INTO profile (user_id, name, type, active) VALUES (?, ?, ?, ?)', item)
+            self.cursor.execute("INSERT INTO profile (user_id, name, type, active) VALUES (?, ?, ?, ?)", item)
             self.db.commit()
         except sqlite3.Error as e:
             self.db.rollback()
@@ -78,7 +78,7 @@ class Inventory():
     
     def remove_item(self, item: tuple):
         try:
-            self.cursor.execute('DELETE FROM profile WHERE user_id=? AND name=? AND type=?', item)
+            self.cursor.execute("DELETE FROM profile WHERE user_id=? AND name=? AND type=?", item)
             self.db.commit()
         except sqlite3.Error as e:
             self.db.rollback()

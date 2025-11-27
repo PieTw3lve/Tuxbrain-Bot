@@ -1,36 +1,33 @@
 import hikari
 import lightbulb
 
-from typing import Optional
 from PIL import Image
 
 from bot import get_setting
 from utils.profile.inventory import Inventory
 from utils.profile.card import Card
 
-plugin = lightbulb.Plugin('Profile')
+loader = lightbulb.Loader()
 
-@plugin.command
-@lightbulb.option('user', 'The user to get information about.', hikari.User, required=False)
-@lightbulb.command('profile', 'Retrieve information about yourself or a Discord member.', pass_options=True)
-@lightbulb.implements(lightbulb.SlashCommand)
-async def profile(ctx: lightbulb.Context, user: Optional[hikari.Member] = None) -> None:
-    user = user or ctx.member
+@loader.command
+class Profile(lightbulb.SlashCommand, name="profile", description="Retrieve information about yourself or a Discord member."):
+    user: hikari.User = lightbulb.user("user", "The user to get information about.", default=None)
+
+    @lightbulb.invoke
+    async def invoke(self, ctx: lightbulb.Context) -> None:
+        user = self.user or ctx.member
     
-    if not user:
-        embed = hikari.Embed(description='That user is not in the server.', color=get_setting('general', 'embed_error_color'))
-        await ctx.respond(embed)
-        return
-    
-    inventory = Inventory(user)
-    profile = Card(user, ctx)
+        if not user:
+            embed = hikari.Embed(description="That user is not in the server.", color=get_setting("general", "embed_error_color"))
+            await ctx.respond(embed)
+            return
 
-    bg, card, nametag = inventory.get_active_customs()
-    bg = Image.open(f'assets/img/general/profile/banner/{bg}.png').convert('RGBA')
-    card = Image.open(f'assets/img/general/profile/base/{card}.png').convert('RGBA')
-    nametag = Image.open(f'assets/img/general/profile/nametag/{nametag}.png').convert('RGBA')
+        inventory = Inventory(user)
+        profile = Card(user, ctx)
 
-    await ctx.respond(attachment=await profile.draw_card(bg, card, nametag))
+        bg, card, nametag = inventory.get_active_customs()
+        bg = Image.open(f"assets/img/general/profile/banner/{bg}.png").convert("RGBA")
+        card = Image.open(f"assets/img/general/profile/base/{card}.png").convert("RGBA")
+        nametag = Image.open(f"assets/img/general/profile/nametag/{nametag}.png").convert("RGBA")
 
-def load(bot):
-    bot.add_plugin(plugin)
+        await ctx.respond(attachment=await profile.draw_card(bg, card, nametag))
