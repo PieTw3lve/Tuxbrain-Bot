@@ -62,7 +62,7 @@ async def item_autocomplete(ctx: lightbulb.AutocompleteContext[str]):
         await ctx.respond([hikari.impl.AutocompleteChoiceBuilder(str(item[1]).replace("_", " ").title(), f"{item[1]}-{item[2]}") for item in items][:10])
 
 @loader.command
-class Customize(lightbulb.SlashCommand, name="customize", description="Customize your profile!"):
+class CustomizeCommand(lightbulb.SlashCommand, name="customize", description="Customize your profile!"):
     banner: str = lightbulb.string("banner", "The banner is the top section of the profile and often serves as a visually appealing header.", autocomplete=item_autocomplete)
     base: str = lightbulb.string("base", "The base section is where users make fundamental changes to their profile.", autocomplete=item_autocomplete)
     nametag: str = lightbulb.string("nametag", "The nametag is a label that users can customize to reflect their individual identity.", autocomplete=item_autocomplete)

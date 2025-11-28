@@ -10,7 +10,7 @@ group = lightbulb.Group(name="tpass", description="Administer and manage user's 
 economy = EconomyManager()
 
 @group.register
-class Set(lightbulb.SlashCommand, name="set", description="Set a guild member's passes to a specific amount."):
+class SetCommand(lightbulb.SlashCommand, name="set", description="Set a guild member's passes to a specific amount."):
     user: hikari.User = lightbulb.user("user", "The user's passes that will change.")
     amount: int = lightbulb.integer("amount", "The amount that will be set to.", min_value=0, max_value=None)
 
@@ -27,7 +27,7 @@ class Set(lightbulb.SlashCommand, name="set", description="Set a guild member's 
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 @group.register
-class Add(lightbulb.SlashCommand, name="add", description="Add passes to a guild member's wallet."):
+class AddCommand(lightbulb.SlashCommand, name="add", description="Add passes to a guild member's wallet."):
     user: hikari.User = lightbulb.user("user", "The user's wallet that will change.")
     amount: int = lightbulb.integer("amount", "The amount that will be added to.", min_value=1, max_value=None)
 
@@ -44,7 +44,7 @@ class Add(lightbulb.SlashCommand, name="add", description="Add passes to a guild
             await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
 @group.register
-class Remove(lightbulb.SlashCommand, name="remove", description="Remove passes from a guild member's wallet."):
+class RemoveCommand(lightbulb.SlashCommand, name="remove", description="Remove passes from a guild member's wallet."):
     user: hikari.User = lightbulb.user("user", "The user's passes that will change.")
     amount: int = lightbulb.integer("amount", "The amount that will be removed from.", min_value=1, max_value=None)
 

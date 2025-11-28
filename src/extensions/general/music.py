@@ -130,7 +130,7 @@ class PlayerManager:
 ## Join Command ##
 
 @group.register
-class Join(lightbulb.SlashCommand, name="join", description="Joins the voice channel you are in."):
+class JoinCommand(lightbulb.SlashCommand, name="join", description="Joins the voice channel you are in."):
     @lightbulb.invoke
     async def invoke(self, ctx: lightbulb.Context, bot: hikari.GatewayBot) -> None:
         """
@@ -151,7 +151,7 @@ class Join(lightbulb.SlashCommand, name="join", description="Joins the voice cha
 ## Leave Command ##
 
 @group.register
-class Leave(lightbulb.SlashCommand, name="leave", description="Leaves voice channel and clear queue."):
+class LeaveCommand(lightbulb.SlashCommand, name="leave", description="Leaves voice channel and clear queue."):
     @lightbulb.invoke
     async def invoke(self, ctx: lightbulb.Context, bot: hikari.GatewayBot) -> None:
         """Leaves the voice channel the bot is in, clearing the queue."""
@@ -260,7 +260,7 @@ async def query_autocomplete(ctx: lightbulb.AutocompleteContext[str]):
     await ctx.respond(resultList)
 
 @group.register
-class Play(lightbulb.SlashCommand, name="play", description="Searches query on youtube, or adds the URL to the queue."):
+class PlayCommand(lightbulb.SlashCommand, name="play", description="Searches query on youtube, or adds the URL to the queue."):
     query: str = lightbulb.string("query", "Youtube URL, Twitch URL, SoundCloud URL, Bandcamp URL, Vimeo URL, or search query.", autocomplete=query_autocomplete)
     
     @lightbulb.invoke
@@ -317,7 +317,7 @@ class Play(lightbulb.SlashCommand, name="play", description="Searches query on y
 ## Queue Command ##
 
 @group.register
-class Queue(lightbulb.SlashCommand, name="queue", description="Get a list of the queue."):
+class QueueCommand(lightbulb.SlashCommand, name="queue", description="Get a list of the queue."):
     @lightbulb.invoke
     async def invoke(self, ctx: lightbulb.Context) -> None:
         playerManager = PlayerManager(client.player_manager.get(ctx.guild_id))
@@ -348,7 +348,7 @@ class Queue(lightbulb.SlashCommand, name="queue", description="Get a list of the
 ## Controller Command ##
 
 @group.register
-class Controller(lightbulb.SlashCommand, name="controller", description="Manage music player options."):
+class ControllerCommand(lightbulb.SlashCommand, name="controller", description="Manage music player options."):
     option: str = lightbulb.string("option", "List of modifiers", choices=lightbulb.utils.to_choices(["Pause", "Skip", "Shuffle", "Loop", "Clear"]))
 
     @lightbulb.invoke

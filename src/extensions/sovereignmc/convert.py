@@ -182,7 +182,7 @@ class ConvertMenu(lightbulb.components.Menu):
         return self.author.id == ctx.user.id
 
 @group.register
-class Convert(lightbulb.SlashCommand, name="convert", description="Convert coins into Gems."):
+class ConvertCommand(lightbulb.SlashCommand, name="convert", description="Convert coins into Gems."):
 
     @lightbulb.invoke
     async def invoke(self, ctx: lightbulb.Context) -> None:

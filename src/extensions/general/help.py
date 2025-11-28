@@ -50,7 +50,7 @@ class InfoMenu(lightbulb.components.Menu):
         return True
 
 @loader.command
-class Ping(lightbulb.SlashCommand, name="help", description="Access additional information and commands."):
+class PingCommand(lightbulb.SlashCommand, name="help", description="Access additional information and commands."):
 
     @lightbulb.invoke
     async def invoke(self, ctx: lightbulb.Context, bot: hikari.GatewayBot) -> None:

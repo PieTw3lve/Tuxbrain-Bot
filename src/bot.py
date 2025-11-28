@@ -122,7 +122,7 @@ if __name__ == "__main__":
     bot.run(
         status=hikari.Status.DO_NOT_DISTURB, 
         activity=hikari.Activity(
-            name="Rushsite Season 4", 
+            name="🎮 sov.tuxbrain.org",
             type=hikari.ActivityType.STREAMING, 
             url="https://www.twitch.tv/ryqb"
         ),

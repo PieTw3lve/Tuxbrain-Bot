@@ -10,7 +10,7 @@ from utils.profile.card import Card
 loader = lightbulb.Loader()
 
 @loader.command
-class Profile(lightbulb.SlashCommand, name="profile", description="Retrieve information about yourself or a Discord member."):
+class ProfileCommand(lightbulb.SlashCommand, name="profile", description="Retrieve information about yourself or a Discord member."):
     user: hikari.User = lightbulb.user("user", "The user to get information about.", default=None)
 
     @lightbulb.invoke

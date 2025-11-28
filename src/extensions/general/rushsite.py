@@ -152,7 +152,7 @@ async def on_starting(_: hikari.StartingEvent) -> None:
 ## Overview Command ##
 
 @group.register
-class Overview(lightbulb.SlashCommand, name="overview", description="Get an overview of a specific season."):
+class OverviewCommand(lightbulb.SlashCommand, name="overview", description="Get an overview of a specific season."):
     season: str = lightbulb.string("season", "The completed season.", choices=lightbulb.utils.to_choices(["Season 1", "Season 2", "Season 3"]))
     
     @lightbulb.invoke
@@ -166,7 +166,7 @@ class Overview(lightbulb.SlashCommand, name="overview", description="Get an over
 ## SignUp Command ##
 
 @group.register
-class SignUp(lightbulb.SlashCommand, name="info", description="Get info for the latest Rushsite tournament!"):
+class SignUpCommand(lightbulb.SlashCommand, name="info", description="Get info for the latest Rushsite tournament!"):
     
     @lightbulb.invoke
     async def invoke(self, ctx: lightbulb.Context) -> None:
@@ -190,7 +190,7 @@ async def name_autocomplete(ctx: lightbulb.AutocompleteContext[str]):
     await ctx.respond(filtered_matches[:10])
 
 @group.register
-class Search(lightbulb.SlashCommand, name="search", description="Get info about this player or team."):
+class SearchCommand(lightbulb.SlashCommand, name="search", description="Get info about this player or team."):
     name: str = lightbulb.string("name", "The name of the player or team.", autocomplete=name_autocomplete)
     
     @lightbulb.invoke
@@ -289,7 +289,7 @@ class Search(lightbulb.SlashCommand, name="search", description="Get info about 
 ## Rank Command ##
 
 @group.register
-class Rank(lightbulb.SlashCommand, name="rank", description="Get the top 10 players based on chosen stat."):
+class RankCommand(lightbulb.SlashCommand, name="rank", description="Get the top 10 players based on chosen stat."):
     stat: str = lightbulb.string("stat", "The name of the stat.", choices=lightbulb.utils.to_choices(["Wins","Draws","Losses","Kills","Assists","Deaths","MVPs","Score","Damage","Utility Damage","Enemies Flashed","Rounds Played","Headshot Kills","Tournament Victories"]))
 
     @lightbulb.invoke
