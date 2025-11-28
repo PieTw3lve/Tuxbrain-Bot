@@ -4,70 +4,63 @@ import lightbulb
 from bot import get_setting, verify_user, register_user
 from utils.economy.manager import EconomyManager
 
-plugin = lightbulb.Plugin('Ticket')
+loader = lightbulb.Loader()
+group = lightbulb.Group(name="tpass", description="Administer and manage user's Tux passes.", default_member_permissions=hikari.Permissions.ADMINISTRATOR)
+
 economy = EconomyManager()
 
-@plugin.command
-@lightbulb.app_command_permissions(dm_enabled=False)
-@lightbulb.add_checks(lightbulb.owner_only)
-@lightbulb.command('ticket', "Administer and manage user's tickets.")
-@lightbulb.implements(lightbulb.SlashCommandGroup)
-async def ticket(ctx: lightbulb.Context) -> None:
-    return
+@group.register
+class Set(lightbulb.SlashCommand, name="set", description="Set a guild member's passes to a specific amount."):
+    user: hikari.User = lightbulb.user("user", "The user's passes that will change.")
+    amount: int = lightbulb.integer("amount", "The amount that will be set to.", min_value=0, max_value=None)
 
-@ticket.child
-@lightbulb.add_checks(lightbulb.owner_only)
-@lightbulb.option('amount', 'The amount that will be set to.', type=int, min_value=0, max_value=None, required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('set', "Set a server member's wallet to a specific amount.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def set_ticket(ctx: lightbulb.Context, user: hikari.User, amount: int):
-    if user.is_bot:
-        embed = hikari.Embed(description='You are not allowed to set tickets to this user!', color=get_setting('general', 'embed_error_color'))
-        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None:
-        register_user(user)
+    @lightbulb.invoke
+    async def invoke(self, ctx: lightbulb.Context) -> None:
+        if self.user.is_bot:
+            embed = hikari.Embed(description="You are not allowed to set tickets to this user!", color=get_setting("general", "embed_error_color"))
+            return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        elif verify_user(self.user) == None:
+            register_user(self.user)
 
-    economy.set_ticket(user.id, amount)
-    embed = (hikari.Embed(description=f"You set {user.global_name}'s ticket amount to 🎟️ {amount:,}.", color=get_setting('general', 'embed_color')))
-    await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-
-@ticket.child
-@lightbulb.add_checks(lightbulb.owner_only)
-@lightbulb.option('amount', 'The amount that will be added to.', type=int, min_value=1, max_value=None, required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('add', "Add tickets to a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def add(ctx: lightbulb.Context, user: hikari.User, amount: int):
-    if user.is_bot:
-        embed = hikari.Embed(description='You are not allowed to add tickets to this user!', color=get_setting('general', 'embed_error_color'))
-        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None:
-        register_user(user)
-    
-    if economy.add_ticket(user.id, amount):
-        embed = (hikari.Embed(description=f"You added {amount:,} 🎟️ to {user.global_name}'s wallet.", color=get_setting('general', 'embed_color')))
+        economy.set_ticket(self.user.id, self.amount)
+        embed = (hikari.Embed(description=f"You set {self.user.global_name}'s ticket amount to 🎟️ {self.amount:,}.", color=get_setting("general", "embed_color")))
         await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
 
-@ticket.child
-@lightbulb.add_checks(lightbulb.owner_only)
-@lightbulb.option('amount', 'The amount that will be removed from.', type=int, min_value=1, max_value=None, required=True)
-@lightbulb.option('user', "The user's wallet that will change.", type=hikari.User, required=True)
-@lightbulb.command('remove', "Remove tickets from a server member's wallet.", pass_options=True)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def remove(ctx: lightbulb.Context, user: hikari.User, amount: int, update: bool):
-    if user.is_bot:
-        embed = hikari.Embed(description='You are not allowed to take money from this user!', color=get_setting('general', 'embed_error_color'))
-        return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    elif verify_user(user) == None:
-        register_user(user)
-    
-    if economy.remove_ticket(user.id, amount):
-        embed = (hikari.Embed(description=f"You took {amount:,} 🎟️ from {user.global_name}'s wallet.", color=get_setting('general', 'embed_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
-    else:
-        embed = (hikari.Embed(description=f"That amount exceeds {user.global_name}'s wallet!", color=get_setting('general', 'embed_error_color')))
-        await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+@group.register
+class Add(lightbulb.SlashCommand, name="add", description="Add passes to a guild member's wallet."):
+    user: hikari.User = lightbulb.user("user", "The user's wallet that will change.")
+    amount: int = lightbulb.integer("amount", "The amount that will be added to.", min_value=1, max_value=None)
 
-def load(bot):
-    bot.add_plugin(plugin)
+    @lightbulb.invoke
+    async def invoke(self, ctx: lightbulb.Context) -> None:
+        if self.user.is_bot:
+            embed = hikari.Embed(description="You are not allowed to add passes to this user!", color=get_setting("general", "embed_error_color"))
+            return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        elif verify_user(self.user) == None:
+            register_user(self.user)
+        
+        if economy.add_ticket(self.user.id, self.amount):
+            embed = (hikari.Embed(description=f"You added {self.amount:,} 🎟️ to {self.user.global_name}'s wallet.", color=get_setting("general", "embed_color")))
+            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+
+@group.register
+class Remove(lightbulb.SlashCommand, name="remove", description="Remove passes from a guild member's wallet."):
+    user: hikari.User = lightbulb.user("user", "The user's passes that will change.")
+    amount: int = lightbulb.integer("amount", "The amount that will be removed from.", min_value=1, max_value=None)
+
+    @lightbulb.invoke
+    async def invoke(self, ctx: lightbulb.Context) -> None:
+        if self.user.is_bot:
+            embed = hikari.Embed(description="You are not allowed to remove passes to this user!", color=get_setting("general", "embed_error_color"))
+            return await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        elif verify_user(self.user) == None:
+            register_user(self.user)
+        
+        if economy.remove_ticket(self.user.id, self.amount):
+            embed = (hikari.Embed(description=f"You removed {self.amount:,} 🎟️ from {self.user.global_name}'s wallet.", color=get_setting("general", "embed_color")))
+            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+        else:
+            embed = (hikari.Embed(description=f"That amount exceeds {self.user.global_name}'s wallet!", color=get_setting("general", "embed_error_color")))
+            await ctx.respond(embed, flags=hikari.MessageFlag.EPHEMERAL)
+
+loader.command(group, guilds=get_setting("bot", "test_guild_id"))

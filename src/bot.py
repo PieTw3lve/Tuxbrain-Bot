@@ -1,3 +1,4 @@
+import asyncio
 import os
 import json
 import io
@@ -115,6 +116,7 @@ if __name__ == "__main__":
         install("uvloop")
         import uvloop
         uvloop.install()
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
     # Release the bot!
     bot.run(

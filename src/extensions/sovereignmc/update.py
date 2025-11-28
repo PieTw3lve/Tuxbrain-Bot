@@ -20,8 +20,8 @@ def check_day() -> None:
 async def task():
     check_day()
 
-@loader.listener(hikari.StartedEvent)
-async def on_start(event: hikari.StartedEvent, bot: hikari.GatewayBot, client: lightbulb.Client) -> None:
+@loader.listener(hikari.StartingEvent)
+async def on_start(event: hikari.StartingEvent, bot: hikari.GatewayBot, client: lightbulb.Client) -> None:
     try:
         guild = await bot.rest.fetch_guild(GUILD_ID)
         if guild is not None:

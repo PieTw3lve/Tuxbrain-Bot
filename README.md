@@ -7,25 +7,21 @@
 	<a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-yellow.svg?style=for-the-badge" alt="License"></a>
 </p>
 
-Tuxbrain Bot is an open source, multi-use Discord bot written in hikari.py, a new static-typed Python API wrapper. The bot is currently still in development, so there may be some bugs. Although it was designed for Tuxbrain.org servers, the bot can be hosted and used on any server.
+Tuxbrain Bot is an open source, multi-utility Discord bot written in Python using hikari.py, a new static-typed Python API wrapper. Although it was designed for Tuxbrain.org servers, the bot can be hosted and used on any server.
 
 ### Features
 
--   Profile Customization: `profile`, `set`, `shop`!
--   Economy Integration: `leaderboard`, `daily`, `pay`, and **6** more!
+-   Profile Customization: `profile`, `customize`, `shop`!
+-   Economy Integration: `leaderboard`, `daily`, `fish`, `blackjack`, and `hi-lo`!
 -   Music Player: `play`, `controller`, `join`, and `leave`!
--   Interactive Games: `fish`, `russian-roulette`, `rps`, `connect4`, `blackjack`, and `hangman`!
--   Tuxbrain Rushsite Integration: `register`, `search`, `top`, and `strike`!
--   Moderation: `broadcast`, `purge`, `translator` and **6** more!
+-   Interactive Games: `russian-roulette`, `rps`, `connect4`, and `hangman`!
+-   Tuxbrain Integration: `register`, `search`, `top`, and `strike`!
+-   Moderation: `broadcast`, `purge`, and `translator`!
 -   Fun/Useless Commands: `random`, `fact`, and `wotd`!
 
 ### Installation
 
-1. Clone the repository to your local machine.
-
-```
-git clone https://github.com/PieTw3lve/Tuxbrain-Bot.git
-```
+1. Download the [latest version](https://github.com/PieTw3lve/Tuxbrain-Bot/releases) from releases.
 
 2. Install the required dependencies.
 
@@ -33,7 +29,7 @@ git clone https://github.com/PieTw3lve/Tuxbrain-Bot.git
 pip install -r requirements.txt --no-dependencies
 ```
 
-3. Set up and operate a [Lavalink](https://github.com/lavalink-devs/Lavalink) server to enable music playback.
+3. Set up and operate a [Lavalink](https://github.com/lavalink-devs/Lavalink) server to enable music playback (optional).
 
 ```
 cd Lavalink
@@ -59,7 +55,6 @@ python3.11 -O bot.py
 
 -   Hikari: https://github.com/hikari-py/hikari
 -   Lightbulb: https://github.com/tandemdude/hikari-lightbulb
--   Miru: https://github.com/HyperGH/hikari-miru
 -   Lavalink: https://github.com/Devoxin/Lavalink.py
 -   Deep Translator: https://github.com/nidhaloff/deep-translator#chatgpt-translator
 -   Lingua: https://github.com/pemistahl/lingua-py

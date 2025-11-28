@@ -22,13 +22,13 @@ economy = EconomyManager()
 database = SovManager()
 
 @loader.listener(hikari.StartedEvent)
-async def on_start(event: hikari.StartedEvent, bot: hikari.GatewayBot, client: lightbulb.Client) -> None:
+async def on_start(event: hikari.StartedEvent, bot: hikari.GatewayBot) -> None:
     try:
         guild = await bot.rest.fetch_guild(GUILD_ID)
         if guild is not None:
-            pass
+            loader.command(group)
     except hikari.NotFoundError:
-        await loader.remove_from_client(client)
+        await loader.command(group, guilds=[])
 
 class CoinModal(lightbulb.components.Modal):
     def __init__(self) -> None:
@@ -211,5 +211,3 @@ class Convert(lightbulb.SlashCommand, name="convert", description="Convert coins
             await menu.attach(ctx.client, timeout=300)
         except asyncio.TimeoutError:
             await ctx.edit_response(resp, components=[])
-
-loader.command(group)
